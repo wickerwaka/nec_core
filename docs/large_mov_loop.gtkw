@@ -1,0 +1,40 @@
+[*]
+[*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
+[*] Mon Jan 22 04:48:40 2024
+[*]
+[dumpfile] "../m92_testbed/docs/large_mov_loop.vcd"
+[dumpfile_mtime] "Sun Jan 21 21:52:58 2024"
+[dumpfile_size] 58877
+[savefile] "/Users/akawaka/Source/m92_testbed/docs/large_mov_loop.gtkw"
+[timestart] 19065
+[size] 1664 933
+[pos] -1 -1
+*-6.000000 19312 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+[sst_width] 253
+[signals_width] 79
+[sst_expanded] 1
+[sst_vpaned_height] 275
+@c00022
+#{libsigrok4DSL.A[7:0]} libsigrok4DSL.A7 libsigrok4DSL.A6 libsigrok4DSL.A5 libsigrok4DSL.A4 libsigrok4DSL.A3 libsigrok4DSL.A2 libsigrok4DSL.A1 libsigrok4DSL.A0
+@28
+libsigrok4DSL.A0
+libsigrok4DSL.A1
+libsigrok4DSL.A2
+libsigrok4DSL.A3
+libsigrok4DSL.A4
+libsigrok4DSL.A5
+libsigrok4DSL.A6
+libsigrok4DSL.A7
+@1401200
+-group_end
+@28
+libsigrok4DSL.CLK
+libsigrok4DSL.BUSST0
+libsigrok4DSL.BUSST1
+libsigrok4DSL.M/IO
+libsigrok4DSL.R/W
+libsigrok4DSL./BCYST
+@29
+libsigrok4DSL./DSTB
+[pattern_trace] 1
+[pattern_trace] 0
