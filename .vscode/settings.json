@@ -1,0 +1,13 @@
+{
+    "verilog.languageServer.hdlChecker.enabled": false,
+    "verilog.linting.linter": "verilator",
+    "verilog.linting.verilator.includePath": [
+        "hdl/"
+    ],
+    "verilog.linting.verilator.arguments": "-DLINTING",
+    "files.associations": {
+        "*.mra": "xml",
+        "ostream": "cpp",
+        "fstream": "cpp"
+    }
+}
