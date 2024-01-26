@@ -1,0 +1,52 @@
+b0000001W_11_GP0_GP1:
+  name: ADD
+  alu: ADD
+  src: GP1
+  dst: GP0
+  flags: &basic_alu_flags
+    AC: x
+    CY: x
+    V: x
+    P: x
+    S: x
+    Z: x
+b0000000W_MD_GP0_MEM:
+  name: ADD
+  alu: ADD
+  src: GP0
+  dst: MEM
+  flags: *basic_alu_flags
+b0000001W_MD_GP0_MEM:
+  name: ADD
+  alu: ADD
+  src: MEM
+  dst: GP0
+  flags: *basic_alu_flags
+b100000sW_11_000_GP0:
+  name: ADD
+  alu: ADD
+  src: IMM
+  dst: GP0
+  flags: *basic_alu_flags
+b100000sW_MD_000_MEM:
+  name: ADD
+  alu: ADD
+  dst: MEM
+  src: IMM
+  flags: *basic_alu_flags
+b0000010W:
+  name: ADD
+  alu: ADD
+  dst: ACC
+  src: IMM
+  flags: *basic_alu_flags
+
+b00001111_00100000:
+  name: ADD4S
+  flags:
+    AC: U
+    CY: x
+    V: U
+    P: U
+    S: U
+    Z: x
