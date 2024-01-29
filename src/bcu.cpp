@@ -1,9 +1,9 @@
-#include "nec_core.h"
+#include "bus_control_unit.h"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 
 VerilatedContext *contextp;
-nec_core *top;
+bus_control_unit *top;
 VerilatedVcdC *tfp;
 
 void tick(int count = 1)
@@ -36,12 +36,16 @@ int main(int argc, char **argv)
 {
     contextp = new VerilatedContext;
     contextp->commandArgs(argc, argv);
-    top = new nec_core{contextp};
+    top = new bus_control_unit{contextp};
 
     Verilated::traceEverOn(true);
     tfp = new VerilatedVcdC;
     top->trace(tfp, 99);
-    tfp->open("v33.vcd");
+    tfp->open("bus_control.vcd");
+
+    top->reg_ps = 0xffff;
+    top->reg_ds0 = 0x1000;
+    top->ipq_head = 0x0000;
 
     top->ce_1 = 0;
     top->ce_2 = 1;
@@ -49,9 +53,6 @@ int main(int argc, char **argv)
     top->reset = 1;
     tick(10);
     top->reset = 0;
-
-    top->reg_ps = 0xffff;
-    top->reg_ds0 = 0x1000;
 
     tick_ce();
     tick_ce();
@@ -74,9 +75,7 @@ int main(int argc, char **argv)
 
     tick(10);
     tick_ce();
-    top->ipq_consume = 3;
-    tick();
-    top->ipq_consume = 0;
+    top->ipq_head += 3;
     tick(20);
 
     top->final();

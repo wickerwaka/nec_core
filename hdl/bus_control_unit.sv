@@ -49,11 +49,11 @@ module bus_control_unit(
 
     // instruction queue
     // inputs only read on ce1
-    input       [15:0]  pfp_new,
     input               pfp_set,
-    input       [3:0]   ipq_consume,
-    output  reg [3:0]   ipq_used,
+    input       [15:0]  ipq_head,
     output  reg [7:0]   ipq[8],
+    output      [3:0]   ipq_len,
+
 
     // Data pointer read/write
     input       [15:0]  dp_addr,
@@ -100,6 +100,7 @@ end
 
 reg [15:0] reg_pfp;
 reg discard_ipq_fetch = 0;
+assign ipq_len = reg_pfp[3:0] - ipq_head[3:0];
 
 assign dp_ready = (dp_ack == dp_req);
 reg dp_ack;
@@ -119,109 +120,97 @@ always_ff @(posedge clk) begin
 
         implementation_fault <= 0;
 
-        reg_pfp <= 16'd0;
-        ipq_used <= 4'd0;
+        reg_pfp <= ipq_head;
         discard_ipq_fetch <= 0;
 
         dp_ack <= 0;
         dp_din <= 16'hffff;
 
         second_byte <= 0;
-    end else if (ce_1) begin
-        new_ipq_used = ipq_used - ipq_consume;
+    end else if (ce_1 | ce_2) begin
+        new_ipq_used = ipq_len;
         if (pfp_set) begin
-            reg_pfp <= pfp_new;
+            reg_pfp <= ipq_head;
             new_ipq_used = 0;
             if (cycle_type == IPQ_FETCH && t_state != T_IDLE) discard_ipq_fetch <= 1;
-        end else if (ipq_consume > ipq_used) begin
-            implementation_fault <= 1;
-        end else if (ipq_consume > 0) begin
-            for( int x = 0; x < 8; x++) begin
-                ipq[x] <= ipq[x + int'(ipq_consume)];
-            end
-        end
+        end        
 
-        case(t_state)
-        T_IDLE: begin
-            n_dstb <= 1; // clear data strobe
-            if (dp_req != dp_ack) begin
-                t_state <= T_1;
-                if (dp_io) begin
-                    addr <= {8'd0, second_byte ? (dp_addr + 16'd1) : dp_addr};
-                    cycle_type <= dp_write ? IO_WRITE : IO_READ;
-                end else begin
-                    addr <= physical_addr(dp_sreg, second_byte ? (dp_addr + 16'd1) : dp_addr);
-                    cycle_type <= dp_write ? MEM_WRITE : MEM_READ;
+        if (ce_1) begin
+            case(t_state)
+            T_IDLE: begin
+                n_dstb <= 1; // clear data strobe
+                if (dp_req != dp_ack) begin
+                    t_state <= T_1;
+                    if (dp_io) begin
+                        addr <= {8'd0, second_byte ? (dp_addr + 16'd1) : dp_addr};
+                        cycle_type <= dp_write ? IO_WRITE : IO_READ;
+                    end else begin
+                        addr <= physical_addr(dp_sreg, second_byte ? (dp_addr + 16'd1) : dp_addr);
+                        cycle_type <= dp_write ? MEM_WRITE : MEM_READ;
+                    end
+                    n_ube <= second_byte | (~dp_wide & ~dp_addr[0]);
+                end else if (new_ipq_used < 7) begin
+                    t_state <= T_1;
+                    cycle_type <= IPQ_FETCH;
+                    addr <= physical_addr(PS, reg_pfp);
+                    n_ube <= 0; // always
                 end
-                n_ube <= second_byte | (~dp_wide & ~dp_addr[0]);
-            end else if (new_ipq_used < 7) begin
-                t_state <= T_1;
-                cycle_type <= IPQ_FETCH;
-                addr <= physical_addr(PS, reg_pfp);
-                n_ube <= 0; // always
             end
-        end
-        T_1: t_state <= T_2;
-        endcase
-
-        ipq_used <= new_ipq_used; 
-
-    end else if (ce_2) begin
-        case(t_state)
-        T_1: begin
-            n_dstb <= 0;
-            dout <= dp_addr[0] ? { dp_dout[7:0], dp_dout[15:8] } : dp_dout;
-        end
-        T_2: begin
-            if (~n_ready) begin
-                second_byte <= 0;
-                case(cycle_type)
-                IPQ_FETCH: begin
-                    if (~discard_ipq_fetch) begin
-                        if (reg_pfp[0]) begin
-                            ipq[int'(ipq_used)] <= din[15:8];
-                            ipq_used <= ipq_used + 'd1;
-                            reg_pfp <= reg_pfp + 16'd1;
-                        end else begin
-                            ipq[int'(ipq_used)] <= din[7:0];
-                            ipq[int'(ipq_used) + 1] <= din[15:8];
-                            ipq_used <= ipq_used + 'd2;
-                            reg_pfp <= reg_pfp + 16'd2;
+            T_1: t_state <= T_2;
+            endcase
+        end else if (ce_2) begin
+            case(t_state)
+            T_1: begin
+                n_dstb <= 0;
+                dout <= dp_addr[0] ? { dp_dout[7:0], dp_dout[15:8] } : dp_dout;
+            end
+            T_2: begin
+                if (~n_ready) begin
+                    second_byte <= 0;
+                    case(cycle_type)
+                    IPQ_FETCH: begin
+                        if (~discard_ipq_fetch) begin
+                            if (reg_pfp[0]) begin
+                                ipq[reg_pfp[2:0]] <= din[15:8];
+                                reg_pfp <= reg_pfp + 16'd1;
+                            end else begin
+                                ipq[reg_pfp[2:0]] <= din[7:0];
+                                ipq[reg_pfp[2:0] + 1] <= din[15:8];
+                                reg_pfp <= reg_pfp + 16'd2;
+                            end
                         end
                     end
-                end
-                MEM_READ, IO_READ: begin
-                    dp_ack <= dp_req;
-                    if (dp_wide & ~dp_addr[0]) begin
-                        dp_din <= din;
-                    end else if (dp_wide & ~n_ube) begin
-                        dp_din[7:0] <= din[15:8];
-                        second_byte <= 1;
-                        dp_ack <= dp_ack;
-                    end else if (dp_wide) begin
-                        dp_din[15:8] <= din[7:0];
-                    end else if (~n_ube) begin
-                        dp_din[7:0] <= din[15:8];
-                    end else begin
-                        dp_din[7:0] <= din[7:0];
-                    end
-                end
-                MEM_WRITE, IO_WRITE: begin
-                    if (dp_wide & dp_addr[0] & ~n_ube) begin
-                        second_byte <= 1;
-                    end else begin
+                    MEM_READ, IO_READ: begin
                         dp_ack <= dp_req;
+                        if (dp_wide & ~dp_addr[0]) begin
+                            dp_din <= din;
+                        end else if (dp_wide & ~n_ube) begin
+                            dp_din[7:0] <= din[15:8];
+                            second_byte <= 1;
+                            dp_ack <= dp_ack;
+                        end else if (dp_wide) begin
+                            dp_din[15:8] <= din[7:0];
+                        end else if (~n_ube) begin
+                            dp_din[7:0] <= din[15:8];
+                        end else begin
+                            dp_din[7:0] <= din[7:0];
+                        end
                     end
+                    MEM_WRITE, IO_WRITE: begin
+                        if (dp_wide & dp_addr[0] & ~n_ube) begin
+                            second_byte <= 1;
+                        end else begin
+                            dp_ack <= dp_req;
+                        end
+                    end
+                    endcase
+
+                    t_state <= T_IDLE;
                 end
-                endcase
-
-                t_state <= T_IDLE;
             end
+            endcase
         end
-        endcase
     end
-
-
 end
 
 endmodule
