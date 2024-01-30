@@ -200,81 +200,166 @@ pre_decode pre_decode(
     .decoded(next_decode)
 );
 
-enum {IDLE, FETCH_OPERANDS, START_EXECUTE, STORE_RESULT, STORE_ALU_RESULT} state;
+alu_operation_e alu_operation;
+reg [15:0] alu_ta, alu_tb;
+reg alu_execute;
+wire alu_busy;
+wire [15:0] alu_result;
+reg alu_result_wait;
+
+alu ALU(
+    .clk, .ce(ce_1|ce_2),
+
+    .reset,
+
+    .operation(alu_operation),
+    .ta(alu_ta),
+    .tb(alu_tb),
+    .result(alu_result),
+
+    .execute(alu_execute),
+    .busy(alu_busy)
+);
+
+enum {IDLE, FETCH_OPERANDS, START_EXECUTE, STORE_RESULT} state;
 
 int disp_size, imm_size;
 reg [15:0] calculated_ea;
 reg [15:0] fetched_imm;
-reg [15:0] result;
+reg [15:0] op_result;
 
 always_ff @(posedge clk) begin
     bit [15:0] addr;
+    bit [15:0] result16;
+    bit [7:0] result8;
+
     if (reset) begin
         dp_req <= 0;
         reg_ps <= 16'hffff;
         reg_pc <= 16'd0;
         new_pc <= 1;
         state <= IDLE;
-    end else if (ce_1) begin
-        case(state)
-        IDLE: begin
-            if (next_valid_op) begin
-                decoded <= next_decode;
-                reg_pc <= reg_pc + { 12'd0, next_decode.pre_size };
-                disp_size <= next_decode.calc_ea ? calc_disp_size(next_decode.ea_mem, next_decode.ea_mod) : 0;
-                imm_size <= calc_imm_size(next_decode.source0, next_decode.source1);
-                state <= FETCH_OPERANDS;
-            end
-        end
-        START_EXECUTE: begin
-            if (decoded.source_mem == OPERAND_NONE || dp_ready) begin
-                case(decoded.opcode)
-                OP_MOV: begin
-                    result <= get_operand(decoded.source0);
-                    state <= STORE_RESULT;
-                end
-                /*OP_ALU: begin
-                    alu_ta <= get_operand(decoded.source0);
-                    alu_tb <= get_operand(decoded.source1);
-                    alu_operation <= decoded.alu_operation; // TODO: flags
-                    alu_execute <= 1;
-                    state <= STORE_ALU_RESULT;
-                end*/
-                endcase
-            end
-        end
-        endcase
-    end else if (ce_2) begin
-        case(state)
-        FETCH_OPERANDS: begin
-            if (int'(ipq_len) >= (disp_size + imm_size)) begin
-                fetched_imm[7:0] <= ipq_byte(disp_size);
-                fetched_imm[15:8] <= ipq_byte(disp_size + 1);
-                addr = calc_ea(decoded.ea_mem, decoded.ea_mod, { ipq_byte(1), ipq_byte(0) });
-                calculated_ea <= addr;
+        alu_execute <= 0;
+        alu_result_wait <= 0;
+    end else if (ce_1 | ce_2) begin
+        new_pc <= 0;
+        alu_execute <= 0;
 
-                if (decoded.source_mem == OPERAND_NONE) begin
-                    reg_pc <= reg_pc + disp_size[15:0] + imm_size[15:0];
-                    state <= START_EXECUTE;
-                end else if (dp_ready) begin
-                    dp_addr <= addr;
-                    dp_write <= 0;
-                    dp_io <= 0; // TODO
-                    dp_sreg <= DS0; // TODO
-                    dp_wide <= decoded.source_mem == OPERAND_MEM16 ? 1 : 0; // TODO - 32-bit
-                    dp_req <= ~dp_req;
-                    reg_pc <= reg_pc + disp_size[15:0] + imm_size[15:0];
-                    state <= START_EXECUTE;
+        if (ce_1) begin
+            case(state)
+            IDLE: begin
+                alu_result_wait <= 0;
+
+                if (next_valid_op) begin
+                    decoded <= next_decode;
+                    reg_pc <= reg_pc + { 12'd0, next_decode.pre_size };
+                    disp_size <= next_decode.calc_ea ? calc_disp_size(next_decode.ea_mem, next_decode.ea_mod) : 0;
+                    imm_size <= calc_imm_size(next_decode.source0, next_decode.source1);
+                    state <= FETCH_OPERANDS;
                 end
             end
+            START_EXECUTE: begin
+                if (decoded.source_mem == OPERAND_NONE || dp_ready) begin
+                    case(decoded.opcode)
+                    OP_MOV: begin
+                        op_result <= get_operand(decoded.source0);
+                        state <= STORE_RESULT;
+                    end
+                    OP_ALU: begin
+                        alu_ta <= get_operand(decoded.source0);
+                        alu_tb <= get_operand(decoded.source1);
+                        alu_operation <= decoded.alu_operation; // TODO: flags
+                        alu_execute <= 1;
+                        alu_result_wait <= 1;
+                        state <= STORE_RESULT;
+                    end
+                    endcase
+                end
+            end
+            endcase
+        end else if (ce_2) begin
+            case(state)
+            FETCH_OPERANDS: begin
+                if (int'(ipq_len) >= (disp_size + imm_size)) begin
+                    fetched_imm[7:0] <= ipq_byte(disp_size);
+                    fetched_imm[15:8] <= ipq_byte(disp_size + 1);
+                    addr = calc_ea(decoded.ea_mem, decoded.ea_mod, { ipq_byte(1), ipq_byte(0) });
+                    calculated_ea <= addr;
+
+                    if (decoded.source_mem == OPERAND_NONE) begin
+                        reg_pc <= reg_pc + disp_size[15:0] + imm_size[15:0];
+                        state <= START_EXECUTE;
+                    end else if (dp_ready) begin
+                        dp_addr <= addr;
+                        dp_write <= 0;
+                        dp_io <= 0; // TODO
+                        dp_sreg <= DS0; // TODO
+                        dp_wide <= decoded.source_mem == OPERAND_MEM16 ? 1 : 0; // TODO - 32-bit
+                        dp_req <= ~dp_req;
+                        reg_pc <= reg_pc + disp_size[15:0] + imm_size[15:0];
+                        state <= START_EXECUTE;
+                    end
+                end
+            end
+            STORE_RESULT: begin
+                result8 = alu_result_wait ? alu_result[7:0] : op_result[7:0];
+                result16 = alu_result_wait ? alu_result : op_result;
+
+                if (~alu_result_wait | ~alu_busy) begin
+                    case(decoded.dest)
+                    OPERAND_ACC8: reg_aw[7:0] <= result8;
+                    OPERAND_ACC16: reg_aw <= result16;
+                    OPERAND_MEM8,
+                    OPERAND_MEM16,
+                    OPERAND_MEM32: begin
+                        dp_addr <= calculated_ea;
+                        dp_dout <= result16;
+                        dp_write <= 1;
+                        dp_io <= 0; // TODO
+                        dp_sreg <= DS0; // TODO
+                        dp_wide <= decoded.source_mem == OPERAND_MEM16 ? 1 : 0; // TODO - 32-bit
+                        dp_req <= ~dp_req;
+                    end
+                    OPERAND_SREG: begin
+                        case(decoded.sreg)
+                        DS0: reg_ds0 <= result16;
+                        DS1: reg_ds1 <= result16;
+                        SS: reg_ss <= result16;
+                        PS: reg_ps <= result16;
+                        endcase
+                    end
+                    OPERAND_REG16_0,
+                    OPERAND_REG16_1: begin
+                        case(reg16_index_e'(decoded.dest == OPERAND_REG16_0 ? decoded.reg0 : decoded.reg1))
+                        AW: reg_aw <= result16;
+                        BW: reg_bw <= result16;
+                        CW: reg_cw <= result16;
+                        DW: reg_dw <= result16;
+                        SP: reg_sp <= result16;
+                        BP: reg_bp <= result16;
+                        IX: reg_ix <= result16;
+                        IY: reg_iy <= result16;
+                        endcase
+                    end
+                    OPERAND_REG8_0,
+                    OPERAND_REG8_1: begin
+                        case(reg8_index_e'(decoded.dest == OPERAND_REG8_0 ? decoded.reg0 : decoded.reg1))
+                        AL: reg_aw[7:0] <= result8;
+                        AH: reg_aw[15:8] <= result8;
+                        BL: reg_bw[7:0] <= result8;
+                        BH: reg_bw[15:8] <= result8;
+                        CL: reg_cw[7:0] <= result8;
+                        CH: reg_cw[15:8] <= result8;
+                        DL: reg_dw[7:0] <= result8;
+                        DH: reg_dw[15:8] <= result8;
+                        endcase
+                    end
+                    endcase
+                    state <= IDLE;
+                end
+            end
+            endcase
         end
-        STORE_RESULT: begin
-            // TODO
-        end
-        STORE_ALU_RESULT: begin
-            // TODO
-        end
-        endcase
     end
 end
 endmodule

@@ -133,7 +133,7 @@ b00000101:
   flags: *basic_alu_flags
 
 b00001111_00100000:
-  name: ALU4S
+  name: ADD4S
   flags:
     AC: U
     CY: x

@@ -1,4 +1,5 @@
 import yaml
+import sys
 
 placeholders = {
     'MD': {
@@ -64,8 +65,9 @@ def assign_src_dst(op_desc, assignments):
         for k in list(mapping.keys()):
             if is_mem_type(mapping[k]):
                 mapping[k] = mem_type
-        
+        assignments.append( f"d.source_mem = OPERAND_{mem_type}")        
     else:
+        assignments.append( f"d.source_mem = OPERAND_NONE")
         assignments.append( f"d.calc_ea = 0")
 
     for k, v in mapping.items():
@@ -120,7 +122,11 @@ def to_entry(k: str, op_desc: dict):
         'vagueness': k.count('x'),
     }
 
-opcode_desc = yaml.safe_load(open('docs/opcodes.yaml', 'r'))
+
+input_name = 'docs/opcodes.yaml'
+output_name = 'hdl/opcodes.svh'
+
+opcode_desc = yaml.safe_load(open(input_name, 'r'))
 
 cases = []
 for k, v in opcode_desc.items():
@@ -128,11 +134,12 @@ for k, v in opcode_desc.items():
 
 cases.sort(key=lambda x: x['vagueness'])
 
-for c in cases:
-    assigns = '; '.join(c['assignments'])
-    name = c['name']
-    match = c['match']
-    print( f"24'b{match}: begin {assigns}; end" )
+with open(output_name, "wt") as fp:
+    for c in cases:
+        assigns = '; '.join(c['assignments'])
+        name = c['name'] 
+        match = c['match']
+        fp.write( f"24'b{match}: begin {assigns}; end\n" )
 
 
 for idx1 in range(len(cases)):

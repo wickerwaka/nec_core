@@ -1,15 +1,33 @@
-#include "nec_core.h"
+#include "v33.h"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 
 VerilatedContext *contextp;
-nec_core *top;
+v33 *top;
 VerilatedVcdC *tfp;
+
+constexpr size_t MEM_SIZE = 64 * 1024;
+
+uint8_t memory[MEM_SIZE];
+
+uint16_t read_mem(uint32_t addr, bool ube)
+{
+    uint32_t aligned_addr = (addr & ~1) % MEM_SIZE;
+    return memory[aligned_addr] | (memory[aligned_addr + 1] << 8);
+}
 
 void tick(int count = 1)
 {
     for( int i = 0; i < count; i++ )
     {
+        if (top->n_dstb)
+        {
+            if (top->r_w && top->m_io)
+            {
+                top->din = read_mem(top->addr, (~top->n_ube) & 1);
+            }
+        }
+
         contextp->timeInc(1);
         top->clk = 0;
 
@@ -32,16 +50,23 @@ void tick_ce()
     if (top->ce_1) tick(1);
 }
 
+
 int main(int argc, char **argv)
 {
     contextp = new VerilatedContext;
     contextp->commandArgs(argc, argv);
-    top = new nec_core{contextp};
+    top = new v33{contextp};
 
     Verilated::traceEverOn(true);
     tfp = new VerilatedVcdC;
     top->trace(tfp, 99);
     tfp->open("v33.vcd");
+
+    memory[0xfff0] = 0xb0;
+    memory[0xfff1] = 0xde;
+    memory[0xfff2] = 0xb8;
+    memory[0xfff3] = 0xbe;
+    memory[0xfff4] = 0xef;
 
     top->ce_1 = 0;
     top->ce_2 = 1;
@@ -50,34 +75,7 @@ int main(int argc, char **argv)
     tick(10);
     top->reset = 0;
 
-    top->reg_ps = 0xffff;
-    top->reg_ds0 = 0x1000;
-
-    tick_ce();
-    tick_ce();
-
-    top->dp_req = 1;
-    top->dp_addr = 0x100;
-    top->dp_io = 0;
-    top->dp_write = 1;
-    top->dp_wide = 1;
-    top->dp_sreg = 3;
-
-    tick(10);
-
-    top->dp_req = 0;
-    top->dp_addr = 0x101;
-    top->dp_io = 0;
-    top->dp_write = 0;
-    top->dp_wide = 1;
-    top->dp_sreg = 3;
-
-    tick(10);
-    tick_ce();
-    top->ipq_consume = 3;
-    tick();
-    top->ipq_consume = 0;
-    tick(20);
+    tick(200);
 
     top->final();
     tfp->close();
