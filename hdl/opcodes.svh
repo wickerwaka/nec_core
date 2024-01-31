@@ -1,37 +1,269 @@
-24'b0000111100100000xxxxxxxx: begin d.opcode = OP_ADD4S; d.alu_operation = ALU_OP_NONE; d.source_mem = OPERAND_NONE; d.calc_ea = 0; d.dest = OPERAND_NONE; d.source0 = OPERAND_NONE; d.source1 = OPERAND_NONE; d.pre_size = 2; valid_op <= 1; end
-24'b1000000011000xxxxxxxxxxx: begin d.opcode = OP_ALU; d.alu_operation = ALU_OP_ADD; d.source_mem = OPERAND_NONE; d.calc_ea = 0; d.dest = OPERAND_REG8_0; d.source0 = OPERAND_REG8_0; d.source1 = OPERAND_IMM8; d.reg0 = q[10:8]; d.pre_size = 2; valid_op <= 1; end
-24'b1000000111000xxxxxxxxxxx: begin d.opcode = OP_ALU; d.alu_operation = ALU_OP_ADD; d.source_mem = OPERAND_NONE; d.calc_ea = 0; d.dest = OPERAND_REG16_0; d.source0 = OPERAND_REG16_0; d.source1 = OPERAND_IMM8; d.reg0 = q[10:8]; d.pre_size = 2; valid_op <= 1; end
-24'b1000001011000xxxxxxxxxxx: begin d.opcode = OP_ALU; d.alu_operation = ALU_OP_ADD; d.source_mem = OPERAND_NONE; d.calc_ea = 0; d.dest = OPERAND_REG8_0; d.source0 = OPERAND_REG8_0; d.source1 = OPERAND_IMM8; d.reg0 = q[10:8]; d.pre_size = 2; valid_op <= 1; end
-24'b1000001111000xxxxxxxxxxx: begin d.opcode = OP_ALU; d.alu_operation = ALU_OP_ADD; d.source_mem = OPERAND_NONE; d.calc_ea = 0; d.dest = OPERAND_REG16_0; d.source0 = OPERAND_REG16_0; d.source1 = OPERAND_IMM8_EXT; d.reg0 = q[10:8]; d.pre_size = 2; valid_op <= 1; end
-24'b10000000xx000xxxxxxxxxxx: begin d.opcode = OP_ALU; d.alu_operation = ALU_OP_ADD; d.calc_ea = 1; d.source_mem = OPERAND_MEM8; d.dest = OPERAND_MEM8; d.source0 = OPERAND_MEM8; d.source1 = OPERAND_IMM8; d.ea_mod = q[15:14]; d.ea_mem = q[10:8]; d.pre_size = 2; valid_op <= 1; end
-24'b10000001xx000xxxxxxxxxxx: begin d.opcode = OP_ALU; d.alu_operation = ALU_OP_ADD; d.calc_ea = 1; d.source_mem = OPERAND_MEM16; d.dest = OPERAND_MEM16; d.source0 = OPERAND_MEM16; d.source1 = OPERAND_IMM16; d.ea_mod = q[15:14]; d.ea_mem = q[10:8]; d.pre_size = 2; valid_op <= 1; end
-24'b10000010xx000xxxxxxxxxxx: begin d.opcode = OP_ALU; d.alu_operation = ALU_OP_ADD; d.calc_ea = 1; d.source_mem = OPERAND_MEM8; d.dest = OPERAND_MEM8; d.source0 = OPERAND_MEM8; d.source1 = OPERAND_IMM8; d.ea_mod = q[15:14]; d.ea_mem = q[10:8]; d.pre_size = 2; valid_op <= 1; end
-24'b10000011xx000xxxxxxxxxxx: begin d.opcode = OP_ALU; d.alu_operation = ALU_OP_ADD; d.calc_ea = 1; d.source_mem = OPERAND_MEM16; d.dest = OPERAND_MEM16; d.source0 = OPERAND_MEM16; d.source1 = OPERAND_IMM8_EXT; d.ea_mod = q[15:14]; d.ea_mem = q[10:8]; d.pre_size = 2; valid_op <= 1; end
-24'b10001110110xxxxxxxxxxxxx: begin d.opcode = OP_MOV; d.alu_operation = ALU_OP_NONE; d.source_mem = OPERAND_NONE; d.calc_ea = 0; d.dest = OPERAND_SREG; d.source0 = OPERAND_REG16_0; d.source1 = OPERAND_NONE; d.reg0 = q[10:8]; d.sreg = q[12:11]; d.pre_size = 2; valid_op <= 1; end
-24'b10001100110xxxxxxxxxxxxx: begin d.opcode = OP_MOV; d.alu_operation = ALU_OP_NONE; d.source_mem = OPERAND_NONE; d.calc_ea = 0; d.dest = OPERAND_REG16_0; d.source0 = OPERAND_SREG; d.source1 = OPERAND_NONE; d.reg0 = q[10:8]; d.sreg = q[12:11]; d.pre_size = 2; valid_op <= 1; end
-24'b0000001111xxxxxxxxxxxxxx: begin d.opcode = OP_ALU; d.alu_operation = ALU_OP_ADD; d.source_mem = OPERAND_NONE; d.calc_ea = 0; d.dest = OPERAND_REG16_0; d.source0 = OPERAND_REG16_0; d.source1 = OPERAND_REG16_1; d.reg0 = q[13:11]; d.reg1 = q[10:8]; d.pre_size = 2; valid_op <= 1; end
-24'b0000001011xxxxxxxxxxxxxx: begin d.opcode = OP_ALU; d.alu_operation = ALU_OP_ADD; d.source_mem = OPERAND_NONE; d.calc_ea = 0; d.dest = OPERAND_REG8_0; d.source0 = OPERAND_REG8_0; d.source1 = OPERAND_REG8_1; d.reg0 = q[13:11]; d.reg1 = q[10:8]; d.pre_size = 2; valid_op <= 1; end
-24'b1000101011xxxxxxxxxxxxxx: begin d.opcode = OP_MOV; d.alu_operation = ALU_OP_NONE; d.source_mem = OPERAND_NONE; d.calc_ea = 0; d.dest = OPERAND_REG8_0; d.source0 = OPERAND_REG8_1; d.source1 = OPERAND_NONE; d.reg0 = q[13:11]; d.reg1 = q[10:8]; d.pre_size = 2; valid_op <= 1; end
-24'b1000101111xxxxxxxxxxxxxx: begin d.opcode = OP_MOV; d.alu_operation = ALU_OP_NONE; d.source_mem = OPERAND_NONE; d.calc_ea = 0; d.dest = OPERAND_REG16_0; d.source0 = OPERAND_REG16_1; d.source1 = OPERAND_NONE; d.reg0 = q[13:11]; d.reg1 = q[10:8]; d.pre_size = 2; valid_op <= 1; end
-24'b10001110xx0xxxxxxxxxxxxx: begin d.opcode = OP_MOV; d.alu_operation = ALU_OP_NONE; d.calc_ea = 1; d.source_mem = OPERAND_MEM16; d.dest = OPERAND_SREG; d.source0 = OPERAND_MEM16; d.source1 = OPERAND_NONE; d.ea_mod = q[15:14]; d.ea_mem = q[10:8]; d.sreg = q[12:11]; d.pre_size = 2; valid_op <= 1; end
-24'b10001100xx0xxxxxxxxxxxxx: begin d.opcode = OP_MOV; d.alu_operation = ALU_OP_NONE; d.calc_ea = 1; d.source_mem = OPERAND_MEM16; d.dest = OPERAND_MEM16; d.source0 = OPERAND_SREG; d.source1 = OPERAND_NONE; d.ea_mod = q[15:14]; d.ea_mem = q[10:8]; d.sreg = q[12:11]; d.pre_size = 2; valid_op <= 1; end
-24'b00000000xxxxxxxxxxxxxxxx: begin d.opcode = OP_ALU; d.alu_operation = ALU_OP_ADD; d.calc_ea = 1; d.source_mem = OPERAND_MEM8; d.dest = OPERAND_MEM8; d.source0 = OPERAND_MEM8; d.source1 = OPERAND_REG8_0; d.ea_mod = q[15:14]; d.ea_mem = q[10:8]; d.reg0 = q[13:11]; d.pre_size = 2; valid_op <= 1; end
-24'b00000001xxxxxxxxxxxxxxxx: begin d.opcode = OP_ALU; d.alu_operation = ALU_OP_ADD; d.calc_ea = 1; d.source_mem = OPERAND_MEM16; d.dest = OPERAND_MEM16; d.source0 = OPERAND_MEM16; d.source1 = OPERAND_REG16_0; d.ea_mod = q[15:14]; d.ea_mem = q[10:8]; d.reg0 = q[13:11]; d.pre_size = 2; valid_op <= 1; end
-24'b00000010xxxxxxxxxxxxxxxx: begin d.opcode = OP_ALU; d.alu_operation = ALU_OP_ADD; d.calc_ea = 1; d.source_mem = OPERAND_MEM8; d.dest = OPERAND_REG8_0; d.source0 = OPERAND_REG8_0; d.source1 = OPERAND_MEM8; d.ea_mod = q[15:14]; d.ea_mem = q[10:8]; d.reg0 = q[13:11]; d.pre_size = 2; valid_op <= 1; end
-24'b00000011xxxxxxxxxxxxxxxx: begin d.opcode = OP_ALU; d.alu_operation = ALU_OP_ADD; d.calc_ea = 1; d.source_mem = OPERAND_MEM16; d.dest = OPERAND_REG16_0; d.source0 = OPERAND_REG16_0; d.source1 = OPERAND_MEM16; d.ea_mod = q[15:14]; d.ea_mem = q[10:8]; d.reg0 = q[13:11]; d.pre_size = 2; valid_op <= 1; end
-24'b00000100xxxxxxxxxxxxxxxx: begin d.opcode = OP_ALU; d.alu_operation = ALU_OP_ADD; d.source_mem = OPERAND_NONE; d.calc_ea = 0; d.dest = OPERAND_ACC8; d.source0 = OPERAND_ACC8; d.source1 = OPERAND_IMM8; d.pre_size = 1; valid_op <= 1; end
-24'b00000101xxxxxxxxxxxxxxxx: begin d.opcode = OP_ALU; d.alu_operation = ALU_OP_ADD; d.source_mem = OPERAND_NONE; d.calc_ea = 0; d.dest = OPERAND_ACC16; d.source0 = OPERAND_ACC16; d.source1 = OPERAND_IMM16; d.pre_size = 1; valid_op <= 1; end
-24'b10001000xxxxxxxxxxxxxxxx: begin d.opcode = OP_MOV; d.alu_operation = ALU_OP_NONE; d.calc_ea = 1; d.source_mem = OPERAND_MEM8; d.dest = OPERAND_MEM8; d.source0 = OPERAND_REG8_0; d.source1 = OPERAND_NONE; d.ea_mod = q[15:14]; d.ea_mem = q[10:8]; d.reg0 = q[13:11]; d.pre_size = 2; valid_op <= 1; end
-24'b10001001xxxxxxxxxxxxxxxx: begin d.opcode = OP_MOV; d.alu_operation = ALU_OP_NONE; d.calc_ea = 1; d.source_mem = OPERAND_MEM16; d.dest = OPERAND_MEM16; d.source0 = OPERAND_REG16_0; d.source1 = OPERAND_NONE; d.ea_mod = q[15:14]; d.ea_mem = q[10:8]; d.reg0 = q[13:11]; d.pre_size = 2; valid_op <= 1; end
-24'b10001010xxxxxxxxxxxxxxxx: begin d.opcode = OP_MOV; d.alu_operation = ALU_OP_NONE; d.calc_ea = 1; d.source_mem = OPERAND_MEM8; d.dest = OPERAND_REG8_0; d.source0 = OPERAND_MEM8; d.source1 = OPERAND_NONE; d.ea_mod = q[15:14]; d.ea_mem = q[10:8]; d.reg0 = q[13:11]; d.pre_size = 2; valid_op <= 1; end
-24'b10001011xxxxxxxxxxxxxxxx: begin d.opcode = OP_MOV; d.alu_operation = ALU_OP_NONE; d.calc_ea = 1; d.source_mem = OPERAND_MEM16; d.dest = OPERAND_REG16_0; d.source0 = OPERAND_MEM16; d.source1 = OPERAND_NONE; d.ea_mod = q[15:14]; d.ea_mem = q[10:8]; d.reg0 = q[13:11]; d.pre_size = 2; valid_op <= 1; end
-24'b10100000xxxxxxxxxxxxxxxx: begin d.opcode = OP_MOV; d.alu_operation = ALU_OP_NONE; d.calc_ea = 1; d.ea_mem = 3'b110; d.ea_mod = 2'b11; d.source_mem = OPERAND_MEM8; d.dest = OPERAND_ACC8; d.source0 = OPERAND_MEM8; d.source1 = OPERAND_NONE; d.pre_size = 1; valid_op <= 1; end
-24'b10100001xxxxxxxxxxxxxxxx: begin d.opcode = OP_MOV; d.alu_operation = ALU_OP_NONE; d.calc_ea = 1; d.ea_mem = 3'b110; d.ea_mod = 2'b11; d.source_mem = OPERAND_MEM16; d.dest = OPERAND_ACC16; d.source0 = OPERAND_MEM16; d.source1 = OPERAND_NONE; d.pre_size = 1; valid_op <= 1; end
-24'b10100010xxxxxxxxxxxxxxxx: begin d.opcode = OP_MOV; d.alu_operation = ALU_OP_NONE; d.calc_ea = 1; d.ea_mem = 3'b110; d.ea_mod = 2'b11; d.source_mem = OPERAND_MEM8; d.dest = OPERAND_MEM8; d.source0 = OPERAND_ACC8; d.source1 = OPERAND_NONE; d.pre_size = 1; valid_op <= 1; end
-24'b10100011xxxxxxxxxxxxxxxx: begin d.opcode = OP_MOV; d.alu_operation = ALU_OP_NONE; d.calc_ea = 1; d.ea_mem = 3'b110; d.ea_mod = 2'b11; d.source_mem = OPERAND_MEM16; d.dest = OPERAND_MEM16; d.source0 = OPERAND_ACC16; d.source1 = OPERAND_NONE; d.pre_size = 1; valid_op <= 1; end
-24'b11000101xxxxxxxxxxxxxxxx: begin d.opcode = OP_MOV_SEG; d.alu_operation = ALU_OP_NONE; d.sreg = DS0; d.calc_ea = 1; d.source_mem = OPERAND_MEM32; d.dest = OPERAND_REG16_0; d.source0 = OPERAND_MEM32; d.source1 = OPERAND_NONE; d.ea_mod = q[15:14]; d.ea_mem = q[10:8]; d.reg0 = q[13:11]; d.pre_size = 2; valid_op <= 1; end
-24'b11000100xxxxxxxxxxxxxxxx: begin d.opcode = OP_MOV_SEG; d.alu_operation = ALU_OP_NONE; d.sreg = DS1; d.calc_ea = 1; d.source_mem = OPERAND_MEM32; d.dest = OPERAND_REG16_0; d.source0 = OPERAND_MEM32; d.source1 = OPERAND_NONE; d.ea_mod = q[15:14]; d.ea_mem = q[10:8]; d.reg0 = q[13:11]; d.pre_size = 2; valid_op <= 1; end
-24'b10011111xxxxxxxxxxxxxxxx: begin d.opcode = OP_MOV_AH_PSW; d.alu_operation = ALU_OP_NONE; d.source_mem = OPERAND_NONE; d.calc_ea = 0; d.dest = OPERAND_NONE; d.source0 = OPERAND_NONE; d.source1 = OPERAND_NONE; d.pre_size = 1; valid_op <= 1; end
-24'b10011110xxxxxxxxxxxxxxxx: begin d.opcode = OP_MOV_PSW_AH; d.alu_operation = ALU_OP_NONE; d.source_mem = OPERAND_NONE; d.calc_ea = 0; d.dest = OPERAND_NONE; d.source0 = OPERAND_NONE; d.source1 = OPERAND_NONE; d.pre_size = 1; valid_op <= 1; end
-24'b10110xxxxxxxxxxxxxxxxxxx: begin d.opcode = OP_MOV; d.alu_operation = ALU_OP_NONE; d.source_mem = OPERAND_NONE; d.calc_ea = 0; d.dest = OPERAND_REG8_0; d.source0 = OPERAND_IMM8; d.source1 = OPERAND_NONE; d.reg0 = q[18:16]; d.pre_size = 1; valid_op <= 1; end
-24'b10111xxxxxxxxxxxxxxxxxxx: begin d.opcode = OP_MOV; d.alu_operation = ALU_OP_NONE; d.source_mem = OPERAND_NONE; d.calc_ea = 0; d.dest = OPERAND_REG16_0; d.source0 = OPERAND_IMM16; d.source1 = OPERAND_NONE; d.reg0 = q[18:16]; d.pre_size = 1; valid_op <= 1; end
+24'b0000111100100000xxxxxxxx: begin /* ADD4S */
+	d.opcode = OP_ADD4S;
+	d.alu_operation = ALU_OP_NONE;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 2;
+	valid_op <= 1;
+end
+24'b1000000x11000xxxxxxxxxxx: begin /* ADD reg, imm */
+	d.opcode = OP_ALU;
+	d.alu_operation = ALU_OP_ADD;
+	d.use_modrm = 0;
+	d.dest = OPERAND_REG_0;
+	d.source0 = OPERAND_REG_0;
+	d.source1 = OPERAND_IMM;
+	d.reg0 = q[10:8];
+	d.width = q[16] ? WORD : BYTE;
+	d.pre_size = 2;
+	valid_op <= 1;
+end
+24'b1000001x11000xxxxxxxxxxx: begin /* ADD reg, imm */
+	d.opcode = OP_ALU;
+	d.alu_operation = ALU_OP_ADD;
+	d.use_modrm = 0;
+	d.dest = OPERAND_REG_0;
+	d.source0 = OPERAND_REG_0;
+	d.source1 = OPERAND_IMM_EXT;
+	d.reg0 = q[10:8];
+	d.width = q[16] ? WORD : BYTE;
+	d.pre_size = 2;
+	valid_op <= 1;
+end
+24'b1000000xxx000xxxxxxxxxxx: begin /* ADD mem, imm */
+	d.opcode = OP_ALU;
+	d.alu_operation = ALU_OP_ADD;
+	d.use_modrm = 1;
+	d.dest = OPERAND_MODRM;
+	d.source0 = OPERAND_MODRM;
+	d.source1 = OPERAND_IMM;
+	d.mod = q[15:14];
+	d.rm = q[10:8];
+	d.width = q[16] ? WORD : BYTE;
+	d.pre_size = 2;
+	valid_op <= 1;
+end
+24'b1000001xxx000xxxxxxxxxxx: begin /* ADD mem, sext_imm */
+	d.opcode = OP_ALU;
+	d.alu_operation = ALU_OP_ADD;
+	d.use_modrm = 1;
+	d.dest = OPERAND_MODRM;
+	d.source0 = OPERAND_MODRM;
+	d.source1 = OPERAND_IMM_EXT;
+	d.mod = q[15:14];
+	d.rm = q[10:8];
+	d.width = q[16] ? WORD : BYTE;
+	d.pre_size = 2;
+	valid_op <= 1;
+end
+24'b0000001x11xxxxxxxxxxxxxx: begin /* ADD reg, reg */
+	d.opcode = OP_ALU;
+	d.alu_operation = ALU_OP_ADD;
+	d.use_modrm = 0;
+	d.dest = OPERAND_REG_0;
+	d.source0 = OPERAND_REG_0;
+	d.source1 = OPERAND_REG_1;
+	d.reg0 = q[13:11];
+	d.reg1 = q[10:8];
+	d.width = q[16] ? WORD : BYTE;
+	d.pre_size = 2;
+	valid_op <= 1;
+end
+24'b1000101x11xxxxxxxxxxxxxx: begin /* MOV */
+	d.opcode = OP_MOV;
+	d.alu_operation = ALU_OP_NONE;
+	d.use_modrm = 0;
+	d.dest = OPERAND_REG_0;
+	d.source0 = OPERAND_REG_1;
+	d.source1 = OPERAND_NONE;
+	d.reg0 = q[13:11];
+	d.reg1 = q[10:8];
+	d.width = q[16] ? WORD : BYTE;
+	d.pre_size = 2;
+	valid_op <= 1;
+end
+24'b10001110xx0xxxxxxxxxxxxx: begin /* MOV */
+	d.opcode = OP_MOV;
+	d.alu_operation = ALU_OP_NONE;
+	d.width = WORD;
+	d.use_modrm = 1;
+	d.dest = OPERAND_SREG;
+	d.source0 = OPERAND_MODRM;
+	d.source1 = OPERAND_NONE;
+	d.mod = q[15:14];
+	d.rm = q[10:8];
+	d.sreg = q[12:11];
+	d.pre_size = 2;
+	valid_op <= 1;
+end
+24'b10001100xx0xxxxxxxxxxxxx: begin /* MOV */
+	d.opcode = OP_MOV;
+	d.alu_operation = ALU_OP_NONE;
+	d.width = WORD;
+	d.use_modrm = 1;
+	d.dest = OPERAND_MODRM;
+	d.source0 = OPERAND_SREG;
+	d.source1 = OPERAND_NONE;
+	d.mod = q[15:14];
+	d.rm = q[10:8];
+	d.sreg = q[12:11];
+	d.pre_size = 2;
+	valid_op <= 1;
+end
+24'b11000101xxxxxxxxxxxxxxxx: begin /* MOV_SEG */
+	d.opcode = OP_MOV_SEG;
+	d.alu_operation = ALU_OP_NONE;
+	d.sreg = DS0;
+	d.width = DWORD;
+	d.use_modrm = 1;
+	d.dest = OPERAND_REG_0;
+	d.source0 = OPERAND_MODRM;
+	d.source1 = OPERAND_NONE;
+	d.mod = q[15:14];
+	d.rm = q[10:8];
+	d.reg0 = q[13:11];
+	d.pre_size = 2;
+	valid_op <= 1;
+end
+24'b11000100xxxxxxxxxxxxxxxx: begin /* MOV_SEG */
+	d.opcode = OP_MOV_SEG;
+	d.alu_operation = ALU_OP_NONE;
+	d.sreg = DS1;
+	d.width = DWORD;
+	d.use_modrm = 1;
+	d.dest = OPERAND_REG_0;
+	d.source0 = OPERAND_MODRM;
+	d.source1 = OPERAND_NONE;
+	d.mod = q[15:14];
+	d.rm = q[10:8];
+	d.reg0 = q[13:11];
+	d.pre_size = 2;
+	valid_op <= 1;
+end
+24'b10011111xxxxxxxxxxxxxxxx: begin /* MOV_AH_PSW */
+	d.opcode = OP_MOV_AH_PSW;
+	d.alu_operation = ALU_OP_NONE;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b10011110xxxxxxxxxxxxxxxx: begin /* MOV_PSW_AH */
+	d.opcode = OP_MOV_PSW_AH;
+	d.alu_operation = ALU_OP_NONE;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b0000000xxxxxxxxxxxxxxxxx: begin /* ADD mem, reg */
+	d.opcode = OP_ALU;
+	d.alu_operation = ALU_OP_ADD;
+	d.use_modrm = 1;
+	d.dest = OPERAND_MODRM;
+	d.source0 = OPERAND_MODRM;
+	d.source1 = OPERAND_REG_0;
+	d.mod = q[15:14];
+	d.rm = q[10:8];
+	d.reg0 = q[13:11];
+	d.width = q[16] ? WORD : BYTE;
+	d.pre_size = 2;
+	valid_op <= 1;
+end
+24'b0000001xxxxxxxxxxxxxxxxx: begin /* ADD reg, mem */
+	d.opcode = OP_ALU;
+	d.alu_operation = ALU_OP_ADD;
+	d.use_modrm = 1;
+	d.dest = OPERAND_REG_0;
+	d.source0 = OPERAND_REG_0;
+	d.source1 = OPERAND_MODRM;
+	d.mod = q[15:14];
+	d.rm = q[10:8];
+	d.reg0 = q[13:11];
+	d.width = q[16] ? WORD : BYTE;
+	d.pre_size = 2;
+	valid_op <= 1;
+end
+24'b0000010xxxxxxxxxxxxxxxxx: begin /* ADD acc, imm */
+	d.opcode = OP_ALU;
+	d.alu_operation = ALU_OP_ADD;
+	d.use_modrm = 0;
+	d.dest = OPERAND_ACC;
+	d.source0 = OPERAND_ACC;
+	d.source1 = OPERAND_IMM;
+	d.width = q[16] ? WORD : BYTE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b1000100xxxxxxxxxxxxxxxxx: begin /* MOV */
+	d.opcode = OP_MOV;
+	d.alu_operation = ALU_OP_NONE;
+	d.use_modrm = 1;
+	d.dest = OPERAND_MODRM;
+	d.source0 = OPERAND_REG_0;
+	d.source1 = OPERAND_NONE;
+	d.mod = q[15:14];
+	d.rm = q[10:8];
+	d.reg0 = q[13:11];
+	d.width = q[16] ? WORD : BYTE;
+	d.pre_size = 2;
+	valid_op <= 1;
+end
+24'b1000101xxxxxxxxxxxxxxxxx: begin /* MOV */
+	d.opcode = OP_MOV;
+	d.alu_operation = ALU_OP_NONE;
+	d.use_modrm = 1;
+	d.dest = OPERAND_REG_0;
+	d.source0 = OPERAND_MODRM;
+	d.source1 = OPERAND_NONE;
+	d.mod = q[15:14];
+	d.rm = q[10:8];
+	d.reg0 = q[13:11];
+	d.width = q[16] ? WORD : BYTE;
+	d.pre_size = 2;
+	valid_op <= 1;
+end
+24'b1010000xxxxxxxxxxxxxxxxx: begin /* MOV */
+	d.opcode = OP_MOV;
+	d.alu_operation = ALU_OP_NONE;
+	d.use_modrm = 1;
+	d.rm = 3'b101;
+	d.mod = 2'b00;
+	d.dest = OPERAND_ACC;
+	d.source0 = OPERAND_MODRM;
+	d.source1 = OPERAND_NONE;
+	d.width = q[16] ? WORD : BYTE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b1010001xxxxxxxxxxxxxxxxx: begin /* MOV */
+	d.opcode = OP_MOV;
+	d.alu_operation = ALU_OP_NONE;
+	d.use_modrm = 1;
+	d.rm = 3'b101;
+	d.mod = 2'b00;
+	d.dest = OPERAND_MODRM;
+	d.source0 = OPERAND_ACC;
+	d.source1 = OPERAND_NONE;
+	d.width = q[16] ? WORD : BYTE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b1011xxxxxxxxxxxxxxxxxxxx: begin /* MOV */
+	d.opcode = OP_MOV;
+	d.alu_operation = ALU_OP_NONE;
+	d.use_modrm = 0;
+	d.dest = OPERAND_REG_0;
+	d.source0 = OPERAND_IMM;
+	d.source1 = OPERAND_NONE;
+	d.reg0 = q[18:16];
+	d.width = q[19] ? WORD : BYTE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end

@@ -62,11 +62,17 @@ int main(int argc, char **argv)
     top->trace(tfp, 99);
     tfp->open("v33.vcd");
 
-    memory[0xfff0] = 0xb0;
-    memory[0xfff1] = 0xde;
-    memory[0xfff2] = 0xb8;
-    memory[0xfff3] = 0xbe;
-    memory[0xfff4] = 0xef;
+    memory[0xfff0] = 0xb8;
+    memory[0xfff1] = 0x41;
+    memory[0xfff2] = 0x00;
+    memory[0xfff3] = 0x01;
+    memory[0xfff4] = 0xc0;
+    memory[0xfff5] = 0x83;
+    memory[0xfff6] = 0xc0;
+    memory[0xfff7] = 0x03;
+    memory[0xfff8] = 0x83;
+    memory[0xfff9] = 0xc0;
+    memory[0xfffa] = 0x10;
 
     top->ce_1 = 0;
     top->ce_2 = 1;
@@ -75,7 +81,7 @@ int main(int argc, char **argv)
     tick(10);
     top->reset = 0;
 
-    tick(200);
+    tick(400);
 
     top->final();
     tfp->close();

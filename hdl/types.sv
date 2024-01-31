@@ -18,40 +18,53 @@ package types;
     } alu_operation_e;
 
     typedef enum {
-        OPERAND_ACC8,
-        OPERAND_ACC16,
-        OPERAND_IMM8,
-        OPERAND_IMM8_EXT,
-        OPERAND_IMM16,
-        OPERAND_MEM8,
-        OPERAND_MEM16,
-        OPERAND_MEM32,
-        OPERAND_REG8_0,
-        OPERAND_REG8_1,
-        OPERAND_REG16_0,
-        OPERAND_REG16_1,
+        OPERAND_ACC,
+        OPERAND_IMM,
+        OPERAND_IMM_EXT,
+        OPERAND_MODRM,
+        OPERAND_REG_0,
+        OPERAND_REG_1,
         OPERAND_SREG,
         OPERAND_NONE
     } operand_e;
 
+    typedef enum {
+        BYTE,
+        WORD,
+        DWORD
+    } width_e;
+
     typedef struct {
         opcode_e opcode;
         alu_operation_e alu_operation;
-        operand_e source_mem;
         operand_e source0;
         operand_e source1;
         operand_e dest;
 
-
-        bit calc_ea;
-        bit [1:0] ea_mod;
-        bit [2:0] ea_mem;
+        bit use_modrm;
+        bit [1:0] mod;
+        bit [2:0] rm;
         bit [2:0] reg0;
         bit [2:0] reg1;
         bit [1:0] sreg;
 
+        width_e width;
+
         bit [3:0] pre_size;
     } pre_decode_t;
 
+    typedef struct {
+        bit V;
+        bit S;
+        bit Z;
+        bit AC;
+        bit P;
+        bit CY;
+
+        bit MD;
+        bit DIR;
+        bit IE;
+        bit BRK;
+    } flags_t;
 
 endpackage

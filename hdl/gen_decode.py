@@ -3,10 +3,10 @@ import sys
 
 placeholders = {
     'MD': {
-        'signal': 'ea_mod',
+        'signal': 'mod',
     },
     'MEM': {
-        'signal': 'ea_mem',
+        'signal': 'rm',
     },
     'GP0': {
         'signal': 'reg0',
@@ -15,7 +15,10 @@ placeholders = {
         'signal': 'reg1',
     },
     'SR': {
-        'signal': 'sreg'
+        'signal': 'sreg',
+    },
+    'W': {
+        'signal': 'width'
     }
 }
 
@@ -29,7 +32,7 @@ def is_ambiguous(case1, case2):
 
 def assign_src_dst(op_desc, assignments):
     def is_mem_type(x):
-        return x in [ 'MEM8', 'MEM16', 'MEM32', 'DMEM8', 'DMEM16' ]
+        return x in [ 'MODRM', 'DMEM' ]
     src = op_desc.get('src')
     src0 = op_desc.get('src0', 'NONE')
     src1 = op_desc.get('src1', 'NONE')
@@ -51,24 +54,18 @@ def assign_src_dst(op_desc, assignments):
 
     if len(found) == 1:
         mem_type = list(found.keys())[0]
-        assignments.append( f"d.calc_ea = 1")
+        assignments.append( f"d.use_modrm = 1")
 
-        if mem_type == 'DMEM8':
-            assignments.append( "d.ea_mem = 3'b110" )
-            assignments.append( "d.ea_mod = 2'b11" )
-            mem_type = 'MEM8'
-        elif mem_type == 'DMEM16':
-            assignments.append( "d.ea_mem = 3'b110" )
-            assignments.append( "d.ea_mod = 2'b11" )
-            mem_type = 'MEM16'
+        if mem_type == 'DMEM':
+            assignments.append( "d.rm = 3'b101" )
+            assignments.append( "d.mod = 2'b00" )
+            mem_type = 'MODRM'
         
         for k in list(mapping.keys()):
             if is_mem_type(mapping[k]):
                 mapping[k] = mem_type
-        assignments.append( f"d.source_mem = OPERAND_{mem_type}")        
     else:
-        assignments.append( f"d.source_mem = OPERAND_NONE")
-        assignments.append( f"d.calc_ea = 0")
+        assignments.append( f"d.use_modrm = 0")
 
     for k, v in mapping.items():
         assignments.append( f"d.{k} = OPERAND_{v}" )
@@ -82,7 +79,8 @@ def to_entry(k: str, op_desc: dict):
     
     assignments = []
 
-    opcode = op_desc.get('name')
+    opcode = op_desc.get('op')
+    comment = op_desc.get('desc') or opcode
     assignments.append( f"d.opcode = OP_{opcode}" )
 
     alu_op = op_desc.get('alu', 'NONE')
@@ -90,7 +88,11 @@ def to_entry(k: str, op_desc: dict):
     
     sreg = op_desc.get('sreg')
     if sreg:
-        assignments.append( f"d.sreg = {sreg}")
+        assignments.append( f"d.sreg = {sreg}" )
+
+    width = op_desc.get('width')
+    if width:
+        assignments.append( f"d.width = {width}" )
 
     assignments = assign_src_dst(op_desc, assignments)
 
@@ -103,7 +105,10 @@ def to_entry(k: str, op_desc: dict):
             start = 23 - idx
             end = 24 - (idx + len(pid))
             if start == end:
-                assignments.append( f"d.{desc['signal']} = q[{start}]" )
+                if pid == 'W':
+                    assignments.append( f"d.{desc['signal']} = q[{start}] ? WORD : BYTE" )
+                else:
+                    assignments.append( f"d.{desc['signal']} = q[{start}]" )
             else:
                 assignments.append( f"d.{desc['signal']} = q[{start}:{end}]" )
             k = k.replace(pid, 'x' * len(pid))
@@ -118,7 +123,7 @@ def to_entry(k: str, op_desc: dict):
     return {
         'match': k,
         'assignments': assignments,
-        'name': opcode,
+        'comment': comment,
         'vagueness': k.count('x'),
     }
 
@@ -136,10 +141,10 @@ cases.sort(key=lambda x: x['vagueness'])
 
 with open(output_name, "wt") as fp:
     for c in cases:
-        assigns = '; '.join(c['assignments'])
-        name = c['name'] 
+        assigns = ';\n\t'.join(c['assignments'])
+        comment = c['comment']
         match = c['match']
-        fp.write( f"24'b{match}: begin {assigns}; end\n" )
+        fp.write( f"24'b{match}: begin /* {comment} */\n\t{assigns};\nend\n" )
 
 
 for idx1 in range(len(cases)):

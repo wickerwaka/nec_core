@@ -48,6 +48,8 @@ reg [15:0] reg_sp, reg_bp, reg_ix, reg_iy;
 
 reg [15:0] reg_pc;
 
+flags_t reg_psw;
+
 // Data Pointer operations
 reg [15:0] dp_addr;
 reg [15:0] dp_dout;
@@ -70,17 +72,15 @@ function bit [7:0] ipq_byte(int ofs);
 endfunction
 
 // bleh, something better here?
-function int calc_imm_size(operand_e s0, operand_e s1);
+function int calc_imm_size(width_e width, operand_e s0, operand_e s1);
     case(s0)
-    OPERAND_IMM8,
-    OPERAND_IMM8_EXT: return 1;
-    OPERAND_IMM16: return 2;
+    OPERAND_IMM: return width == WORD ? 2 : 1;
+    OPERAND_IMM_EXT: return 1;
     endcase
-    
+
     case(s1)
-    OPERAND_IMM8,
-    OPERAND_IMM8_EXT: return 1;
-    OPERAND_IMM16: return 2;
+    OPERAND_IMM: return width == WORD ? 2 : 1;
+    OPERAND_IMM_EXT: return 1;
     endcase
 
     return 0;
@@ -143,29 +143,71 @@ function bit [15:0] get_reg16(reg16_index_e r);
     endcase
 endfunction
 
+task set_reg8(input reg8_index_e r, input bit[7:0] val);
+    case(r)
+    AL: reg_aw[7:0]  <= val;
+    AH: reg_aw[15:8] <= val;
+    BL: reg_bw[7:0]  <= val;
+    BH: reg_bw[15:8] <= val;
+    CL: reg_cw[7:0]  <= val;
+    CH: reg_cw[15:8] <= val;
+    DL: reg_dw[7:0]  <= val;
+    DH: reg_dw[15:8] <= val;
+    endcase
+endtask
+
+task set_reg16(input reg16_index_e r, input bit[15:0] val);
+    case(r)
+    AW: reg_aw <= val;
+    BW: reg_bw <= val;
+    CW: reg_cw <= val;
+    DW: reg_dw <= val;
+    SP: reg_sp <= val;
+    BP: reg_bp <= val;
+    IX: reg_ix <= val;
+    IY: reg_iy <= val;
+    endcase
+endtask
+
 function bit [15:0] get_operand(operand_e operand);
-    case(operand)
-    OPERAND_ACC8: return { 8'd0, reg_aw[7:0] };
-    OPERAND_ACC16: return reg_aw;
-    OPERAND_IMM16: return fetched_imm;
-    OPERAND_IMM8: return { 8'd0, fetched_imm[7:0] };
-    OPERAND_IMM8_EXT: return { {8{fetched_imm[7]}}, fetched_imm[7:0] };
-    OPERAND_MEM8: return { 8'd0, dp_din[7:0] };
-    OPERAND_MEM16: return dp_din;
-    OPERAND_MEM32: return 16'hffff; // TODO MEM32
-    OPERAND_SREG: begin
-        case(decoded.sreg)
-        DS0: return reg_ds0;
-        DS1: return reg_ds1;
-        SS: return reg_ss;
-        PS: return reg_ps;
+    if (decoded.width == BYTE) begin
+        case(operand)
+        OPERAND_ACC: return { 8'd0, reg_aw[7:0] };
+        OPERAND_IMM: return { 8'd0, fetched_imm[7:0] };
+        OPERAND_IMM_EXT: return { 8'd0, fetched_imm[7:0] };
+        OPERAND_MODRM: begin
+            if (decoded.mod == 2'b11)
+                return { 8'd0, get_reg8(reg8_index_e'(decoded.rm)) };
+            else
+                return { 8'd0, dp_din[7:0] };
+        end
+        OPERAND_REG_0: return { 8'd0, get_reg8(reg8_index_e'(decoded.reg0)) };
+        OPERAND_REG_1: return { 8'd0, get_reg8(reg8_index_e'(decoded.reg1)) };
+        endcase
+    end else if (decoded.width == WORD) begin
+        case(operand)
+        OPERAND_ACC: return reg_aw;
+        OPERAND_IMM: return fetched_imm;
+        OPERAND_IMM_EXT: return { {8{fetched_imm[7]}}, fetched_imm[7:0] };
+        OPERAND_MODRM: begin
+            if (decoded.mod == 2'b11)
+                return get_reg16(reg16_index_e'(decoded.rm));
+            else
+                return dp_din;
+        end
+        OPERAND_SREG: begin
+            case(decoded.sreg)
+            DS0: return reg_ds0;
+            DS1: return reg_ds1;
+            SS: return reg_ss;
+            PS: return reg_ps;
+            endcase
+        end
+        OPERAND_REG_0: return get_reg16(reg16_index_e'(decoded.reg0));
+        OPERAND_REG_1: return get_reg16(reg16_index_e'(decoded.reg1));
         endcase
     end
-    OPERAND_REG16_0: return get_reg16(reg16_index_e'(decoded.reg0));
-    OPERAND_REG16_1: return get_reg16(reg16_index_e'(decoded.reg1));
-    OPERAND_REG8_0: return { 8'd0, get_reg8(reg8_index_e'(decoded.reg0)) };
-    OPERAND_REG8_1: return { 8'd0, get_reg8(reg8_index_e'(decoded.reg1)) };
-    endcase
+    return 16'hfefe;
 endfunction
 
 bus_control_unit BCU(
@@ -205,7 +247,9 @@ reg [15:0] alu_ta, alu_tb;
 reg alu_execute;
 wire alu_busy;
 wire [15:0] alu_result;
+flags_t alu_flags_result;
 reg alu_result_wait;
+reg alu_wide;
 
 alu ALU(
     .clk, .ce(ce_1|ce_2),
@@ -216,6 +260,10 @@ alu ALU(
     .ta(alu_ta),
     .tb(alu_tb),
     .result(alu_result),
+    .wide(alu_wide),
+
+    .flags_in(reg_psw),
+    .flags(alu_flags_result),
 
     .execute(alu_execute),
     .busy(alu_busy)
@@ -224,6 +272,7 @@ alu ALU(
 enum {IDLE, FETCH_OPERANDS, START_EXECUTE, STORE_RESULT} state;
 
 int disp_size, imm_size;
+reg modrm_read;
 reg [15:0] calculated_ea;
 reg [15:0] fetched_imm;
 reg [15:0] op_result;
@@ -253,13 +302,19 @@ always_ff @(posedge clk) begin
                 if (next_valid_op) begin
                     decoded <= next_decode;
                     reg_pc <= reg_pc + { 12'd0, next_decode.pre_size };
-                    disp_size <= next_decode.calc_ea ? calc_disp_size(next_decode.ea_mem, next_decode.ea_mod) : 0;
-                    imm_size <= calc_imm_size(next_decode.source0, next_decode.source1);
+                    if (next_decode.use_modrm & next_decode.mod != 2'b11) begin
+                        disp_size <= calc_disp_size(next_decode.rm, next_decode.mod);
+                        modrm_read <= 1;
+                    end else begin
+                        disp_size <= 0;
+                        modrm_read <= 0;
+                    end
+                    imm_size <= calc_imm_size(next_decode.width, next_decode.source0, next_decode.source1);
                     state <= FETCH_OPERANDS;
                 end
             end
             START_EXECUTE: begin
-                if (decoded.source_mem == OPERAND_NONE || dp_ready) begin
+                if (dp_ready | ~modrm_read) begin
                     case(decoded.opcode)
                     OP_MOV: begin
                         op_result <= get_operand(decoded.source0);
@@ -271,6 +326,7 @@ always_ff @(posedge clk) begin
                         alu_operation <= decoded.alu_operation; // TODO: flags
                         alu_execute <= 1;
                         alu_result_wait <= 1;
+                        alu_wide <= decoded.width == WORD ? 1 : 0;
                         state <= STORE_RESULT;
                     end
                     endcase
@@ -283,10 +339,10 @@ always_ff @(posedge clk) begin
                 if (int'(ipq_len) >= (disp_size + imm_size)) begin
                     fetched_imm[7:0] <= ipq_byte(disp_size);
                     fetched_imm[15:8] <= ipq_byte(disp_size + 1);
-                    addr = calc_ea(decoded.ea_mem, decoded.ea_mod, { ipq_byte(1), ipq_byte(0) });
+                    addr = calc_ea(decoded.rm, decoded.mod, { ipq_byte(1), ipq_byte(0) });
                     calculated_ea <= addr;
 
-                    if (decoded.source_mem == OPERAND_NONE) begin
+                    if (~modrm_read) begin
                         reg_pc <= reg_pc + disp_size[15:0] + imm_size[15:0];
                         state <= START_EXECUTE;
                     end else if (dp_ready) begin
@@ -294,7 +350,7 @@ always_ff @(posedge clk) begin
                         dp_write <= 0;
                         dp_io <= 0; // TODO
                         dp_sreg <= DS0; // TODO
-                        dp_wide <= decoded.source_mem == OPERAND_MEM16 ? 1 : 0; // TODO - 32-bit
+                        dp_wide <= decoded.width == WORD ? 1 : 0; // TODO - 32-bit
                         dp_req <= ~dp_req;
                         reg_pc <= reg_pc + disp_size[15:0] + imm_size[15:0];
                         state <= START_EXECUTE;
@@ -305,20 +361,30 @@ always_ff @(posedge clk) begin
                 result8 = alu_result_wait ? alu_result[7:0] : op_result[7:0];
                 result16 = alu_result_wait ? alu_result : op_result;
 
-                if (~alu_result_wait | ~alu_busy) begin
+                // TODO, do we need to wait for dp_ready here? should it be more focused on just the writing case?
+                if (dp_ready & (~alu_result_wait | ~alu_busy)) begin
                     case(decoded.dest)
-                    OPERAND_ACC8: reg_aw[7:0] <= result8;
-                    OPERAND_ACC16: reg_aw <= result16;
-                    OPERAND_MEM8,
-                    OPERAND_MEM16,
-                    OPERAND_MEM32: begin
-                        dp_addr <= calculated_ea;
-                        dp_dout <= result16;
-                        dp_write <= 1;
-                        dp_io <= 0; // TODO
-                        dp_sreg <= DS0; // TODO
-                        dp_wide <= decoded.source_mem == OPERAND_MEM16 ? 1 : 0; // TODO - 32-bit
-                        dp_req <= ~dp_req;
+                    OPERAND_ACC: begin
+                        if (decoded.width == BYTE)
+                            reg_aw[7:0] <= result8;
+                        else
+                            reg_aw <= result16;
+                    end
+                    OPERAND_MODRM: begin
+                        if (decoded.mod == 2'b11) begin
+                            if (decoded.width == BYTE)
+                                set_reg8(reg8_index_e'(decoded.rm), result8);
+                            else
+                                set_reg16(reg16_index_e'(decoded.rm), result16);
+                        end else begin
+                            dp_addr <= calculated_ea;
+                            dp_dout <= result16;
+                            dp_write <= 1;
+                            dp_io <= 0; // TODO
+                            dp_sreg <= DS0; // TODO
+                            dp_wide <= decoded.width == WORD ? 1 : 0; // TODO - 32-bit
+                            dp_req <= ~dp_req;
+                        end
                     end
                     OPERAND_SREG: begin
                         case(decoded.sreg)
@@ -328,33 +394,21 @@ always_ff @(posedge clk) begin
                         PS: reg_ps <= result16;
                         endcase
                     end
-                    OPERAND_REG16_0,
-                    OPERAND_REG16_1: begin
-                        case(reg16_index_e'(decoded.dest == OPERAND_REG16_0 ? decoded.reg0 : decoded.reg1))
-                        AW: reg_aw <= result16;
-                        BW: reg_bw <= result16;
-                        CW: reg_cw <= result16;
-                        DW: reg_dw <= result16;
-                        SP: reg_sp <= result16;
-                        BP: reg_bp <= result16;
-                        IX: reg_ix <= result16;
-                        IY: reg_iy <= result16;
-                        endcase
+                    OPERAND_REG_0: begin
+                        if (decoded.width == BYTE)
+                            set_reg8(reg8_index_e'(decoded.reg0), result8);
+                        else
+                            set_reg16(reg16_index_e'(decoded.reg0), result16);
                     end
-                    OPERAND_REG8_0,
-                    OPERAND_REG8_1: begin
-                        case(reg8_index_e'(decoded.dest == OPERAND_REG8_0 ? decoded.reg0 : decoded.reg1))
-                        AL: reg_aw[7:0] <= result8;
-                        AH: reg_aw[15:8] <= result8;
-                        BL: reg_bw[7:0] <= result8;
-                        BH: reg_bw[15:8] <= result8;
-                        CL: reg_cw[7:0] <= result8;
-                        CH: reg_cw[15:8] <= result8;
-                        DL: reg_dw[7:0] <= result8;
-                        DH: reg_dw[15:8] <= result8;
-                        endcase
+                    OPERAND_REG_1: begin
+                        if (decoded.width == BYTE)
+                            set_reg8(reg8_index_e'(decoded.reg1), result8);
+                        else
+                            set_reg16(reg16_index_e'(decoded.reg1), result16);
                     end
                     endcase
+
+                    if (alu_result_wait) reg_psw <= alu_flags_result;
                     state <= IDLE;
                 end
             end

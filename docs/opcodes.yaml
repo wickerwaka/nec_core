@@ -1,242 +1,128 @@
-b00000011_11_GP0_GP1:
-  name: ALU
+b0000001W_11_GP0_GP1:
+  desc: ADD reg, reg
+  op: ALU
   alu: ADD
-  src0: REG16_0
-  src1: REG16_1
-  dst: REG16_0
-  flags: &basic_alu_flags
-    AC: x
-    CY: x
-    V: x
-    P: x
-    S: x
-    Z: x
+  src0: REG_0
+  src1: REG_1
+  dst: REG_0
 
-b00000010_11_GP0_GP1:
-  name: ALU
+b0000000W_MD_GP0_MEM:
+  desc: ADD mem, reg
+  op: ALU
   alu: ADD
-  src0: REG8_0
-  src1: REG8_1
-  dst: REG8_0
-  flags: *basic_alu_flags
+  src0: MODRM
+  src1: REG_0
+  dst: MODRM
 
-b00000000_MD_GP0_MEM:
-  name: ALU
+b0000001W_MD_GP0_MEM:
+  desc: ADD reg, mem
+  op: ALU
   alu: ADD
-  src0: MEM8
-  src1: REG8_0
-  dst: MEM8
-  flags: *basic_alu_flags
+  src0: REG_0
+  src1: MODRM
+  dst: REG_0
 
-b00000001_MD_GP0_MEM:
-  name: ALU
+b1000000W_11_000_GP0:
+  desc: ADD reg, imm
+  op: ALU
   alu: ADD
-  src0: MEM16
-  src1: REG16_0
-  dst: MEM16
-  flags: *basic_alu_flags
+  src0: REG_0
+  src1: IMM
+  dst: REG_0
 
-b00000010_MD_GP0_MEM:
-  name: ALU
+b1000001W_11_000_GP0:
+  desc: ADD reg, imm
+  op: ALU
   alu: ADD
-  src0: REG8_0
-  src1: MEM8
-  dst: REG8_0
-  flags: *basic_alu_flags
+  src0: REG_0
+  src1: IMM_EXT
+  dst: REG_0
 
-b00000011_MD_GP0_MEM:
-  name: ALU
+b1000000W_MD_000_MEM:
+  desc: ADD mem, imm
+  op: ALU
   alu: ADD
-  src0: REG16_0
-  src1: MEM16
-  dst: REG16_0
-  flags: *basic_alu_flags
+  dst: MODRM
+  src0: MODRM
+  src1: IMM
 
-b10000000_11_000_GP0:
-  name: ALU
+b1000001W_MD_000_MEM:
+  desc: ADD mem, sext_imm
+  op: ALU
   alu: ADD
-  src0: REG8_0
-  src1: IMM8
-  dst: REG8_0
-  flags: *basic_alu_flags
+  dst: MODRM
+  src0: MODRM
+  src1: IMM_EXT
 
-b10000001_11_000_GP0:
-  name: ALU
+b0000010W:
+  desc: ADD acc, imm
+  op: ALU
   alu: ADD
-  src0: REG16_0
-  src1: IMM8
-  dst: REG16_0
-  flags: *basic_alu_flags
-
-b10000010_11_000_GP0:
-  name: ALU
-  alu: ADD
-  src0: REG8_0
-  src1: IMM8
-  dst: REG8_0
-  flags: *basic_alu_flags
-
-b10000011_11_000_GP0:
-  name: ALU
-  alu: ADD
-  src0: REG16_0
-  src1: IMM8_EXT
-  dst: REG16_0
-  flags: *basic_alu_flags
-
-b10000000_MD_000_MEM:
-  name: ALU
-  alu: ADD
-  dst: MEM8
-  src0: MEM8
-  src1: IMM8
-  flags: *basic_alu_flags
-
-b10000001_MD_000_MEM:
-  name: ALU
-  alu: ADD
-  dst: MEM16
-  src0: MEM16
-  src1: IMM16
-  flags: *basic_alu_flags
-
-b10000010_MD_000_MEM:
-  name: ALU
-  alu: ADD
-  dst: MEM8
-  src0: MEM8
-  src1: IMM8
-  flags: *basic_alu_flags
-
-b10000011_MD_000_MEM:
-  name: ALU
-  alu: ADD
-  dst: MEM16
-  src0: MEM16
-  src1: IMM8_EXT
-  flags: *basic_alu_flags
-
-b00000100:
-  name: ALU
-  alu: ADD
-  dst: ACC8
-  src0: ACC8
-  src1: IMM8
-  flags: *basic_alu_flags
-
-b00000101:
-  name: ALU
-  alu: ADD
-  dst: ACC16
-  src0: ACC16
-  src1: IMM16
-  flags: *basic_alu_flags
+  dst: ACC
+  src0: ACC
+  src1: IMM
 
 b00001111_00100000:
-  name: ADD4S
-  flags:
-    AC: U
-    CY: x
-    V: U
-    P: U
-    S: U
-    Z: x
+  op: ADD4S
 
+b1000101W_11GP0GP1:
+  op: MOV
+  dst: REG_0
+  src: REG_1
 
-b10001010_11GP0GP1:
-  name: MOV
-  dst: REG8_0
-  src: REG8_1
+b1000100W_MD_GP0_MEM:
+  op: MOV
+  dst: MODRM
+  src: REG_0
 
-b10001011_11GP0GP1:
-  name: MOV
-  dst: REG16_0
-  src: REG16_1
+b1000101W_MD_GP0_MEM:
+  op: MOV
+  dst: REG_0
+  src: MODRM
 
-b10001000_MD_GP0_MEM:
-  name: MOV
-  dst: MEM8
-  src: REG8_0
+b1011W_GP0:
+  op: MOV
+  dst: REG_0
+  src: IMM
 
-b10001001_MD_GP0_MEM:
-  name: MOV
-  dst: MEM16
-  src: REG16_0
+b1010000W:
+  op: MOV
+  dst: ACC
+  src: DMEM
 
-b10001010_MD_GP0_MEM:
-  name: MOV
-  dst: REG8_0
-  src: MEM8
-
-b10001011_MD_GP0_MEM:
-  name: MOV
-  dst: REG16_0
-  src: MEM16
-
-b10110_GP0:
-  name: MOV
-  dst: REG8_0
-  src: IMM8
-
-b10111_GP0:
-  name: MOV
-  dst: REG16_0
-  src: IMM16
-
-b10100000:
-  name: MOV
-  dst: ACC8
-  src: DMEM8
-
-b10100001:
-  name: MOV
-  dst: ACC16
-  src: DMEM16
-
-b10100010:
-  name: MOV
-  dst: DMEM8
-  src: ACC8
-
-b10100011:
-  name: MOV
-  dst: DMEM16
-  src: ACC16
-
-b10001110_110_SR_GP0:
-  name: MOV
-  dst: SREG
-  src: REG16_0
+b1010001W:
+  op: MOV
+  dst: DMEM
+  src: ACC
 
 b10001110_MD_0_SR_MEM:
-  name: MOV
+  op: MOV
   dst: SREG
-  src: MEM16
-
-b10001100_110_SR_GP0:
-  name: MOV
-  dst: REG16_0
-  src: SREG
+  src: MODRM
+  width: WORD
 
 b10001100_MD_0_SR_MEM:
-  name: MOV
-  dst: MEM16
+  op: MOV
+  dst: MODRM
   src: SREG
+  width: WORD
 
 b11000101_MD_GP0_MEM:
-  name: MOV_SEG
+  op: MOV_SEG
   sreg: DS0
-  dst: REG16_0
-  src: MEM32
+  dst: REG_0
+  src: MODRM
+  width: DWORD
 
 b11000100_MD_GP0_MEM:
-  name: MOV_SEG
+  op: MOV_SEG
   sreg: DS1
-  dst: REG16_0
-  src: MEM32
+  dst: REG_0
+  src: MODRM
+  width: DWORD
 
 b10011111:
-  name: MOV_AH_PSW
+  op: MOV_AH_PSW
 
 b10011110:
-  name: MOV_PSW_AH
+  op: MOV_PSW_AH
