@@ -126,3 +126,9 @@ b10011111:
 
 b10011110:
   op: MOV_PSW_AH
+
+b0111_COND:
+  op: B_COND
+  desc: B cond, disp
+  src: IMM_EXT
+  width: WORD

@@ -72,7 +72,9 @@ int main(int argc, char **argv)
     memory[0xfff7] = 0x03;
     memory[0xfff8] = 0x83;
     memory[0xfff9] = 0xc0;
-    memory[0xfffa] = 0x10;
+    memory[0xfffa] = 0x01;
+    memory[0xfffb] = 0x75;
+    memory[0xfffc] = 0xfb;
 
     top->ce_1 = 0;
     top->ce_2 = 1;

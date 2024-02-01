@@ -9,7 +9,8 @@ package types;
         OP_MOV,
         OP_MOV_SEG,
         OP_MOV_AH_PSW,
-        OP_MOV_PSW_AH
+        OP_MOV_PSW_AH,
+        OP_B_COND
     } opcode_e;
 
     typedef enum {
@@ -47,6 +48,8 @@ package types;
         bit [2:0] reg0;
         bit [2:0] reg1;
         bit [1:0] sreg;
+
+        bit [3:0] cond;
 
         width_e width;
 

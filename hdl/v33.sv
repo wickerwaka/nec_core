@@ -235,7 +235,7 @@ pre_decode_t next_decode;
 pre_decode_t decoded;
 
 pre_decode pre_decode(
-    .clk, .ce(ce_1),
+    .clk, .ce(ce_1 | ce_2),
     .q_len(ipq_len),
     .q0(ipq_byte(0)), .q1(ipq_byte(1)), .q2(ipq_byte(2)),
     .valid_op(next_valid_op),
@@ -291,15 +291,15 @@ always_ff @(posedge clk) begin
         alu_execute <= 0;
         alu_result_wait <= 0;
     end else if (ce_1 | ce_2) begin
-        new_pc <= 0;
         alu_execute <= 0;
 
         if (ce_1) begin
             case(state)
             IDLE: begin
                 alu_result_wait <= 0;
+                new_pc <= 0; // TODO - should this be every CE?
 
-                if (next_valid_op) begin
+                if (next_valid_op & ~new_pc) begin
                     decoded <= next_decode;
                     reg_pc <= reg_pc + { 12'd0, next_decode.pre_size };
                     if (next_decode.use_modrm & next_decode.mod != 2'b11) begin
@@ -328,6 +328,34 @@ always_ff @(posedge clk) begin
                         alu_result_wait <= 1;
                         alu_wide <= decoded.width == WORD ? 1 : 0;
                         state <= STORE_RESULT;
+                    end
+                    OP_B_COND: begin
+                        bit cond = 0;
+                        case(decoded.cond)
+                        4'b0000: cond = reg_psw.V; /* V */
+                        4'b0001: cond = ~reg_psw.V; /* NV */
+                        4'b0010: cond = reg_psw.CY; /* C/L */
+                        4'b0011: cond = ~reg_psw.CY; /* NC/NL */
+                        4'b0100: cond = reg_psw.Z; /* E/Z */
+                        4'b0101: cond = ~reg_psw.Z; /* NE/NZ */
+                        4'b0110: cond = (reg_psw.CY | reg_psw.Z); /* NH */
+                        4'b0111: cond = ~(reg_psw.CY | reg_psw.Z); /* H */
+                        4'b1000: cond = reg_psw.S; /* N */
+                        4'b1001: cond = ~reg_psw.S; /* P */
+                        4'b1010: cond = reg_psw.P; /* PE */
+                        4'b1011: cond = ~reg_psw.P; /* PO */
+                        4'b1100: cond = (reg_psw.S ^ reg_psw.V); /* LT */
+                        4'b1101: cond = ~(reg_psw.S ^ reg_psw.V); /* GE */
+                        4'b1110: cond = (reg_psw.S ^ reg_psw.V); /* LE */
+                        4'b1111: cond = ~((reg_psw.S ^ reg_psw.V) | reg_psw.Z); /* GT */
+                        endcase
+
+                        if (cond) begin
+                            reg_pc <= reg_pc + get_operand(decoded.source0);
+                            new_pc <= 1;
+                        end
+
+                        state <= IDLE;
                     end
                     endcase
                 end
@@ -391,7 +419,10 @@ always_ff @(posedge clk) begin
                         DS0: reg_ds0 <= result16;
                         DS1: reg_ds1 <= result16;
                         SS: reg_ss <= result16;
-                        PS: reg_ps <= result16;
+                        PS: begin
+                            reg_ps <= result16;
+                            new_pc <= 1;
+                        end
                         endcase
                     end
                     OPERAND_REG_0: begin

@@ -19,7 +19,10 @@ placeholders = {
     },
     'W': {
         'signal': 'width'
-    }
+    },
+    'COND': {
+        'signal': 'cond'
+    },
 }
 
 def is_ambiguous(case1, case2):

@@ -267,3 +267,15 @@ end
 	d.pre_size = 1;
 	valid_op <= 1;
 end
+24'b0111xxxxxxxxxxxxxxxxxxxx: begin /* B cond, disp */
+	d.opcode = OP_B_COND;
+	d.alu_operation = ALU_OP_NONE;
+	d.width = WORD;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_IMM_EXT;
+	d.source1 = OPERAND_NONE;
+	d.cond = q[19:16];
+	d.pre_size = 1;
+	valid_op <= 1;
+end

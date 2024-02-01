@@ -100,7 +100,7 @@ end
 
 reg [15:0] reg_pfp;
 reg discard_ipq_fetch = 0;
-assign ipq_len = reg_pfp[3:0] - ipq_head[3:0];
+assign ipq_len = pfp_set ? 4'd0 : reg_pfp[3:0] - ipq_head[3:0];
 
 assign dp_ready = (dp_ack == dp_req);
 reg dp_ack;
@@ -128,11 +128,14 @@ always_ff @(posedge clk) begin
 
         second_byte <= 0;
     end else if (ce_1 | ce_2) begin
+        bit [15:0] cur_pfp;
         new_ipq_used = ipq_len;
+        cur_pfp = reg_pfp;
         if (pfp_set) begin
             reg_pfp <= ipq_head;
+            cur_pfp = ipq_head;
             new_ipq_used = 0;
-            if (cycle_type == IPQ_FETCH && t_state != T_IDLE) discard_ipq_fetch <= 1;
+            discard_ipq_fetch <= 1;
         end        
 
         if (ce_1) begin
@@ -152,8 +155,9 @@ always_ff @(posedge clk) begin
                 end else if (new_ipq_used < 7) begin
                     t_state <= T_1;
                     cycle_type <= IPQ_FETCH;
-                    addr <= physical_addr(PS, reg_pfp);
+                    addr <= physical_addr(PS, cur_pfp);
                     n_ube <= 0; // always
+                    discard_ipq_fetch <= 0;
                 end
             end
             T_1: t_state <= T_2;
@@ -169,7 +173,7 @@ always_ff @(posedge clk) begin
                     second_byte <= 0;
                     case(cycle_type)
                     IPQ_FETCH: begin
-                        if (~discard_ipq_fetch) begin
+                        if (~pfp_set & ~discard_ipq_fetch) begin
                             if (reg_pfp[0]) begin
                                 ipq[reg_pfp[2:0]] <= din[15:8];
                                 reg_pfp <= reg_pfp + 16'd1;
