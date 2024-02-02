@@ -59,9 +59,10 @@ end
 	valid_op <= 1;
 end
 24'b11111111xx010xxxxxxxxxxx: begin /* CALL ptr16 */
-	d.opcode = OP_CALL_NEAR;
+	d.opcode = OP_BR_ABS;
 	d.alu_operation = ALU_OP_NONE;
 	d.width = WORD;
+	d.push = STACK_PC;
 	d.use_modrm = 1;
 	d.dest = OPERAND_NONE;
 	d.source0 = OPERAND_MODRM;
@@ -72,9 +73,10 @@ end
 	valid_op <= 1;
 end
 24'b11111111xx011xxxxxxxxxxx: begin /* CALL memptr32 */
-	d.opcode = OP_CALL_FAR;
+	d.opcode = OP_BR_ABS;
 	d.alu_operation = ALU_OP_NONE;
 	d.width = DWORD;
+	d.push = STACK_PC | STACK_PS;
 	d.use_modrm = 1;
 	d.dest = OPERAND_NONE;
 	d.source0 = OPERAND_MODRM;
@@ -248,9 +250,10 @@ end
 	valid_op <= 1;
 end
 24'b11101000xxxxxxxxxxxxxxxx: begin /* CALL near */
-	d.opcode = OP_CALL_NEAR;
+	d.opcode = OP_BR_REL;
 	d.alu_operation = ALU_OP_NONE;
 	d.width = WORD;
+	d.push = STACK_PC;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
 	d.source0 = OPERAND_IMM;
@@ -259,9 +262,54 @@ end
 	valid_op <= 1;
 end
 24'b10011010xxxxxxxxxxxxxxxx: begin /* CALL far-proc */
-	d.opcode = OP_CALL_FAR;
+	d.opcode = OP_BR_ABS;
 	d.alu_operation = ALU_OP_NONE;
 	d.width = DWORD;
+	d.push = STACK_PC | STACK_PS;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_IMM;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b11000011xxxxxxxxxxxxxxxx: begin /* RET */
+	d.alu_operation = ALU_OP_NONE;
+	d.pop = STACK_PC;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b11001010xxxxxxxxxxxxxxxx: begin /* RET pop-value */
+	d.opcode = OP_POP_VALUE;
+	d.alu_operation = ALU_OP_NONE;
+	d.width = WORD;
+	d.pop = STACK_PC;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_IMM;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b11001011xxxxxxxxxxxxxxxx: begin /* RETF */
+	d.alu_operation = ALU_OP_NONE;
+	d.pop = STACK_PC | STACK_PS;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b11000010xxxxxxxxxxxxxxxx: begin /* RETF pop-value */
+	d.opcode = OP_POP_VALUE;
+	d.alu_operation = ALU_OP_NONE;
+	d.width = WORD;
+	d.pop = STACK_PC | STACK_PS;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
 	d.source0 = OPERAND_IMM;

@@ -192,27 +192,64 @@ b1111_1111_MD_101_MEM:
 
 b1110_1000:
   desc: CALL near
-  op: CALL_NEAR
+  op: BR_REL
   src: IMM
   width: WORD
+  push: PC
 
 b1111_1111_MD_010_MEM:
   desc: CALL ptr16
-  op: CALL_NEAR
+  op: BR_ABS
   src: MODRM
   width: WORD
+  push: PC
 
 b1111_1111_MD_011_MEM:
   desc: CALL memptr32
-  op: CALL_FAR
+  op: BR_ABS
   src: MODRM
   width: DWORD
+  push:
+    - PC
+    - PS
 
 b1001_1010:
   desc: CALL far-proc
-  op: CALL_FAR
+  op: BR_ABS
   src: IMM
   width: DWORD
+  push:
+    - PC
+    - PS
+
+b1100_0011:
+  desc: RET
+  pop:
+    - PC
+
+b1100_1010:
+  desc: RET pop-value
+  op: POP_VALUE
+  src: IMM
+  width: WORD
+  pop:
+    - PC
+
+b1100_1011:
+  desc: RETF
+  pop:
+    - PC
+    - PS
+
+b1100_0010:
+  desc: RETF pop-value
+  op: POP_VALUE
+  src: IMM
+  width: WORD
+  pop:
+    - PC
+    - PS
+
 
 b0101_0000:
   desc: PUSH AW

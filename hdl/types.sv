@@ -35,8 +35,10 @@ package types;
         OP_OUT,
         OP_BR_REL,
         OP_BR_ABS,
+        OP_CALL_REL,
         OP_CALL_NEAR,
-        OP_CALL_FAR
+        OP_CALL_FAR,
+        OP_POP_VALUE
     } opcode_e;
 
     typedef enum {

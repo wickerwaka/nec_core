@@ -289,6 +289,7 @@ reg [3:0] exec_stage;
 int last_push_idx, last_pop_idx;
 reg [15:0] push_list;
 reg [15:0] pop_list;
+reg [15:0] push_sp_save;
 
 always_ff @(posedge clk) begin
     bit [15:0] addr;
@@ -317,6 +318,7 @@ always_ff @(posedge clk) begin
                     mem_read <= 0;
                     exec_stage <= 4'd0;
 
+                    push_sp_save <= reg_sp;
                     push_list <= next_decode.push;
                     pop_list <= next_decode.pop;
 
@@ -425,7 +427,7 @@ always_ff @(posedge clk) begin
                             reg_pc <= fetched_imm[15:0];
                             reg_ps <= fetched_imm[31:16];
                             new_pc <= 1;
-                        end else if (decoded.source0 == OPERAND_MODRM && decoded.width == WORD) begin
+                        end else if (decoded.width == WORD) begin
                             reg_pc <= get_operand(decoded.source0);
                             new_pc <= 1;
                         end else if (decoded.source0 == OPERAND_MODRM && decoded.width == DWORD) begin
@@ -433,6 +435,10 @@ always_ff @(posedge clk) begin
                             reg_ps <= dp_din32[31:16];
                             new_pc <= 1;
                         end
+                        state <= IDLE;
+                    end
+                    OP_POP_VALUE: begin
+                        reg_sp <= reg_sp + get_operand(decoded.source0);
                         state <= IDLE;
                     end
                     OP_IN: begin
@@ -607,7 +613,7 @@ always_ff @(posedge clk) begin
                     1:  dp_dout <= reg_cw;
                     2:  dp_dout <= reg_dw;
                     3:  dp_dout <= reg_bw;
-                    4:  dp_dout <= reg_sp; // TODO, right value?
+                    4:  dp_dout <= push_sp_save;
                     5:  dp_dout <= reg_bp;
                     6:  dp_dout <= reg_ix;
                     7:  dp_dout <= reg_iy;
