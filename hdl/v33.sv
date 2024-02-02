@@ -74,6 +74,11 @@ function bit [7:0] ipq_byte(int ofs);
     return ipq[reg_pc[2:0] + ofs[2:0]];
 endfunction
 
+wire next_valid_op;
+pre_decode_t next_decode;
+pre_decode_t decoded;
+
+
 // bleh, something better here?
 function int calc_imm_size(width_e width, operand_e s0, operand_e s1);
     case(s0)
@@ -236,10 +241,6 @@ bus_control_unit BCU(
 
     .implementation_fault()
 );
-
-wire next_valid_op;
-pre_decode_t next_decode;
-pre_decode_t decoded;
 
 pre_decode pre_decode(
     .clk, .ce(ce_1 | ce_2),
