@@ -84,7 +84,8 @@ def to_entry(k: str, op_desc: dict):
 
     opcode = op_desc.get('op')
     comment = op_desc.get('desc') or opcode
-    assignments.append( f"d.opcode = OP_{opcode}" )
+    if opcode:
+        assignments.append( f"d.opcode = OP_{opcode}" )
 
     alu_op = op_desc.get('alu', 'NONE')
     assignments.append( f"d.alu_operation = ALU_OP_{alu_op}" )
@@ -93,9 +94,31 @@ def to_entry(k: str, op_desc: dict):
     if sreg:
         assignments.append( f"d.sreg = {sreg}" )
 
+    reg = op_desc.get('reg0')
+    if reg:
+        assignments.append( f"d.reg0 = {reg}" )
+
+    reg = op_desc.get('reg1')
+    if reg:
+        assignments.append( f"d.reg1 = {reg}" )
+
     width = op_desc.get('width')
     if width:
         assignments.append( f"d.width = {width}" )
+    
+    push = op_desc.get('push')
+    if push:
+        if not isinstance(push, list):
+            push = [ push ]
+        agg = ' | '.join( [ f"STACK_{x}" for x in push ] )
+        assignments.append( f"d.push = {agg}" )
+
+    pop = op_desc.get('pop')
+    if pop:
+        if not isinstance(pop, list):
+            pop = [ pop ]
+        agg = ' | '.join( [ f"STACK_{x}" for x in pop ] )
+        assignments.append( f"d.pop = {agg}" )
 
     assignments = assign_src_dst(op_desc, assignments)
 

@@ -61,6 +61,9 @@ reg dp_io;
 reg dp_req;
 wire dp_ready;
 
+reg [15:0] dp_din_low; // for 32-bit reads
+wire [31:0] dp_din32 = { dp_din, dp_din_low };
+
 // Instruction prefetch
 reg new_pc;
 
@@ -74,12 +77,14 @@ endfunction
 // bleh, something better here?
 function int calc_imm_size(width_e width, operand_e s0, operand_e s1);
     case(s0)
-    OPERAND_IMM: return width == WORD ? 2 : 1;
+    OPERAND_IMM: return width == DWORD ? 4 : width == WORD ? 2 : 1;
+    OPERAND_IMM8: return 1;
     OPERAND_IMM_EXT: return 1;
     endcase
 
     case(s1)
-    OPERAND_IMM: return width == WORD ? 2 : 1;
+    OPERAND_IMM: return width == DWORD ? 4 : width == WORD ? 2 : 1;
+    OPERAND_IMM8: return 1;
     OPERAND_IMM_EXT: return 1;
     endcase
 
@@ -174,7 +179,8 @@ function bit [15:0] get_operand(operand_e operand);
         case(operand)
         OPERAND_ACC: return { 8'd0, reg_aw[7:0] };
         OPERAND_IMM: return { 8'd0, fetched_imm[7:0] };
-        OPERAND_IMM_EXT: return { 8'd0, fetched_imm[7:0] };
+        OPERAND_IMM8: return { 8'd0, fetched_imm[7:0] };
+        OPERAND_IMM_EXT: return { {8{fetched_imm[7]}}, fetched_imm[7:0] };
         OPERAND_MODRM: begin
             if (decoded.mod == 2'b11)
                 return { 8'd0, get_reg8(reg8_index_e'(decoded.rm)) };
@@ -187,7 +193,8 @@ function bit [15:0] get_operand(operand_e operand);
     end else if (decoded.width == WORD) begin
         case(operand)
         OPERAND_ACC: return reg_aw;
-        OPERAND_IMM: return fetched_imm;
+        OPERAND_IMM: return fetched_imm[15:0];
+        OPERAND_IMM8: return { 8'd0, fetched_imm[7:0] };
         OPERAND_IMM_EXT: return { {8{fetched_imm[7]}}, fetched_imm[7:0] };
         OPERAND_MODRM: begin
             if (decoded.mod == 2'b11)
@@ -269,13 +276,19 @@ alu ALU(
     .busy(alu_busy)
 );
 
-enum {IDLE, FETCH_OPERANDS, START_EXECUTE, STORE_RESULT} state;
+enum {IDLE, FETCH_OPERANDS, FETCH_OPERANDS2, PUSH, POP, POP_WAIT, START_EXECUTE, STORE_RESULT} state;
 
 int disp_size, imm_size;
-reg modrm_read;
+reg io_read, mem_read;
 reg [15:0] calculated_ea;
-reg [15:0] fetched_imm;
+reg [31:0] fetched_imm;
 reg [15:0] op_result;
+
+reg [3:0] exec_stage;
+
+int last_push_idx, last_pop_idx;
+reg [15:0] push_list;
+reg [15:0] pop_list;
 
 always_ff @(posedge clk) begin
     bit [15:0] addr;
@@ -300,22 +313,40 @@ always_ff @(posedge clk) begin
                 new_pc <= 0; // TODO - should this be every CE?
 
                 if (next_valid_op & ~new_pc) begin
+                    disp_size <= 0;
+                    mem_read <= 0;
+                    exec_stage <= 4'd0;
+
+                    push_list <= next_decode.push;
+                    pop_list <= next_decode.pop;
+
+                    for (int i = 14; i >= 0; i = i - 1) begin
+                        if (next_decode.pop[i]) last_pop_idx <= i;
+                    end
+
+                    for (int i = 0; i < 15; i = i + 1) begin
+                        if (next_decode.push[i]) last_push_idx <= i;
+                    end
+
                     decoded <= next_decode;
                     reg_pc <= reg_pc + { 12'd0, next_decode.pre_size };
                     if (next_decode.use_modrm & next_decode.mod != 2'b11) begin
                         disp_size <= calc_disp_size(next_decode.rm, next_decode.mod);
-                        modrm_read <= 1;
-                    end else begin
-                        disp_size <= 0;
-                        modrm_read <= 0;
+                        mem_read <= (next_decode.source0 == OPERAND_MODRM || next_decode.source1 == OPERAND_MODRM) ? 1 : 0;
                     end
+
                     imm_size <= calc_imm_size(next_decode.width, next_decode.source0, next_decode.source1);
                     state <= FETCH_OPERANDS;
                 end
             end
             START_EXECUTE: begin
-                if (dp_ready | ~modrm_read) begin
+                if (dp_ready) begin
+                    exec_stage <= exec_stage + 4'd1;
+
                     case(decoded.opcode)
+                    OP_NOP: begin
+                        state <= IDLE;
+                    end
                     OP_MOV: begin
                         op_result <= get_operand(decoded.source0);
                         state <= STORE_RESULT;
@@ -357,9 +388,146 @@ always_ff @(posedge clk) begin
 
                         state <= IDLE;
                     end
+                    OP_B_CW_COND: begin
+                        bit cond = 0;
+                        case(decoded.cond)
+                        4'b0000: begin
+                            reg_cw <= reg_cw - 16'd1;
+                            cond = reg_cw != 16'd1 && ~reg_psw.Z;
+                        end
+                        4'b0001: begin
+                            reg_cw <= reg_cw - 16'd1;
+                            cond = reg_cw != 16'd1 && reg_psw.Z;
+                        end
+                        4'b0010: begin
+                            reg_cw <= reg_cw - 16'd1;
+                            cond = reg_cw != 16'd1;
+                        end
+                        4'b0011: cond = (reg_cw == 0);
+                        default: begin
+                        end
+                        endcase
+
+                        if (cond) begin
+                            reg_pc <= reg_pc + get_operand(decoded.source0);
+                            new_pc <= 1;
+                        end
+
+                        state <= IDLE;
+                    end
+                    OP_BR_REL: begin
+                        reg_pc <= reg_pc + get_operand(decoded.source0);
+                        new_pc <= 1;
+                        state <= IDLE;
+                    end
+                    OP_BR_ABS: begin
+                        if (decoded.source0 == OPERAND_IMM && decoded.width == DWORD) begin
+                            reg_pc <= fetched_imm[15:0];
+                            reg_ps <= fetched_imm[31:16];
+                            new_pc <= 1;
+                        end else if (decoded.source0 == OPERAND_MODRM && decoded.width == WORD) begin
+                            reg_pc <= get_operand(decoded.source0);
+                            new_pc <= 1;
+                        end else if (decoded.source0 == OPERAND_MODRM && decoded.width == DWORD) begin
+                            reg_pc <= dp_din32[15:0];
+                            reg_ps <= dp_din32[31:16];
+                            new_pc <= 1;
+                        end
+                        state <= IDLE;
+                    end
+                    OP_IN: begin
+                        if (exec_stage == 0) begin
+                            dp_write <= 0;
+                            dp_io <= 1;
+                            dp_wide <= decoded.width == WORD ? 1 : 0;
+                            if (decoded.source0 == OPERAND_IMM8) begin
+                                dp_addr <= { 8'd0, fetched_imm[7:0] };
+                            end else begin
+                                dp_addr <= reg_dw;
+                            end
+                            dp_req <= ~dp_req;
+                        end else begin
+                            if (decoded.width == BYTE)
+                                set_reg8(AL, dp_din[7:0]);
+                            else
+                                set_reg16(AW, dp_din);
+                            state <= IDLE;
+                        end
+                    end
+                    OP_OUT: begin
+                        dp_write <= 1;
+                        dp_io <= 1;
+                        dp_wide <= decoded.width == WORD ? 1 : 0;
+                        dp_dout <= reg_aw;
+                        if (decoded.source0 == OPERAND_IMM8) begin
+                            dp_addr <= { 8'd0, fetched_imm[7:0] };
+                        end else begin
+                            dp_addr <= reg_dw;
+                        end
+                        dp_req <= ~dp_req;
+                    end
+
+
                     endcase
                 end
             end
+            POP_WAIT: begin
+                if (dp_ready) begin
+                    int pop_idx = 0;
+                    for (int i = 0; i < 15; i = i + 1) begin
+                        if (pop_list[i]) pop_idx = i;
+                    end
+
+                    case(pop_idx)
+                    0:  reg_aw <= dp_din;
+                    1:  reg_cw <= dp_din;
+                    2:  reg_dw <= dp_din;
+                    3:  reg_bw <= dp_din;
+                    4:  reg_sp <= dp_din; // TODO, right value?
+                    5:  reg_bp <= dp_din;
+                    6:  reg_ix <= dp_din;
+                    7:  reg_iy <= dp_din;
+                    8:  reg_ds1 <= dp_din;
+                    9:  begin end // reg_psw <= dp_din; // TODO
+                    10: begin
+                        reg_ps <= dp_din;
+                        new_pc <= 1;
+                    end
+                    11: reg_ss <= dp_din;
+                    12: reg_ds0 <= dp_din;
+                    13: begin
+                        reg_pc <= dp_din;
+                        new_pc <= 1;
+                    end
+                    14: begin
+                        if (decoded.mod == 2'b11) begin
+                            set_reg16(reg16_index_e'(decoded.rm), dp_din);
+                        end else begin
+                            dp_addr <= calculated_ea;
+                            dp_dout <= dp_din;
+                            dp_write <= 1;
+                            dp_io <= 0;
+                            dp_sreg <= DS0; // TODO
+                            dp_wide <= 1;
+                            dp_req <= ~dp_req;
+                        end
+                    end
+                    endcase
+
+                    pop_list[pop_idx] <= 0;
+
+                    if (pop_idx == last_pop_idx) begin
+                        if (decoded.opcode == OP_NOP) begin
+                            state <= IDLE;
+                        end else begin
+                            state <= START_EXECUTE;
+                        end
+                    end else begin
+                        state <= POP;
+                    end
+                end
+            end
+
             endcase
         end else if (ce_2) begin
             case(state)
@@ -367,24 +535,122 @@ always_ff @(posedge clk) begin
                 if (int'(ipq_len) >= (disp_size + imm_size)) begin
                     fetched_imm[7:0] <= ipq_byte(disp_size);
                     fetched_imm[15:8] <= ipq_byte(disp_size + 1);
+                    fetched_imm[23:16] <= ipq_byte(disp_size + 2);
+                    fetched_imm[31:24] <= ipq_byte(disp_size + 3);
                     addr = calc_ea(decoded.rm, decoded.mod, { ipq_byte(1), ipq_byte(0) });
                     calculated_ea <= addr;
 
-                    if (~modrm_read) begin
-                        reg_pc <= reg_pc + disp_size[15:0] + imm_size[15:0];
-                        state <= START_EXECUTE;
-                    end else if (dp_ready) begin
+                    if (dp_ready & mem_read) begin
                         dp_addr <= addr;
                         dp_write <= 0;
-                        dp_io <= 0; // TODO
+                        dp_io <= 0;
                         dp_sreg <= DS0; // TODO
-                        dp_wide <= decoded.width == WORD ? 1 : 0; // TODO - 32-bit
+                        dp_wide <= decoded.width == BYTE ? 0 : 1;
                         dp_req <= ~dp_req;
                         reg_pc <= reg_pc + disp_size[15:0] + imm_size[15:0];
-                        state <= START_EXECUTE;
+                        if (decoded.width == DWORD) begin
+                            state <= FETCH_OPERANDS2;
+                        end else begin
+                        if (push_list != 16'd0)
+                            state <= PUSH;
+                        else if (pop_list != 16'd0)
+                            state <= POP;
+                        else
+                            state <= START_EXECUTE;                        end
+                    end else if (~mem_read) begin
+                        reg_pc <= reg_pc + disp_size[15:0] + imm_size[15:0];
+                        if (push_list != 16'd0)
+                            state <= PUSH;
+                        else if (pop_list != 16'd0)
+                            state <= POP;
+                        else
+                            state <= START_EXECUTE;
                     end
                 end
             end
+            FETCH_OPERANDS2: begin
+                if (dp_ready) begin
+                    dp_din_low <= dp_din;
+
+                    dp_addr <= calculated_ea + 16'd2;
+                    dp_write <= 0;
+                    dp_io <= 0;
+                    dp_sreg <= DS0; // TODO
+                    dp_wide <= 1;
+                    dp_req <= ~dp_req;
+                    if (push_list != 16'd0)
+                        state <= PUSH;
+                    else if (pop_list != 16'd0)
+                        state <= POP;
+                    else
+                        state <= START_EXECUTE;
+                end
+            end
+
+            PUSH: begin
+                if (dp_ready) begin
+                    int push_idx = 0;
+                    for (int i = 14; i >= 0; i = i - 1) begin
+                        if (push_list[i]) push_idx = i;
+                    end
+
+                    dp_addr <= reg_sp - 16'd2;
+                    reg_sp <= reg_sp - 16'd2;
+                    dp_write <= 1;
+                    dp_io <= 0;
+                    dp_sreg <= SS;
+                    dp_wide <= 1;
+                    dp_req <= ~dp_req;
+
+                    case(push_idx)
+                    0:  dp_dout <= reg_aw;
+                    1:  dp_dout <= reg_cw;
+                    2:  dp_dout <= reg_dw;
+                    3:  dp_dout <= reg_bw;
+                    4:  dp_dout <= reg_sp; // TODO, right value?
+                    5:  dp_dout <= reg_bp;
+                    6:  dp_dout <= reg_ix;
+                    7:  dp_dout <= reg_iy;
+                    8:  dp_dout <= reg_ds1;
+                    9:  dp_dout <= 0; // reg_psw; // TODO
+                    10: dp_dout <= reg_ps;
+                    11: dp_dout <= reg_ss;
+                    12: dp_dout <= reg_ds0;
+                    13: dp_dout <= reg_pc;
+                    14: dp_dout <= get_operand(decoded.source0);
+                    endcase
+
+                    push_list[push_idx] <= 0;
+
+                    if (push_idx == last_push_idx) begin
+                        if (decoded.opcode == OP_NOP) begin
+                            state <= IDLE;
+                        end else begin
+                            state <= START_EXECUTE;
+                        end
+                    end 
+                end
+            end
+
+            POP: begin
+                if (dp_ready) begin
+                    int pop_idx = 0;
+                    for (int i = 0; i < 15; i = i + 1) begin
+                        if (pop_list[i]) pop_idx = i;
+                    end
+
+                    dp_addr <= reg_sp;
+                    reg_sp <= reg_sp + 16'd2;
+                    dp_write <= 0;
+                    dp_io <= 0;
+                    dp_sreg <= SS;
+                    dp_wide <= 1;
+                    dp_req <= ~dp_req;
+
+                    state <= POP_WAIT;
+                end
+            end
+
             STORE_RESULT: begin
                 result8 = alu_result_wait ? alu_result[7:0] : op_result[7:0];
                 result16 = alu_result_wait ? alu_result : op_result;
@@ -408,7 +674,7 @@ always_ff @(posedge clk) begin
                             dp_addr <= calculated_ea;
                             dp_dout <= result16;
                             dp_write <= 1;
-                            dp_io <= 0; // TODO
+                            dp_io <= 0;
                             dp_sreg <= DS0; // TODO
                             dp_wide <= decoded.width == WORD ? 1 : 0; // TODO - 32-bit
                             dp_req <= ~dp_req;

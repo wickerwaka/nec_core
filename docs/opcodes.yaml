@@ -132,3 +132,148 @@ b0111_COND:
   desc: B cond, disp
   src: IMM_EXT
   width: WORD
+
+b1110_COND:
+  op: B_CW_COND
+  src: IMM_EXT
+  width: WORD
+
+b1110_010W:
+  desc: IN acc, imm8
+  src: IMM8
+  op: IN
+
+b1110_110W:
+  desc: IN acc, DW
+  src: REG_0
+  reg0: DW
+  op: IN
+
+b1110_011W:
+  desc: OUT imm8, acc
+  op: OUT
+  src: IMM8
+
+b1110_111W:
+  desc: OUT DW, acc
+  op: OUT
+  src: REG_0
+  reg0: DW
+
+b1110_1001:
+  desc: BR near-label
+  op: BR_REL
+  src: IMM
+  width: WORD
+
+b1110_1011:
+  desc: BR short-label
+  op: BR_REL
+  src: IMM_EXT
+  width: WORD
+
+b1110_1010:
+  desc: BR far-label
+  op: BR_ABS
+  src: IMM
+  width: DWORD
+
+b1111_1111_MD_100_MEM:
+  desc: BR ptr16
+  op: BR_ABS
+  src: MODRM
+  width: WORD
+
+b1111_1111_MD_101_MEM:
+  desc: BR memptr32
+  op: BR_ABS
+  src: MODRM
+  width: DWORD
+
+b1110_1000:
+  desc: CALL near
+  op: CALL_NEAR
+  src: IMM
+  width: WORD
+
+b1111_1111_MD_010_MEM:
+  desc: CALL ptr16
+  op: CALL_NEAR
+  src: MODRM
+  width: WORD
+
+b1111_1111_MD_011_MEM:
+  desc: CALL memptr32
+  op: CALL_FAR
+  src: MODRM
+  width: DWORD
+
+b1001_1010:
+  desc: CALL far-proc
+  op: CALL_FAR
+  src: IMM
+  width: DWORD
+
+b0101_0000:
+  desc: PUSH AW
+  push: AW
+
+b0101_0001:
+  desc: PUSH CW
+  push: CW
+
+b0101_0010:
+  desc: PUSH DW
+  push: DW
+
+b0101_0011:
+  desc: PUSH BW
+  push: BW
+
+b0101_0100:
+  desc: PUSH SP
+  push: SP
+
+b0101_0101:
+  desc: PUSH BP
+  push: BP
+
+b0101_0110:
+  desc: PUSH IX
+  push: IX
+
+b0101_0111:
+  desc: PUSH IY
+  push: IY
+
+b0101_1000:
+  desc: POP AW
+  pop: AW
+
+b0101_1001:
+  desc: POP CW
+  pop: CW
+
+b0101_1010:
+  desc: POP DW
+  pop: DW
+
+b0101_1011:
+  desc: POP BW
+  pop: BW
+
+b0101_1100:
+  desc: POP SP
+  pop: SP
+
+b0101_1101:
+  desc: POP BP
+  pop: BP
+
+b0101_1110:
+  desc: POP IX
+  pop: IX
+
+b0101_1111:
+  desc: POP IY
+  pop: IY

@@ -16,15 +16,37 @@ uint16_t read_mem(uint32_t addr, bool ube)
     return memory[aligned_addr] | (memory[aligned_addr + 1] << 8);
 }
 
+void write_mem(uint32_t addr, bool ube, uint16_t dout)
+{
+    if ((addr & 1) && ube)
+    {
+        memory[addr] = dout >> 16;
+    }
+    else if (((addr & 1) == 0) && !ube)
+    {
+        memory[addr] = dout & 0xff;
+    }
+    else
+    {
+        memory[addr] = dout & 0xff;
+        memory[addr + 1] = dout >> 8;
+    }
+}
+
 void tick(int count = 1)
 {
     for( int i = 0; i < count; i++ )
     {
-        if (top->n_dstb)
+        if (~top->n_dstb)
         {
             if (top->r_w && top->m_io)
             {
                 top->din = read_mem(top->addr, (~top->n_ube) & 1);
+            }
+
+            if (!top->r_w && top->m_io)
+            {
+                write_mem(top->addr, (~top->n_ube) & 1, top->dout);
             }
         }
 
@@ -53,8 +75,23 @@ void tick_ce()
 
 int main(int argc, char **argv)
 {
+    if (argc != 2)
+    {
+        printf( "Usage: %s BIN_FILE\n", argv[0] );
+        return -1;
+    }
+
+    FILE *fp = fopen( argv[1], "rb" );
+    if (fp == nullptr)
+    {
+        printf( "Could not open %s\n", argv[1] );
+        return -1;
+    }
+
+    fread(memory, 1, 64 * 1024, fp);
+    fclose(fp);
+
     contextp = new VerilatedContext;
-    contextp->commandArgs(argc, argv);
     top = new v33{contextp};
 
     Verilated::traceEverOn(true);
@@ -62,19 +99,11 @@ int main(int argc, char **argv)
     top->trace(tfp, 99);
     tfp->open("v33.vcd");
 
-    memory[0xfff0] = 0xb8;
-    memory[0xfff1] = 0x41;
+    memory[0xfff0] = 0xea;
+    memory[0xfff1] = 0x00;
     memory[0xfff2] = 0x00;
-    memory[0xfff3] = 0x01;
-    memory[0xfff4] = 0xc0;
-    memory[0xfff5] = 0x83;
-    memory[0xfff6] = 0xc0;
-    memory[0xfff7] = 0x03;
-    memory[0xfff8] = 0x83;
-    memory[0xfff9] = 0xc0;
-    memory[0xfffa] = 0x01;
-    memory[0xfffb] = 0x75;
-    memory[0xfffc] = 0xfb;
+    memory[0xfff3] = 0x00;
+    memory[0xfff4] = 0x00;
 
     top->ce_1 = 0;
     top->ce_2 = 1;

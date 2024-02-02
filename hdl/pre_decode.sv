@@ -27,9 +27,15 @@ always_ff @(posedge clk) begin
     if (ce) begin
         valid_op <= 0;
 
+        d.opcode = OP_NOP;
+        d.push = 16'd0;
+        d.pop = 16'd0;
+
         casex(q)
         `include "opcodes.svh"
         endcase
+
+        d.opcode_byte = q0;
 
         if (q_len < d.pre_size) valid_op <= 0;
         
