@@ -95,6 +95,11 @@ pre_decode_t next_decode;
 pre_decode_t decoded;
 
 
+reg prefix_active;
+reg segment_override_active;
+sreg_index_e segment_override;
+
+
 // bleh, something better here?
 function int calc_imm_size(width_e width, operand_e s0, operand_e s1);
     case(s0)
@@ -195,6 +200,30 @@ task set_reg16(input reg16_index_e r, input bit[15:0] val);
     endcase
 endtask
 
+function sreg_index_e override_segment(sreg_index_e seg);
+    if (segment_override_active) return segment_override;
+    return seg;
+endfunction
+
+task write_memory(input bit [15:0] addr, input sreg_index_e seg, input width_e width, input [15:0] data);
+    dp_addr <= addr;
+    dp_dout <= data;
+    dp_write <= 1;
+    dp_io <= 0;
+    dp_sreg <= seg;
+    dp_wide <= width == BYTE ? 0 : 1;
+    dp_req <= ~dp_req;
+endtask
+
+task read_memory(input bit [15:0] addr, input sreg_index_e seg, input width_e width);
+    dp_addr <= addr;
+    dp_write <= 0;
+    dp_io <= 0;
+    dp_sreg <= seg;
+    dp_wide <= width == BYTE ? 0 : 1;
+    dp_req <= ~dp_req;
+endtask
+
 function bit [15:0] get_operand(operand_e operand);
     if (decoded.width == BYTE) begin
         case(operand)
@@ -293,7 +322,7 @@ alu ALU(
     .busy(alu_busy)
 );
 
-enum {IDLE, FETCH_OPERANDS, FETCH_OPERANDS2, PUSH, POP, POP_WAIT, START_EXECUTE, STORE_RESULT} state;
+enum {IDLE, FETCH_OPERANDS, FETCH_OPERANDS2, PUSH, POP, POP_WAIT, EXECUTE, STORE_RESULT} state;
 
 int disp_size, imm_size;
 reg io_read, mem_read;
@@ -321,6 +350,9 @@ always_ff @(posedge clk) begin
         state <= IDLE;
         alu_execute <= 0;
         alu_result_wait <= 0;
+
+        prefix_active <= 0;
+        segment_override_active <= 0;
     end else if (ce_1 | ce_2) begin
         alu_execute <= 0;
 
@@ -329,6 +361,12 @@ always_ff @(posedge clk) begin
             IDLE: begin
                 alu_result_wait <= 0;
                 new_pc <= 0; // TODO - should this be every CE?
+
+                // If prefixes are active and the _last_ op was not a prefix, then end it
+                if (prefix_active & ~decoded.prefix) begin
+                    prefix_active <= 0;
+                    segment_override_active <= 0;
+                end
 
                 if (next_valid_op & ~new_pc) begin
                     disp_size <= 0;
@@ -355,20 +393,20 @@ always_ff @(posedge clk) begin
                     end
 
                     imm_size <= calc_imm_size(next_decode.width, next_decode.source0, next_decode.source1);
+
                     state <= FETCH_OPERANDS;
                 end
             end
-            START_EXECUTE: begin
+            EXECUTE: begin
+                bit working = 0;
                 if (dp_ready) begin
                     exec_stage <= exec_stage + 4'd1;
 
                     case(decoded.opcode)
                     OP_NOP: begin
-                        state <= IDLE;
                     end
                     OP_MOV: begin
                         op_result <= get_operand(decoded.source0);
-                        state <= STORE_RESULT;
                     end
                     OP_ALU: begin
                         alu_ta <= get_operand(decoded.source0);
@@ -377,7 +415,6 @@ always_ff @(posedge clk) begin
                         alu_execute <= 1;
                         alu_result_wait <= 1;
                         alu_wide <= decoded.width == WORD ? 1 : 0;
-                        state <= STORE_RESULT;
                     end
                     OP_B_COND: begin
                         bit cond = 0;
@@ -404,8 +441,6 @@ always_ff @(posedge clk) begin
                             reg_pc <= reg_pc + get_operand(decoded.source0);
                             new_pc <= 1;
                         end
-
-                        state <= IDLE;
                     end
                     OP_B_CW_COND: begin
                         bit cond = 0;
@@ -431,13 +466,10 @@ always_ff @(posedge clk) begin
                             reg_pc <= reg_pc + get_operand(decoded.source0);
                             new_pc <= 1;
                         end
-
-                        state <= IDLE;
                     end
                     OP_BR_REL: begin
                         reg_pc <= reg_pc + get_operand(decoded.source0);
                         new_pc <= 1;
-                        state <= IDLE;
                     end
                     OP_BR_ABS: begin
                         if (decoded.source0 == OPERAND_IMM && decoded.width == DWORD) begin
@@ -452,11 +484,9 @@ always_ff @(posedge clk) begin
                             reg_ps <= dp_din32[31:16];
                             new_pc <= 1;
                         end
-                        state <= IDLE;
                     end
                     OP_POP_VALUE: begin
                         reg_sp <= reg_sp + get_operand(decoded.source0);
-                        state <= IDLE;
                     end
                     OP_IN: begin
                         if (exec_stage == 0) begin
@@ -469,12 +499,12 @@ always_ff @(posedge clk) begin
                                 dp_addr <= reg_dw;
                             end
                             dp_req <= ~dp_req;
+                            working = 1;
                         end else begin
                             if (decoded.width == BYTE)
                                 set_reg8(AL, dp_din[7:0]);
                             else
                                 set_reg16(AW, dp_din);
-                            state <= IDLE;
                         end
                     end
                     OP_OUT: begin
@@ -489,9 +519,20 @@ always_ff @(posedge clk) begin
                         end
                         dp_req <= ~dp_req;
                     end
-
-
+                    OP_SEG_PREFIX: begin
+                        segment_override <= sreg_index_e'(decoded.sreg);
+                        segment_override_active <= 1;
+                        prefix_active <= 1;
+                    end
                     endcase
+
+                    if (~working) begin
+                        if (decoded.dest == OPERAND_NONE) begin
+                            state <= IDLE;
+                        end else begin
+                            state <= STORE_RESULT;
+                        end
+                    end
                 end
             end
             POP_WAIT: begin
@@ -537,13 +578,7 @@ always_ff @(posedge clk) begin
                         if (decoded.mod == 2'b11) begin
                             set_reg16(reg16_index_e'(decoded.rm), dp_din);
                         end else begin
-                            dp_addr <= calculated_ea;
-                            dp_dout <= dp_din;
-                            dp_write <= 1;
-                            dp_io <= 0;
-                            dp_sreg <= DS0; // TODO
-                            dp_wide <= 1;
-                            dp_req <= ~dp_req;
+                            write_memory(calculated_ea, override_segment(DS0), WORD, dp_din);
                         end
                     end
                     endcase
@@ -554,7 +589,7 @@ always_ff @(posedge clk) begin
                         if (decoded.opcode == OP_NOP) begin
                             state <= IDLE;
                         end else begin
-                            state <= START_EXECUTE;
+                            state <= EXECUTE;
                         end
                     end else begin
                         state <= POP;
@@ -575,12 +610,7 @@ always_ff @(posedge clk) begin
                     calculated_ea <= addr;
 
                     if (dp_ready & mem_read) begin
-                        dp_addr <= addr;
-                        dp_write <= 0;
-                        dp_io <= 0;
-                        dp_sreg <= DS0; // TODO
-                        dp_wide <= decoded.width == BYTE ? 0 : 1;
-                        dp_req <= ~dp_req;
+                        read_memory(addr, override_segment(DS0), decoded.width);
                         reg_pc <= reg_pc + disp_size[15:0] + imm_size[15:0];
                         if (decoded.width == DWORD) begin
                             state <= FETCH_OPERANDS2;
@@ -590,7 +620,7 @@ always_ff @(posedge clk) begin
                             else if (pop_list != 16'd0)
                                 state <= POP;
                             else
-                                state <= START_EXECUTE;
+                                state <= EXECUTE;
                         end
                     end else if (~mem_read) begin
                         reg_pc <= reg_pc + disp_size[15:0] + imm_size[15:0];
@@ -599,7 +629,7 @@ always_ff @(posedge clk) begin
                         else if (pop_list != 16'd0)
                             state <= POP;
                         else
-                            state <= START_EXECUTE;
+                            state <= EXECUTE;
                     end
                 end
             end
@@ -607,53 +637,45 @@ always_ff @(posedge clk) begin
                 if (dp_ready) begin
                     dp_din_low <= dp_din;
 
-                    dp_addr <= calculated_ea + 16'd2;
-                    dp_write <= 0;
-                    dp_io <= 0;
-                    dp_sreg <= DS0; // TODO
-                    dp_wide <= 1;
-                    dp_req <= ~dp_req;
+                    read_memory(calculated_ea + 16'd2, override_segment(DS0), WORD);
                     if (push_list != 16'd0)
                         state <= PUSH;
                     else if (pop_list != 16'd0)
                         state <= POP;
                     else
-                        state <= START_EXECUTE;
+                        state <= EXECUTE;
                 end
             end
 
             PUSH: begin
+                bit [15:0] push_data;
                 if (dp_ready) begin
                     int push_idx = 0;
                     for (int i = 14; i >= 0; i = i - 1) begin
                         if (push_list[i]) push_idx = i;
                     end
 
-                    dp_addr <= reg_sp - 16'd2;
                     reg_sp <= reg_sp - 16'd2;
-                    dp_write <= 1;
-                    dp_io <= 0;
-                    dp_sreg <= SS;
-                    dp_wide <= 1;
-                    dp_req <= ~dp_req;
 
                     case(push_idx)
-                    0:  dp_dout <= reg_aw;
-                    1:  dp_dout <= reg_cw;
-                    2:  dp_dout <= reg_dw;
-                    3:  dp_dout <= reg_bw;
-                    4:  dp_dout <= push_sp_save;
-                    5:  dp_dout <= reg_bp;
-                    6:  dp_dout <= reg_ix;
-                    7:  dp_dout <= reg_iy;
-                    8:  dp_dout <= reg_ds1;
-                    9:  dp_dout <= reg_psw;
-                    10: dp_dout <= reg_ps;
-                    11: dp_dout <= reg_ss;
-                    12: dp_dout <= reg_ds0;
-                    13: dp_dout <= reg_pc;
-                    14: dp_dout <= get_operand(decoded.source0);
+                    0:  push_data = reg_aw;
+                    1:  push_data = reg_cw;
+                    2:  push_data = reg_dw;
+                    3:  push_data = reg_bw;
+                    4:  push_data = push_sp_save;
+                    5:  push_data = reg_bp;
+                    6:  push_data = reg_ix;
+                    7:  push_data = reg_iy;
+                    8:  push_data = reg_ds1;
+                    9:  push_data = reg_psw;
+                    10: push_data = reg_ps;
+                    11: push_data = reg_ss;
+                    12: push_data = reg_ds0;
+                    13: push_data = reg_pc;
+                    14: push_data = get_operand(decoded.source0);
                     endcase
+
+                    write_memory(reg_sp - 16'd2, SS, WORD, push_data);
 
                     push_list[push_idx] <= 0;
 
@@ -661,7 +683,7 @@ always_ff @(posedge clk) begin
                         if (decoded.opcode == OP_NOP) begin
                             state <= IDLE;
                         end else begin
-                            state <= START_EXECUTE;
+                            state <= EXECUTE;
                         end
                     end 
                 end
@@ -674,13 +696,8 @@ always_ff @(posedge clk) begin
                         if (pop_list[i]) pop_idx = i;
                     end
 
-                    dp_addr <= reg_sp;
+                    read_memory(reg_sp, SS, WORD);
                     reg_sp <= reg_sp + 16'd2;
-                    dp_write <= 0;
-                    dp_io <= 0;
-                    dp_sreg <= SS;
-                    dp_wide <= 1;
-                    dp_req <= ~dp_req;
 
                     state <= POP_WAIT;
                 end
@@ -706,13 +723,7 @@ always_ff @(posedge clk) begin
                             else
                                 set_reg16(reg16_index_e'(decoded.rm), result16);
                         end else begin
-                            dp_addr <= calculated_ea;
-                            dp_dout <= result16;
-                            dp_write <= 1;
-                            dp_io <= 0;
-                            dp_sreg <= DS0; // TODO
-                            dp_wide <= decoded.width == WORD ? 1 : 0; // TODO - 32-bit
-                            dp_req <= ~dp_req;
+                            write_memory(calculated_ea, override_segment(DS0), decoded.width, result16);
                         end
                     end
                     OPERAND_SREG: begin

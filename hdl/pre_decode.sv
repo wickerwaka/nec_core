@@ -31,6 +31,7 @@ always_ff @(posedge clk) begin
         d.push = 16'd0;
         d.pop = 16'd0;
         d.alu_operation = ALU_OP_NONE;
+        d.prefix = 0;
 
         casex(q)
         `include "opcodes.svh"

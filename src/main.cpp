@@ -18,6 +18,7 @@ uint16_t read_mem(uint32_t addr, bool ube)
 
 void write_mem(uint32_t addr, bool ube, uint16_t dout)
 {
+    addr = addr % MEM_SIZE;
     if ((addr & 1) && ube)
     {
         memory[addr] = dout >> 16;

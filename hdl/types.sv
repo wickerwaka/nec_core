@@ -38,7 +38,8 @@ package types;
         OP_CALL_REL,
         OP_CALL_NEAR,
         OP_CALL_FAR,
-        OP_POP_VALUE
+        OP_POP_VALUE,
+        OP_SEG_PREFIX
     } opcode_e;
 
     typedef enum bit [4:0] {
@@ -104,6 +105,8 @@ package types;
 
         bit [15:0] push;
         bit [15:0] pop;
+
+        bit prefix;
 
         bit [3:0] pre_size;
     } pre_decode_t;

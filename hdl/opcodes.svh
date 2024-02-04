@@ -161,14 +161,14 @@ end
 	d.pre_size = 2;
 	valid_op <= 1;
 end
-24'b1000101x11xxxxxxxxxxxxxx: begin /* MOV */
+24'b1100011xxx000xxxxxxxxxxx: begin /* MOV */
 	d.opcode = OP_MOV;
-	d.use_modrm = 0;
-	d.dest = OPERAND_REG_0;
-	d.source0 = OPERAND_REG_1;
+	d.use_modrm = 1;
+	d.dest = OPERAND_MODRM;
+	d.source0 = OPERAND_IMM;
 	d.source1 = OPERAND_NONE;
-	d.reg0 = q[13:11];
-	d.reg1 = q[10:8];
+	d.mod = q[15:14];
+	d.rm = q[10:8];
 	d.width = q[16] ? WORD : BYTE;
 	d.pre_size = 2;
 	valid_op <= 1;
@@ -708,7 +708,7 @@ end
 	d.pre_size = 1;
 	valid_op <= 1;
 end
-24'b1000100xxxxxxxxxxxxxxxxx: begin /* MOV */
+24'b1000100xxxxxxxxxxxxxxxxx: begin /* MOV mem/reg, reg */
 	d.opcode = OP_MOV;
 	d.use_modrm = 1;
 	d.dest = OPERAND_MODRM;
@@ -721,7 +721,7 @@ end
 	d.pre_size = 2;
 	valid_op <= 1;
 end
-24'b1000101xxxxxxxxxxxxxxxxx: begin /* MOV */
+24'b1000101xxxxxxxxxxxxxxxxx: begin /* MOV reg, mem/reg */
 	d.opcode = OP_MOV;
 	d.use_modrm = 1;
 	d.dest = OPERAND_REG_0;
@@ -800,6 +800,17 @@ end
 	d.pre_size = 1;
 	valid_op <= 1;
 end
+24'b001xx110xxxxxxxxxxxxxxxx: begin /* SEG PREFIX */
+	d.opcode = OP_SEG_PREFIX;
+	d.prefix = 1;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.sreg = q[20:19];
+	d.pre_size = 1;
+	valid_op <= 1;
+end
 24'b01001xxxxxxxxxxxxxxxxxxx: begin /* DEC reg16 */
 	d.opcode = OP_ALU;
 	d.alu_operation = ALU_OP_DEC;
@@ -863,7 +874,7 @@ end
 	d.pre_size = 1;
 	valid_op <= 1;
 end
-24'b1011xxxxxxxxxxxxxxxxxxxx: begin /* MOV */
+24'b1011xxxxxxxxxxxxxxxxxxxx: begin /* MOV reg, imm */
 	d.opcode = OP_MOV;
 	d.use_modrm = 0;
 	d.dest = OPERAND_REG_0;

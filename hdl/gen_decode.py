@@ -111,6 +111,10 @@ def to_entry(k: str, op_desc: dict):
     width = op_desc.get('width')
     if width:
         assignments.append( f"d.width = {width}" )
+
+    prefix = op_desc.get('prefix', False)
+    if prefix:
+        assignments.append( f"d.prefix = 1" )
     
     push = op_desc.get('push')
     if push:
