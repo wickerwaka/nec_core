@@ -41,9 +41,27 @@ package types;
         OP_POP_VALUE
     } opcode_e;
 
-    typedef enum {
-        ALU_OP_NONE,
-        ALU_OP_ADD
+    typedef enum bit [4:0] {
+        ALU_OP_ADD  = 'b00000,
+        ALU_OP_OR   = 'b00001,
+        ALU_OP_ADDC = 'b00010,
+        ALU_OP_SUBC = 'b00011,
+        ALU_OP_AND  = 'b00100,
+        ALU_OP_SUB  = 'b00101,
+        ALU_OP_XOR  = 'b00110,
+        ALU_OP_CMP  = 'b00111,
+
+        ALU_OP_NOT,
+        ALU_OP_NEG,
+        ALU_OP_INC,
+        ALU_OP_DEC,
+
+        ALU_OP_SET1,
+        ALU_OP_CLR1,
+        ALU_OP_TEST1,
+        ALU_OP_NOT1,
+
+        ALU_OP_NONE
     } alu_operation_e;
 
     typedef enum {

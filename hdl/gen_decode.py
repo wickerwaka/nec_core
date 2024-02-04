@@ -18,11 +18,16 @@ placeholders = {
         'signal': 'sreg',
     },
     'W': {
-        'signal': 'width'
+        'signal': 'width',
+        'transform': lambda x: f"{x} ? WORD : BYTE"
     },
     'COND': {
         'signal': 'cond'
     },
+    'ALU': {
+        'signal': 'alu_operation',
+        'transform': lambda x: f"alu_operation_e'({x})"
+    }
 }
 
 def is_ambiguous(case1, case2):
@@ -87,8 +92,9 @@ def to_entry(k: str, op_desc: dict):
     if opcode:
         assignments.append( f"d.opcode = OP_{opcode}" )
 
-    alu_op = op_desc.get('alu', 'NONE')
-    assignments.append( f"d.alu_operation = ALU_OP_{alu_op}" )
+    alu_op = op_desc.get('alu')
+    if alu_op:
+        assignments.append( f"d.alu_operation = ALU_OP_{alu_op}" )
     
     sreg = op_desc.get('sreg')
     if sreg:
@@ -130,13 +136,14 @@ def to_entry(k: str, op_desc: dict):
         if idx != -1:
             start = 23 - idx
             end = 24 - (idx + len(pid))
+            source = f"q[{start}:{end}]"
             if start == end:
-                if pid == 'W':
-                    assignments.append( f"d.{desc['signal']} = q[{start}] ? WORD : BYTE" )
-                else:
-                    assignments.append( f"d.{desc['signal']} = q[{start}]" )
-            else:
-                assignments.append( f"d.{desc['signal']} = q[{start}:{end}]" )
+                source = f"q[{start}]"
+            
+            tr = desc.get('transform', None)
+            if tr:
+                source = tr(source)
+            assignments.append( f"d.{desc['signal']} = {source}" )
             k = k.replace(pid, 'x' * len(pid))
     
     

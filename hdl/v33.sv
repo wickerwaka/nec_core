@@ -48,7 +48,23 @@ reg [15:0] reg_sp, reg_bp, reg_ix, reg_iy;
 
 reg [15:0] reg_pc;
 
-flags_t reg_psw;
+flags_t flags;
+wire [15:0] reg_psw = {
+    flags.MD,
+    3'b111,
+    flags.V,
+    flags.DIR,
+    flags.IE,
+    flags.BRK,
+    flags.S,
+    flags.Z,
+    1'b0,
+    flags.AC,
+    1'b0,
+    flags.P,
+    1'b1,
+    flags.CY
+};
 
 // Data Pointer operations
 reg [15:0] dp_addr;
@@ -270,7 +286,7 @@ alu ALU(
     .result(alu_result),
     .wide(alu_wide),
 
-    .flags_in(reg_psw),
+    .flags_in(flags),
     .flags(alu_flags_result),
 
     .execute(alu_execute),
@@ -366,22 +382,22 @@ always_ff @(posedge clk) begin
                     OP_B_COND: begin
                         bit cond = 0;
                         case(decoded.cond)
-                        4'b0000: cond = reg_psw.V; /* V */
-                        4'b0001: cond = ~reg_psw.V; /* NV */
-                        4'b0010: cond = reg_psw.CY; /* C/L */
-                        4'b0011: cond = ~reg_psw.CY; /* NC/NL */
-                        4'b0100: cond = reg_psw.Z; /* E/Z */
-                        4'b0101: cond = ~reg_psw.Z; /* NE/NZ */
-                        4'b0110: cond = (reg_psw.CY | reg_psw.Z); /* NH */
-                        4'b0111: cond = ~(reg_psw.CY | reg_psw.Z); /* H */
-                        4'b1000: cond = reg_psw.S; /* N */
-                        4'b1001: cond = ~reg_psw.S; /* P */
-                        4'b1010: cond = reg_psw.P; /* PE */
-                        4'b1011: cond = ~reg_psw.P; /* PO */
-                        4'b1100: cond = (reg_psw.S ^ reg_psw.V); /* LT */
-                        4'b1101: cond = ~(reg_psw.S ^ reg_psw.V); /* GE */
-                        4'b1110: cond = (reg_psw.S ^ reg_psw.V); /* LE */
-                        4'b1111: cond = ~((reg_psw.S ^ reg_psw.V) | reg_psw.Z); /* GT */
+                        4'b0000: cond = flags.V; /* V */
+                        4'b0001: cond = ~flags.V; /* NV */
+                        4'b0010: cond = flags.CY; /* C/L */
+                        4'b0011: cond = ~flags.CY; /* NC/NL */
+                        4'b0100: cond = flags.Z; /* E/Z */
+                        4'b0101: cond = ~flags.Z; /* NE/NZ */
+                        4'b0110: cond = (flags.CY | flags.Z); /* NH */
+                        4'b0111: cond = ~(flags.CY | flags.Z); /* H */
+                        4'b1000: cond = flags.S; /* N */
+                        4'b1001: cond = ~flags.S; /* P */
+                        4'b1010: cond = flags.P; /* PE */
+                        4'b1011: cond = ~flags.P; /* PO */
+                        4'b1100: cond = (flags.S ^ flags.V); /* LT */
+                        4'b1101: cond = ~(flags.S ^ flags.V); /* GE */
+                        4'b1110: cond = (flags.S ^ flags.V); /* LE */
+                        4'b1111: cond = ~((flags.S ^ flags.V) | flags.Z); /* GT */
                         endcase
 
                         if (cond) begin
@@ -396,11 +412,11 @@ always_ff @(posedge clk) begin
                         case(decoded.cond)
                         4'b0000: begin
                             reg_cw <= reg_cw - 16'd1;
-                            cond = reg_cw != 16'd1 && ~reg_psw.Z;
+                            cond = reg_cw != 16'd1 && ~flags.Z;
                         end
                         4'b0001: begin
                             reg_cw <= reg_cw - 16'd1;
-                            cond = reg_cw != 16'd1 && reg_psw.Z;
+                            cond = reg_cw != 16'd1 && flags.Z;
                         end
                         4'b0010: begin
                             reg_cw <= reg_cw - 16'd1;
@@ -490,12 +506,23 @@ always_ff @(posedge clk) begin
                     1:  reg_cw <= dp_din;
                     2:  reg_dw <= dp_din;
                     3:  reg_bw <= dp_din;
-                    4:  reg_sp <= dp_din; // TODO, right value?
+                    4:  reg_sp <= dp_din;
                     5:  reg_bp <= dp_din;
                     6:  reg_ix <= dp_din;
                     7:  reg_iy <= dp_din;
                     8:  reg_ds1 <= dp_din;
-                    9:  begin end // reg_psw <= dp_din; // TODO
+                    9:  begin
+                        flags.CY  <= dp_din[0];
+                        flags.P   <= dp_din[2];
+                        flags.AC  <= dp_din[4];
+                        flags.Z   <= dp_din[6];
+                        flags.S   <= dp_din[7];
+                        flags.BRK <= dp_din[8];
+                        flags.IE  <= dp_din[9];
+                        flags.DIR <= dp_din[10];
+                        flags.V   <= dp_din[11];
+                        flags.MD  <= dp_din[15];
+                    end
                     10: begin
                         reg_ps <= dp_din;
                         new_pc <= 1;
@@ -558,12 +585,13 @@ always_ff @(posedge clk) begin
                         if (decoded.width == DWORD) begin
                             state <= FETCH_OPERANDS2;
                         end else begin
-                        if (push_list != 16'd0)
-                            state <= PUSH;
-                        else if (pop_list != 16'd0)
-                            state <= POP;
-                        else
-                            state <= START_EXECUTE;                        end
+                            if (push_list != 16'd0)
+                                state <= PUSH;
+                            else if (pop_list != 16'd0)
+                                state <= POP;
+                            else
+                                state <= START_EXECUTE;
+                        end
                     end else if (~mem_read) begin
                         reg_pc <= reg_pc + disp_size[15:0] + imm_size[15:0];
                         if (push_list != 16'd0)
@@ -619,7 +647,7 @@ always_ff @(posedge clk) begin
                     6:  dp_dout <= reg_ix;
                     7:  dp_dout <= reg_iy;
                     8:  dp_dout <= reg_ds1;
-                    9:  dp_dout <= 0; // reg_psw; // TODO
+                    9:  dp_dout <= reg_psw;
                     10: dp_dout <= reg_ps;
                     11: dp_dout <= reg_ss;
                     12: dp_dout <= reg_ds0;
@@ -712,7 +740,7 @@ always_ff @(posedge clk) begin
                     end
                     endcase
 
-                    if (alu_result_wait) reg_psw <= alu_flags_result;
+                    if (alu_result_wait) flags <= alu_flags_result;
                     state <= IDLE;
                 end
             end

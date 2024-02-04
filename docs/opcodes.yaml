@@ -1,70 +1,171 @@
-b0000001W_11_GP0_GP1:
-  desc: ADD reg, reg
-  op: ALU
-  alu: ADD
-  src0: REG_0
-  src1: REG_1
-  dst: REG_0
+#
+# NOP
+#
+b10010000:
+  desc: NOP
+  op: NOP
 
-b0000000W_MD_GP0_MEM:
-  desc: ADD mem, reg
+#
+# ALU Generic
+#
+b00_ALU_00W_MD_GP0_MEM:
+  desc: ALU_OP mem/reg, reg
   op: ALU
-  alu: ADD
   src0: MODRM
   src1: REG_0
   dst: MODRM
 
-b0000001W_MD_GP0_MEM:
-  desc: ADD reg, mem
+b00_ALU_01W_MD_GP0_MEM:
+  desc: ALU_OP reg, mem/reg
   op: ALU
-  alu: ADD
   src0: REG_0
   src1: MODRM
   dst: REG_0
 
-b1000000W_11_000_GP0:
-  desc: ADD reg, imm
+b00_ALU_10W:
+  desc: ALU_OP acc, imm
   op: ALU
-  alu: ADD
-  src0: REG_0
-  src1: IMM
-  dst: REG_0
-
-b1000001W_11_000_GP0:
-  desc: ADD reg, imm
-  op: ALU
-  alu: ADD
-  src0: REG_0
-  src1: IMM_EXT
-  dst: REG_0
-
-b1000000W_MD_000_MEM:
-  desc: ADD mem, imm
-  op: ALU
-  alu: ADD
-  dst: MODRM
-  src0: MODRM
-  src1: IMM
-
-b1000001W_MD_000_MEM:
-  desc: ADD mem, sext_imm
-  op: ALU
-  alu: ADD
-  dst: MODRM
-  src0: MODRM
-  src1: IMM_EXT
-
-b0000010W:
-  desc: ADD acc, imm
-  op: ALU
-  alu: ADD
   dst: ACC
   src0: ACC
   src1: IMM
 
-b00001111_00100000:
-  op: ADD4S
+b1000000W_MD_ALU_MEM:
+  desc: ALU_OP mem/reg, imm
+  op: ALU
+  dst: MODRM
+  src0: MODRM
+  src1: IMM
 
+b1000001W_MD_ALU_MEM:
+  desc: ALU_OP mem/reg, sext_imm
+  op: ALU
+  dst: MODRM
+  src0: MODRM
+  src1: IMM_EXT
+
+
+#
+# CMP
+#
+b00_111_00W_MD_GP0_MEM:
+  desc: CMP mem/reg, reg
+  op: ALU
+  alu: CMP
+  src0: MODRM
+  src1: REG_0
+
+b00_111_01W_MD_GP0_MEM:
+  desc: CMP reg, mem/reg
+  op: ALU
+  alu: CMP
+  src0: REG_0
+  src1: MODRM
+
+b00_111_10W:
+  desc: CMP acc, imm
+  op: ALU
+  alu: CMP
+  src0: ACC
+  src1: IMM
+
+b1000000W_MD_111_MEM:
+  desc: CMP mem/reg, imm
+  op: ALU
+  alu: CMP
+  src0: MODRM
+  src1: IMM
+
+b1000001W_MD_111_MEM:
+  desc: CMP mem/reg, sext_imm
+  op: ALU
+  alu: CMP
+  src0: MODRM
+  src1: IMM_EXT
+
+
+#
+# DEC / INC
+#
+b01001_GP0:
+  desc: DEC reg16
+  op: ALU
+  alu: DEC
+  dst: REG_0
+  src: REG_0
+  width: WORD
+
+b1111111W_MD_001_MEM:
+  desc: DEC mem/reg
+  op: ALU
+  alu: DEC
+  dst: MODRM
+  src: MODRM
+
+b01000_GP0:
+  desc: INC reg16
+  op: ALU
+  alu: INC
+  dst: REG_0
+  src: REG_0
+  width: WORD
+
+b1111111W_MD_000_MEM:
+  desc: INC mem/reg
+  op: ALU
+  alu: INC
+  dst: MODRM
+  src: MODRM
+
+#
+# TEST
+#
+b10_000_10W_MD_GP0_MEM:
+  desc: TEST mem/reg, reg
+  op: ALU
+  alu: AND
+  src0: MODRM
+  src1: REG_0
+
+b1010100W:
+  desc: TEST acc, imm
+  op: ALU
+  alu: AND
+  src0: ACC
+  src1: IMM
+
+b1111011W_MD_000_MEM:
+  desc: TEST mem/reg, imm
+  op: ALU
+  alu: AND
+  src0: MODRM
+  src1: IMM
+
+
+
+#
+# NOT
+#
+b1111011W_MD_010_MEM:
+  desc: NOT mem/reg
+  op: ALU
+  alu: NOT
+  dst: MODRM
+  src0: MODRM
+
+#
+# NEG
+#
+b1111011W_MD_011_MEM:
+  desc: NEG mem/reg
+  op: ALU
+  alu: NEG
+  dst: MODRM
+  src0: MODRM
+
+
+#
+# MOV
+#
 b1000101W_11GP0GP1:
   op: MOV
   dst: REG_0
@@ -127,6 +228,10 @@ b10011111:
 b10011110:
   op: MOV_PSW_AH
 
+
+#
+# Conditional Branch
+#
 b0111_COND:
   op: B_COND
   desc: B cond, disp
@@ -138,28 +243,11 @@ b1110_COND:
   src: IMM_EXT
   width: WORD
 
-b1110_010W:
-  desc: IN acc, imm8
-  src: IMM8
-  op: IN
 
-b1110_110W:
-  desc: IN acc, DW
-  src: REG_0
-  reg0: DW
-  op: IN
 
-b1110_011W:
-  desc: OUT imm8, acc
-  op: OUT
-  src: IMM8
-
-b1110_111W:
-  desc: OUT DW, acc
-  op: OUT
-  src: REG_0
-  reg0: DW
-
+#
+# Branch Always
+#
 b1110_1001:
   desc: BR near-label
   op: BR_REL
@@ -190,6 +278,10 @@ b1111_1111_MD_101_MEM:
   src: MODRM
   width: DWORD
 
+
+#
+# Call
+#
 b1110_1000:
   desc: CALL near
   op: BR_REL
@@ -222,6 +314,10 @@ b1001_1010:
     - PC
     - PS
 
+
+#
+# RET/RETF
+#
 b1100_0011:
   desc: RET
   pop:
@@ -251,37 +347,86 @@ b1100_0010:
     - PS
 
 
-b0101_0000:
+#
+# Stack Push/Pop
+#
+b01010_000:
   desc: PUSH AW
   push: AW
 
-b0101_0001:
+b01010_001:
   desc: PUSH CW
   push: CW
 
-b0101_0010:
+b01010_010:
   desc: PUSH DW
   push: DW
 
-b0101_0011:
+b01010_011:
   desc: PUSH BW
   push: BW
 
-b0101_0100:
+b01010_100:
   desc: PUSH SP
   push: SP
 
-b0101_0101:
+b01010_101:
   desc: PUSH BP
   push: BP
 
-b0101_0110:
+b01010_110:
   desc: PUSH IX
   push: IX
 
-b0101_0111:
+b01010_111:
   desc: PUSH IY
   push: IY
+
+b000_00_110:
+  desc: PUSH DS1
+  push: DS1
+
+b000_01_110:
+  desc: PUSH PS
+  push: PS
+
+b000_10_110:
+  desc: PUSH SS
+  push: SS
+
+b000_11_110:
+  desc: PUSH DS0
+  push: DS0
+
+b10011100:
+  desc: PUSH PSW
+  push: PSW
+
+b01100000:
+  desc: PUSH R
+  push:
+    - AW
+    - CW
+    - DW
+    - BW
+    - SP
+    - BP
+    - IX
+    - IY
+
+b01101010:
+  desc: PUSH imm8
+  push: IMM
+  width: BYTE
+
+b01101000:
+  desc: PUSH imm16
+  push: IMM
+  width: WORD
+
+b11111111_MD_110_MEM:
+  desc: PUSH reg16/mem16
+  push: MODRM
 
 b0101_1000:
   desc: POP AW
@@ -314,3 +459,65 @@ b0101_1110:
 b0101_1111:
   desc: POP IY
   pop: IY
+
+b000_00_111:
+  desc: POP DS1
+  pop: DS1
+
+b000_01_111:
+  desc: PPOP PS
+  pop: PS
+
+b000_10_111:
+  desc: POP SS
+  pop: SS
+
+b000_11_111:
+  desc: POP DS0
+  pop: DS0
+
+b10011101:
+  desc: POP PSW
+  pop: PSW
+
+b01100001:
+  desc: POP R
+  pop:
+    - AW
+    - CW
+    - DW
+    - BW
+    - SP
+    - BP
+    - IX
+    - IY
+
+b10001111_MD_000_MEM:
+  desc: POP reg16/mem16
+  pop: MODRM
+
+#
+# IO In/Out
+#
+b1110_010W:
+  desc: IN acc, imm8
+  src: IMM8
+  op: IN
+
+b1110_110W:
+  desc: IN acc, DW
+  src: REG_0
+  reg0: DW
+  op: IN
+
+b1110_011W:
+  desc: OUT imm8, acc
+  op: OUT
+  src: IMM8
+
+b1110_111W:
+  desc: OUT DW, acc
+  op: OUT
+  src: REG_0
+  reg0: DW
+
