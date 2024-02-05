@@ -966,11 +966,6 @@ always_ff @(posedge clk) begin
 
             POP: if (ce_2) begin
                 if (dp_ready) begin
-                    int pop_idx = 0;
-                    for (int i = 0; i < 15; i = i + 1) begin
-                        if (pop_list[i]) pop_idx = i;
-                    end
-
                     read_memory(reg_sp, SS, WORD);
                     reg_sp <= reg_sp + 16'd2;
 

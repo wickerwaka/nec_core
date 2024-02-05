@@ -92,7 +92,9 @@ always_ff @(posedge clk) begin
     bit [15:0] temp1;
     bit [8:0] temp9;
 
-    bit [15:0] bit_shift_mask = 16'd1 << ( wide ? tb[3:0] : { 1'b0, tb[2:0] } );
+    bit [15:0] bit_shift_mask;
+	
+    bit_shift_mask = 16'd1 << ( wide ? tb[3:0] : { 1'b0, tb[2:0] } );
 
     if (reset) begin
         executing <= 0;

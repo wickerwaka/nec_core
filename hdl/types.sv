@@ -66,14 +66,14 @@ package types;
     } opcode_e;
 
     typedef enum bit [4:0] {
-        ALU_OP_ADD  = 'b00000,
-        ALU_OP_OR   = 'b00001,
-        ALU_OP_ADDC = 'b00010,
-        ALU_OP_SUBC = 'b00011,
-        ALU_OP_AND  = 'b00100,
-        ALU_OP_SUB  = 'b00101,
-        ALU_OP_XOR  = 'b00110,
-        ALU_OP_CMP  = 'b00111,
+        ALU_OP_ADD  = 5'b00000,
+        ALU_OP_OR   = 5'b00001,
+        ALU_OP_ADDC = 5'b00010,
+        ALU_OP_SUBC = 5'b00011,
+        ALU_OP_AND  = 5'b00100,
+        ALU_OP_SUB  = 5'b00101,
+        ALU_OP_XOR  = 5'b00110,
+        ALU_OP_CMP  = 5'b00111,
 
         ALU_OP_NOT,
         ALU_OP_NEG,
