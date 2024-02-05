@@ -431,7 +431,10 @@ always_ff @(posedge clk) begin
             end // IDLE
 
             EXECUTE: begin
-                bit working = 0;
+                bit working;
+
+                working = 0;
+                
                 if (dp_ready) begin
                     exec_stage <= exec_stage + 4'd1;
 
