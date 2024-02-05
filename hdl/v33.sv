@@ -327,7 +327,7 @@ alu_operation_e alu_operation;
 reg [15:0] alu_ta, alu_tb;
 reg alu_execute;
 wire alu_busy;
-wire [15:0] alu_result;
+wire [31:0] alu_result;
 flags_t alu_flags_result;
 reg alu_result_wait;
 reg alu_wide;
@@ -367,6 +367,7 @@ reg [15:0] push_sp_save;
 
 always_ff @(posedge clk) begin
     bit [15:0] addr;
+    bit [31:0] result32;
     bit [15:0] result16;
     bit [7:0] result8;
 
@@ -978,7 +979,8 @@ always_ff @(posedge clk) begin
 
             STORE_RESULT: if (ce_2) begin
                 result8 = alu_result_wait ? alu_result[7:0] : op_result[7:0];
-                result16 = alu_result_wait ? alu_result : op_result;
+                result16 = alu_result_wait ? alu_result[15:0] : op_result;
+                result32 = alu_result_wait ? alu_result : { 16'd0, op_result };
 
                 // TODO, do we need to wait for dp_ready here? should it be more focused on just the writing case?
                 if (dp_ready & (~alu_result_wait | ~alu_busy)) begin
@@ -1021,6 +1023,10 @@ always_ff @(posedge clk) begin
                             set_reg8(reg8_index_e'(decoded.reg1), result8);
                         else
                             set_reg16(reg16_index_e'(decoded.reg1), result16);
+                    end
+                    OPERAND_PRODUCT: begin
+                        reg_aw <= result32[15:0];
+                        reg_dw <= result32[31:16];
                     end
                     endcase
 

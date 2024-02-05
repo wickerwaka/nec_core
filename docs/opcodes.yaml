@@ -185,6 +185,44 @@ b1111011W_MD_011_MEM:
 
 
 #
+# MUL
+#
+b1111011W_MD_100_MEM:
+  desc: MULU mem/reg
+  op: ALU
+  alu: MULU
+  dst: PRODUCT
+  src0: ACC
+  src1: MODRM
+
+b1111011W_MD_101_MEM:
+  desc: MUL mem/reg
+  op: ALU
+  alu: MUL
+  dst: PRODUCT
+  src0: ACC
+  src1: MODRM
+
+b01101011_MD_GP0_MEM:
+  desc: MUL reg, mem/reg, sext_imm8
+  op: ALU
+  alu: MUL
+  dst: REG_0
+  src0: MODRM
+  src1: IMM_EXT
+  width: WORD
+
+b01101001_MD_GP0_MEM:
+  desc: MUL reg, mem/reg, imm16
+  op: ALU
+  alu: MUL
+  dst: REG_0
+  src0: MODRM
+  src1: IMM
+  width: WORD
+
+
+#
 # BCD Adjust
 #
 b00100111:

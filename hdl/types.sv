@@ -98,6 +98,9 @@ package types;
         ALU_OP_TEST1,
         ALU_OP_NOT1,
 
+        ALU_OP_MULU,
+        ALU_OP_MUL,
+
         ALU_OP_NONE
     } alu_operation_e;
 
@@ -110,6 +113,7 @@ package types;
         OPERAND_REG_0,
         OPERAND_REG_1,
         OPERAND_SREG,
+        OPERAND_PRODUCT, // DW:AW registers
         OPERAND_NONE
     } operand_e;
 
