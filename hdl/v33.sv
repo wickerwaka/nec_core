@@ -48,6 +48,8 @@ reg [15:0] reg_sp, reg_bp, reg_ix, reg_iy;
 
 reg [15:0] reg_pc;
 
+reg halt; // TODO, do something with this
+
 flags_t flags;
 wire [15:0] reg_psw = {
     flags.MD,
@@ -227,6 +229,15 @@ task read_memory(input bit [15:0] addr, input sreg_index_e seg, input width_e wi
     dp_req <= ~dp_req;
 endtask
 
+task start_alu(input bit [15:0] ta, input bit [15:0] tb, input alu_operation_e op, width_e width);
+    alu_ta <= ta;
+    alu_tb <= tb;
+    alu_operation <= op;
+    alu_execute <= 1;
+    alu_result_wait <= 1;
+    alu_wide <= width == WORD ? 1 : 0;
+endtask
+
 function bit [15:0] get_operand(operand_e operand);
     if (decoded.width == BYTE) begin
         case(operand)
@@ -268,6 +279,20 @@ function bit [15:0] get_operand(operand_e operand);
         endcase
     end
     return 16'hfefe;
+endfunction
+
+
+function alu_operation_e shift_alu_op(bit [2:0] shift);
+    case(shift)
+    3'b000: return ALU_OP_ROL;
+    3'b001: return ALU_OP_ROR;
+    3'b010: return ALU_OP_ROLC;
+    3'b011: return ALU_OP_RORC;
+    3'b100: return ALU_OP_SHL;
+    3'b101: return ALU_OP_SHR;
+    3'b110: return ALU_OP_NONE;
+    3'b111: return ALU_OP_SHRA;
+    endcase
 endfunction
 
 bus_control_unit BCU(
@@ -358,6 +383,7 @@ always_ff @(posedge clk) begin
         segment_override_active <= 0;
         repeat_active <= 0;
         repeat_cond <= REPEAT_Z;
+        halt <= 0;
     end else if (ce_1 | ce_2) begin
         alu_execute <= 0;
 
@@ -394,7 +420,8 @@ always_ff @(posedge clk) begin
                     reg_pc <= reg_pc + { 12'd0, next_decode.pre_size };
                     if (next_decode.use_modrm & next_decode.mod != 2'b11) begin
                         disp_size <= calc_disp_size(next_decode.rm, next_decode.mod);
-                        mem_read <= (next_decode.source0 == OPERAND_MODRM || next_decode.source1 == OPERAND_MODRM) ? 1 : 0;
+                        if (next_decode.opcode != OP_LDEA)
+                            mem_read <= (next_decode.source0 == OPERAND_MODRM || next_decode.source1 == OPERAND_MODRM) ? 1 : 0;
                     end
 
                     imm_size <= calc_imm_size(next_decode.width, next_decode.source0, next_decode.source1);
@@ -412,17 +439,54 @@ always_ff @(posedge clk) begin
                         OP_NOP: begin
                         end
 
+                        OP_NOT1_CY:  flags.CY <= ~flags.CY;
+                        OP_CLR1_CY:  flags.CY <= 0;
+                        OP_SET1_CY:  flags.CY <= 1;
+                        OP_DI:       flags.IE <= 0;
+                        OP_EI:       flags.IE <= 1;
+                        OP_CLR1_DIR: flags.DIR <= 0;
+                        OP_SET1_DIR: flags.DIR <= 1;
+                        OP_HALT:     halt <= 1;
+
+                        OP_CVTWL: reg_dw <= reg_aw[15] ? 16'hffff : 16'h0000;
+                        OP_CVTBW: reg_aw[15:8] <= reg_aw[7] ? 8'hff : 8'h00;
+
                         OP_MOV: begin
                             op_result <= get_operand(decoded.source0);
                         end
 
+                        OP_LDEA: begin
+                            op_result <= calculated_ea;
+                        end
+
+                        OP_XCH: begin
+                            bit [15:0] dest;
+                            dest = get_operand(decoded.dest);
+                            op_result <= get_operand(decoded.source1);
+                            if (decoded.width == BYTE)
+                                set_reg8(reg8_index_e'(decoded.reg1), dest[7:0]);
+                            else
+                                set_reg16(reg16_index_e'(decoded.reg1), dest);
+                        end
+
                         OP_ALU: begin
-                            alu_ta <= get_operand(decoded.source0);
-                            alu_tb <= get_operand(decoded.source1);
-                            alu_operation <= decoded.alu_operation; // TODO: flags
-                            alu_execute <= 1;
+                            start_alu(get_operand(decoded.source0), get_operand(decoded.source1), decoded.alu_operation, decoded.width);
                             alu_result_wait <= 1;
-                            alu_wide <= decoded.width == WORD ? 1 : 0;
+                        end
+
+                        OP_SHIFT_1: begin
+                            start_alu(get_operand(decoded.source0), 16'd1, shift_alu_op(decoded.shift), decoded.width);
+                            alu_result_wait <= 1;
+                        end
+
+                        OP_SHIFT_CL: begin
+                            start_alu(get_operand(decoded.source0), {8'd0, reg_cw[7:0]}, shift_alu_op(decoded.shift), decoded.width);
+                            alu_result_wait <= 1;
+                        end
+
+                        OP_SHIFT: begin
+                            start_alu(get_operand(decoded.source0), get_operand(decoded.source1), shift_alu_op(decoded.shift), decoded.width);
+                            alu_result_wait <= 1;
                         end
 
                         OP_B_COND: begin
@@ -550,6 +614,11 @@ always_ff @(posedge clk) begin
                                 2'b10: repeat_cond <= REPEAT_NZ;
                                 2'b11: repeat_cond <= REPEAT_Z;
                             endcase
+                        end
+
+                        // TODO
+                        OP_BUSLOCK_PREFIX: begin
+                            prefix_active <= 1;
                         end
 
                         OP_STM: begin

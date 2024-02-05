@@ -252,6 +252,37 @@ end
 	d.pre_size = 1;
 	valid_op <= 1;
 end
+24'b10011000xxxxxxxxxxxxxxxx: begin /* CVTBW */
+	d.opcode = OP_CVTBW;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b10011001xxxxxxxxxxxxxxxx: begin /* CVTWL */
+	d.opcode = OP_CVTWL;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b10001101xxxxxxxxxxxxxxxx: begin /* LDEA reg16, mem16 */
+	d.opcode = OP_LDEA;
+	d.width = WORD;
+	d.use_modrm = 1;
+	d.dest = OPERAND_REG_0;
+	d.source0 = OPERAND_MODRM;
+	d.source1 = OPERAND_NONE;
+	d.mod = q[15:14];
+	d.rm = q[10:8];
+	d.reg0 = q[13:11];
+	d.pre_size = 2;
+	valid_op <= 1;
+end
 24'b11000101xxxxxxxxxxxxxxxx: begin /* MOV_SEG */
 	d.opcode = OP_MOV_SEG;
 	d.sreg = DS0;
@@ -702,6 +733,78 @@ end
 	d.pre_size = 1;
 	valid_op <= 1;
 end
+24'b11110100xxxxxxxxxxxxxxxx: begin /* HALT */
+	d.opcode = OP_HALT;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b11110101xxxxxxxxxxxxxxxx: begin /* NOT1 CY */
+	d.opcode = OP_NOT1_CY;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b11111000xxxxxxxxxxxxxxxx: begin /* CLR1 CY */
+	d.opcode = OP_CLR1_CY;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b11111001xxxxxxxxxxxxxxxx: begin /* SET1 CY */
+	d.opcode = OP_SET1_CY;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b11111010xxxxxxxxxxxxxxxx: begin /* DI */
+	d.opcode = OP_DI;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b11111011xxxxxxxxxxxxxxxx: begin /* EI */
+	d.opcode = OP_EI;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b11111100xxxxxxxxxxxxxxxx: begin /* CLR1 DIR */
+	d.opcode = OP_CLR1_DIR;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b11111101xxxxxxxxxxxxxxxx: begin /* SET1 DIR */
+	d.opcode = OP_SET1_DIR;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
 24'b1000000xxxxxxxxxxxxxxxxx: begin /* ALU_OP mem/reg, imm */
 	d.opcode = OP_ALU;
 	d.use_modrm = 1;
@@ -725,6 +828,45 @@ end
 	d.rm = q[10:8];
 	d.width = q[16] ? WORD : BYTE;
 	d.alu_operation = alu_operation_e'(q[13:11]);
+	d.pre_size = 2;
+	valid_op <= 1;
+end
+24'b1101000xxxxxxxxxxxxxxxxx: begin /* SHIFT mem/reg, 1 */
+	d.opcode = OP_SHIFT_1;
+	d.use_modrm = 1;
+	d.dest = OPERAND_MODRM;
+	d.source0 = OPERAND_MODRM;
+	d.source1 = OPERAND_NONE;
+	d.mod = q[15:14];
+	d.rm = q[10:8];
+	d.width = q[16] ? WORD : BYTE;
+	d.shift = q[13:11];
+	d.pre_size = 2;
+	valid_op <= 1;
+end
+24'b1101001xxxxxxxxxxxxxxxxx: begin /* SHIFT mem/reg, CL */
+	d.opcode = OP_SHIFT_CL;
+	d.use_modrm = 1;
+	d.dest = OPERAND_MODRM;
+	d.source0 = OPERAND_MODRM;
+	d.source1 = OPERAND_NONE;
+	d.mod = q[15:14];
+	d.rm = q[10:8];
+	d.width = q[16] ? WORD : BYTE;
+	d.shift = q[13:11];
+	d.pre_size = 2;
+	valid_op <= 1;
+end
+24'b1100000xxxxxxxxxxxxxxxxx: begin /* SHIFT mem/reg, imm */
+	d.opcode = OP_SHIFT;
+	d.use_modrm = 1;
+	d.dest = OPERAND_MODRM;
+	d.source0 = OPERAND_MODRM;
+	d.source1 = OPERAND_IMM8;
+	d.mod = q[15:14];
+	d.rm = q[10:8];
+	d.width = q[16] ? WORD : BYTE;
+	d.shift = q[13:11];
 	d.pre_size = 2;
 	valid_op <= 1;
 end
@@ -842,6 +984,19 @@ end
 	d.pre_size = 1;
 	valid_op <= 1;
 end
+24'b1000011xxxxxxxxxxxxxxxxx: begin /* XCH mem/reg, reg */
+	d.opcode = OP_XCH;
+	d.use_modrm = 1;
+	d.dest = OPERAND_MODRM;
+	d.source0 = OPERAND_MODRM;
+	d.source1 = OPERAND_NONE;
+	d.mod = q[15:14];
+	d.rm = q[10:8];
+	d.reg0 = q[13:11];
+	d.width = q[16] ? WORD : BYTE;
+	d.pre_size = 2;
+	valid_op <= 1;
+end
 24'b1110010xxxxxxxxxxxxxxxxx: begin /* IN acc, imm8 */
 	d.opcode = OP_IN;
 	d.use_modrm = 0;
@@ -881,6 +1036,16 @@ end
 	d.source0 = OPERAND_REG_0;
 	d.source1 = OPERAND_NONE;
 	d.width = q[16] ? WORD : BYTE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b1111000xxxxxxxxxxxxxxxxx: begin /* BUSLOCK */
+	d.opcode = OP_BUSLOCK_PREFIX;
+	d.prefix = 1;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
 	d.pre_size = 1;
 	valid_op <= 1;
 end
@@ -960,6 +1125,18 @@ end
 24'b01000xxxxxxxxxxxxxxxxxxx: begin /* INC reg16 */
 	d.opcode = OP_ALU;
 	d.alu_operation = ALU_OP_INC;
+	d.width = WORD;
+	d.use_modrm = 0;
+	d.dest = OPERAND_REG_0;
+	d.source0 = OPERAND_REG_0;
+	d.source1 = OPERAND_NONE;
+	d.reg0 = q[18:16];
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b10010xxxxxxxxxxxxxxxxxxx: begin /* XCH AW, reg16 */
+	d.opcode = OP_XCH;
+	d.reg1 = AW;
 	d.width = WORD;
 	d.use_modrm = 0;
 	d.dest = OPERAND_REG_0;

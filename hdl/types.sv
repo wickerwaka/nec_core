@@ -24,11 +24,11 @@ package types;
     typedef enum {
         OP_NOP,
         OP_ALU,
-        OP_ADD4S,
         OP_MOV,
         OP_MOV_SEG,
         OP_MOV_AH_PSW,
         OP_MOV_PSW_AH,
+        OP_XCH,
         OP_B_COND,
         OP_B_CW_COND,
         OP_IN,
@@ -41,13 +41,28 @@ package types;
         OP_POP_VALUE,
         OP_SEG_PREFIX,
         OP_REP_PREFIX,
+        OP_BUSLOCK_PREFIX,
         OP_STM,
         OP_LDM,
         OP_MOVBK,
         OP_CMPBK,
         OP_CMPM,
         OP_INM,
-        OP_OUTM
+        OP_OUTM,
+        OP_NOT1_CY,
+        OP_CLR1_CY,
+        OP_SET1_CY,
+        OP_DI,
+        OP_EI,
+        OP_CLR1_DIR,
+        OP_SET1_DIR,
+        OP_HALT,
+        OP_SHIFT,
+        OP_SHIFT_1,
+        OP_SHIFT_CL,
+        OP_LDEA,
+        OP_CVTBW,
+        OP_CVTWL
     } opcode_e;
 
     typedef enum bit [4:0] {
@@ -64,6 +79,14 @@ package types;
         ALU_OP_NEG,
         ALU_OP_INC,
         ALU_OP_DEC,
+
+        ALU_OP_ROL,
+        ALU_OP_ROR,
+        ALU_OP_ROLC,
+        ALU_OP_RORC,
+        ALU_OP_SHL,
+        ALU_OP_SHR,
+        ALU_OP_SHRA,
 
         ALU_OP_ADJ4S,
         ALU_OP_ADJ4A,
@@ -113,6 +136,7 @@ package types;
         bit [1:0] sreg;
 
         bit [3:0] cond;
+        bit [2:0] shift;
 
         width_e width;
 

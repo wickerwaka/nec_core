@@ -36,123 +36,7 @@ assign busy = execute | executing;
                            when ALU_OP_ROL4 =>
                               result := x"00" & source1Val(3 downto 0) & regs.reg_ax(3 downto 0);
                               regs.reg_ax(7 downto 0) <= regs.reg_ax(7 downto 4) & source1Val(7 downto 4);
-
                            
-                            when ALU_OP_ROL =>
-                              result17 := resize(source1Val, 17) sll to_integer(source2Val(4 downto 0));
-                              if (opsize = 1) then
-                                 result(7 downto 0) := source1Val(7 downto 0) rol to_integer(source2Val(4 downto 0));
-                                 regs.FlagCar <= result17(8);
-                                 regs.FlagOvf <= source1Val(7) xor result(7);
-                              else
-                                 result17 := resize(source1Val, 17) sll to_integer(source2Val(4 downto 0));
-                                 result   := resize(source1Val, 16) rol to_integer(source2Val(4 downto 0));
-                                 regs.FlagCar <= result17(16);
-                                 regs.FlagOvf <= source1Val(15) xor result(15);
-                              end if;
-                           
-                           when ALU_OP_ROR =>
-                              result17 := (source1Val & '0') srl to_integer(source2Val(4 downto 0));
-                              result := result17(16 downto 1);
-                              regs.FlagCar <= result17(0);
-                              if (opsize = 1) then
-                                 result(7 downto 0) := source1Val(7 downto 0) ror to_integer(source2Val(4 downto 0));
-                                 regs.FlagOvf <= source1Val(7) xor result(7);
-                              else
-                                 result := resize(source1Val, 16) ror to_integer(source2Val(4 downto 0));
-                                 regs.FlagOvf <= source1Val(15) xor result(15);
-                              end if;
-                           
-                           when ALU_OP_RCL => 
-                              carryWork1 := flagCarry;
-                              result := source1Val;
-                              for i in 0 to 31 loop
-                                 if (i < source2Val(4 downto 0)) then
-                                    if (opsize = 1) then
-                                       carryWork2 := result(7);
-                                    else
-                                       carryWork2 := result(15);
-                                    end if;
-                                    result     := result(14 downto 0) & carryWork1;
-                                    carryWork1 := carryWork2;
-                                 end if;
-                              end loop;
-                              regs.FlagCar <= carryWork1;
-                              if (opsize = 1) then
-                                 regs.FlagOvf <= (source1Val(7) xor result(7));
-                              else
-                                 regs.FlagOvf <= (source1Val(15) xor result(15));
-                              end if;
-                           
-                           when ALU_OP_RCR =>
-                              carryWork1 := flagCarry;
-                              result := source1Val;
-                              for i in 0 to 31 loop
-                                 if (i < source2Val(4 downto 0)) then
-                                    carryWork2 := result(0);
-                                    result     := '0' & result(15 downto 1);
-                                    if (opsize = 1) then
-                                       result(7) := carryWork1;
-                                    else
-                                       result(15) := carryWork1;
-                                    end if;
-                                    carryWork1 := carryWork2;
-                                 end if;
-                              end loop;
-                              regs.FlagCar <= carryWork1;
-                              if (opsize = 1) then
-                                 regs.FlagOvf <= (source1Val(7) xor result(7));
-                              else
-                                 regs.FlagOvf <= (source1Val(15) xor result(15));
-                              end if;
-                           
-                           when ALU_OP_SHL | ALU_OP_SAL =>
-                              result17 := resize(source1Val, 17) sll to_integer(source2Val(4 downto 0));
-                              if (opsize = 1) then regs.FlagCar <= result17(8); end if;
-                              if (opsize = 2) then regs.FlagCar <= result17(16); end if;
-                              if (aluop = ALU_OP_SAL) then 
-                                 regs.FlagOvf <= '0'; 
-                              else
-                                 if (opsize = 1) then
-                                    regs.FlagOvf <= source1Val(7) xor result17(7);
-                                 else
-                                    regs.FlagOvf <= source1Val(15) xor result17(15);
-                                 end if;
-                              end if;
-                              result := result17(15 downto 0);
-                              newZero := '1'; newParity := '1'; newSign := '1';
-                           
-                           when ALU_OP_SHR =>
-                              result17 := (source1Val & '0') srl to_integer(source2Val(4 downto 0));
-                              result := result17(16 downto 1);
-                              regs.FlagCar <= result17(0);
-                              if (opsize = 1) then
-                                 regs.FlagOvf <= source1Val(7) xor result(7);
-                              else
-                                 regs.FlagOvf <= source1Val(15) xor result(15);
-                              end if;
-                              newZero := '1'; newParity := '1'; newSign := '1';
-                              
-                           when ALU_OP_SAR =>
-                              if (source2Val(4) = '1') then
-                                 if ((opsize = 1 and source1Val(7) = '1') or (opsize = 2 and source1Val(15) = '1')) then
-                                    result       := x"FFFF";
-                                    regs.FlagCar <= '1';
-                                 else
-                                    result       := x"0000";
-                                    regs.FlagCar <= '0';
-                                 end if;
-                              else
-                                 result17 := (source1Val & '0') srl to_integer(source2Val(4 downto 0));
-                                 regs.FlagCar <= result17(0);
-                                 if (opsize = 1) then
-                                    result   := x"00" & unsigned(shift_right(signed(source1Val(7 downto 0)),to_integer(source2Val(4 downto 0))));
-                                 else
-                                    result   := unsigned(shift_right(signed(source1Val),to_integer(source2Val(4 downto 0))));
-                                 end if;
-                                 regs.FlagOvf <= '0';
-                                 newZero := '1'; newParity := '1'; newSign := '1';
-                              end if;
                            
                            
                            when ALU_OP_MUL =>
@@ -194,65 +78,7 @@ assign busy = execute | executing;
                                     regs.FlagCar <= '1'; regs.FlagOvf <= '1';
                                  end if;
                               end if;
-                              result := result32(15 downto 0);
-                              
-                           when ALU_OP_DECADJUST => 
-                              result9 := resize(regs.reg_ax(7 downto 0), 9);
-                              regs.FlagCar <= '0';
-                              if (regs.FlagHaC = '1' or regs.reg_ax(3 downto 0) > x"9") then
-                                 if (adjustNegate = '1') then 
-                                    result9 := result9 - 6;
-                                 else
-                                    result9 := result9 + 6;
-                                 end if;
-                                 regs.FlagHaC <= '1';
-                                 regs.FlagCar <= flagCarry or result9(8);
-                              end if;
-                              if (flagCarry = '1' or regs.reg_ax(7 downto 0) > x"99") then
-                                 if (adjustNegate = '1') then 
-                                    result9 := result9 - 16#60#;
-                                 else
-                                    result9 := result9 + 16#60#;
-                                 end if;
-                                 regs.FlagCar <= '1';
-                              end if;
-                              result := x"00" & result9(7 downto 0);
-                              newZero := '1'; newParity := '1'; newSign := '1';
-                           
-                           when ALU_OP_ASCIIADJUST =>
-                              result8  := regs.reg_ax(7 downto 0);
-                              result8h := regs.reg_ax(15 downto 8);
-                              if (regs.FlagHaC = '1' or regs.reg_ax(3 downto 0) > x"9") then
-                                 if (adjustNegate = '1') then 
-                                    result8  := result8 - 6;
-                                    result8h := result8h - 1;
-                                 else
-                                    result8  := result8 + 6;
-                                    result8h := result8h + 1;
-                                 end if;
-                                 regs.FlagHaC <= '1';
-                                 regs.FlagCar <= '1';
-                              else
-                                 regs.FlagHaC <= '0';
-                                 regs.FlagCar <= '0';
-                              end if;
-                              result8(7 downto 4) := x"0";
-                              result := result8h & result8;
-                           
-                           when ALU_OP_SXT =>
-                              if (opcodebyte = x"98") then
-                                 if (regs.reg_ax(7) = '1') then
-                                    result := x"FF" & regs.reg_ax(7 downto 0);
-                                 else 
-                                    result := x"00" & regs.reg_ax(7 downto 0);
-                                 end if;
-                              else
-                                 if (regs.reg_ax(15) = '1')  then
-                                    result := x"FFFF";
-                                 else 
-                                    result := x"0000";
-                                 end if;
-                              end if;
+                              result := result32(15 downto 0);                              
 */
 
 always_ff @(posedge clk) begin
@@ -467,6 +293,122 @@ always_ff @(posedge clk) begin
                 res[7:4] = 4'd0;
                 done = 1;
             end 
+
+            ALU_OP_ROL: begin
+                bit [4:0] sz;
+                sz = tb[4:0];
+                temp17 = { 1'b0, ta } << sz;
+                if (wide) begin
+                    res = (ta << sz[3:0]) | (ta >> ~sz[3:0]);
+                    flags.CY <= temp17[16];
+                    flags.V <= ta[15] ^ res[15];
+                end else begin
+                    res[7:0] = (ta[7:0] << sz[2:0]) | (ta[7:0] >> ~sz[2:0]);
+                    flags.CY <= temp17[8];
+                    flags.V <= ta[7] ^ res[7];
+                end
+            end
+
+            ALU_OP_ROLC: begin
+                bit [33:0] sh34;
+                bit [17:0] sh18;
+                bit [5:0] sz;
+                bit [5:0] sz_inv;
+                if (wide) begin
+                    sz = { 1'b0, tb[4:0] };
+                    sz_inv = 6'd34 - sz;
+                    sh34 = { flags.CY, ta, flags.CY, ta };
+                    sh34 = (sh34 << sz) | (sh34 >> sz_inv);
+                    res = sh34[15:0];
+                    flags.CY <= sh34[16];
+                    flags.V <= ta[15] ^ res[15];
+                end else begin
+                    sz = { 2'b00, tb[3:0] };
+                    sz_inv = 6'd18 - sz;
+                    sh18 = { flags.CY, ta[7:0], flags.CY, ta[7:0] };
+                    sh18 = (sh18 << sz) | (sh18 >> sz_inv);
+                    res[7:0] = sh18[7:0];
+                    flags.CY <= sh18[8];
+                    flags.V <= ta[7] ^ res[7];
+                end
+            end
+
+            ALU_OP_ROR: begin
+                bit [4:0] sz;
+                sz = tb[4:0];
+                temp17 = { ta, 1'b0 } >> sz;
+                flags.CY <= temp17[0];
+                if (wide) begin
+                    res = (ta >> sz[3:0]) | (ta << ~sz[3:0]);
+                    flags.V <= ta[15] ^ res[15];
+                end else begin
+                    res[7:0] = (ta[7:0] >> sz[2:0]) | (ta[7:0] << ~sz[2:0]);
+                    flags.V <= ta[7] ^ res[7];
+                end
+            end
+
+            ALU_OP_RORC: begin
+                bit [33:0] sh34;
+                bit [17:0] sh18;
+                bit [5:0] sz;
+                bit [5:0] sz_inv;
+                if (wide) begin
+                    sz = { 1'b0, tb[4:0] };
+                    sz_inv = 6'd34 - sz;
+                    sh34 = { flags.CY, ta, flags.CY, ta };
+                    sh34 = (sh34 >> sz) | (sh34 << sz_inv);
+                    res = sh34[15:0];
+                    flags.CY <= sh34[16];
+                    flags.V <= ta[15] ^ res[15];
+                end else begin
+                    sz = { 2'b00, tb[3:0] };
+                    sz_inv = 6'd18 - sz;
+                    sh18 = { flags.CY, ta[7:0], flags.CY, ta[7:0] };
+                    sh18 = (sh18 >> sz) | (sh18 << sz_inv);
+                    res[7:0] = sh18[7:0];
+                    flags.CY <= sh18[8];
+                    flags.V <= ta[7] ^ res[7];
+                end
+            end
+
+            ALU_OP_SHL: begin
+                temp17 = { 1'b0, ta } << ta[4:0];
+                if (wide) begin
+                    flags.CY <= temp17[16];
+                    flags.V <= ta[15] ^ temp17[15];
+                end else begin
+                    flags.CY <= temp17[8];
+                    flags.V <= ta[7] ^ temp17[7];
+                end
+                res = temp17[15:0];
+                calc_parity = 1; calc_sign = 1; calc_zero = 1;
+            end
+
+            ALU_OP_SHR: begin
+                temp17 = { ta, 1'b0 } >> ta[4:0];
+                if (~wide) begin
+                    flags.CY <= temp17[0];
+                    flags.V <= ta[7] ^ temp17[8];
+                end else begin
+                    flags.CY <= temp17[0];
+                    flags.V <= ta[15] ^ temp17[16];
+                end
+                res = temp17[16:1];
+                calc_parity = 1; calc_sign = 1; calc_zero = 1;
+            end
+
+            ALU_OP_SHRA: begin
+                flags.V <= 0;
+                if (~wide) begin
+                    temp17 = { {8{ta[7]}}, ta[7:0], 1'b0 } >>> ta[4:0];
+                    flags.CY <= temp17[0];
+                end else begin
+                    temp17 = { ta, 1'b0 } >>> ta[4:0];
+                    flags.CY <= temp17[0];
+                end
+                res = temp17[16:1];
+                calc_parity = 1; calc_sign = 1; calc_zero = 1;
+            end
 
             default: executing <= 0;
             endcase

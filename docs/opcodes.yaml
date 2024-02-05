@@ -43,6 +43,27 @@ b1000001W_MD_ALU_MEM:
   src0: MODRM
   src1: IMM_EXT
 
+#
+# Rotate
+#
+b1101000W_MD_SFT_MEM:
+  desc: SHIFT mem/reg, 1
+  op: SHIFT_1
+  dst: MODRM
+  src: MODRM
+
+b1101001W_MD_SFT_MEM:
+  desc: SHIFT mem/reg, CL
+  op: SHIFT_CL
+  dst: MODRM
+  src: MODRM
+
+b1100000W_MD_SFT_MEM:
+  desc: SHIFT mem/reg, imm
+  op: SHIFT
+  dst: MODRM
+  src0: MODRM
+  src1: IMM8
 
 #
 # CMP
@@ -198,6 +219,24 @@ b00111111:
   src: REG_0
   reg0: AW
 
+b10011000:
+  desc: CVTBW
+  op: CVTBW
+
+b10011001:
+  desc: CVTWL
+  op: CVTWL
+
+#
+# LDEA
+#
+b10001101_MD_GP0_MEM:
+  desc: LDEA reg16, mem16
+  op: LDEA
+  width: WORD
+  dst: REG_0
+  src: MODRM
+
 #
 # MOV
 #
@@ -266,6 +305,20 @@ b10011111:
 b10011110:
   op: MOV_PSW_AH
 
+
+b1000011W_MD_GP0_MEM:
+  op: XCH
+  desc: XCH mem/reg, reg
+  dst: MODRM
+  src: MODRM
+
+b10010_GP0:
+  op: XCH
+  desc: XCH AW, reg16
+  dst: REG_0
+  src: REG_0
+  reg1: AW
+  width: WORD
 
 #
 # Conditional Branch
@@ -594,6 +647,14 @@ b11110010:
 
 
 #
+# Buslock
+#
+b1111000:
+  desc: BUSLOCK
+  prefix: true
+  op: BUSLOCK_PREFIX
+
+#
 # String/Block operations
 #
 b1010101W:
@@ -615,3 +676,40 @@ b1010110W:
 b1010010W:
   desc: MOVBK
   op: MOVBK
+
+
+#
+# CPU Control
+#
+b11110100:
+  op: HALT
+  desc: HALT
+
+b11110101:
+  op: NOT1_CY
+  desc: NOT1 CY
+
+b11111000:
+  op: CLR1_CY
+  desc: CLR1 CY
+
+b11111001:
+  op: SET1_CY
+  desc: SET1 CY
+
+b11111010:
+  op: DI
+  desc: DI
+
+b11111011:
+  op: EI
+  desc: EI
+
+b11111100:
+  op: CLR1_DIR
+  desc: CLR1 DIR
+
+b11111101:
+  op: SET1_DIR
+  desc: SET1 DIR
+
