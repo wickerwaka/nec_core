@@ -9,5 +9,6 @@
         "*.mra": "xml",
         "ostream": "cpp",
         "fstream": "cpp"
-    }
+    },
+    "cmake.configureOnOpen": false
 }
