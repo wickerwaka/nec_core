@@ -264,7 +264,7 @@ always_ff @(posedge clk) begin
     bit [15:0] res;
     bit [16:0] temp17;
     bit [15:0] temp1;
-
+    bit [8:0] temp9;
 
     bit [15:0] bit_shift_mask = 16'd1 << ( wide ? tb[3:0] : { 1'b0, tb[2:0] } );
 
@@ -392,6 +392,81 @@ always_ff @(posedge clk) begin
                 res = ta ^ bit_shift_mask;
                 done = 1;
             end
+            
+            ALU_OP_ADJ4A: begin 
+                temp9 = { 1'b0, ta[7:0] };
+                flags.CY <= 0;
+
+                if (flags_in.AC || ta[3:0] > 4'h9) begin
+                    temp9 = temp9 + 9'd06;
+                    flags.AC <= 1;
+                    flags.CY <= flags_in.CY | temp9[8];
+                end else begin
+                    flags.AC <= 0;
+                end
+
+                if (flags_in.CY || ta[7:0] > 8'h99) begin
+                    temp9 = temp9 + 9'h60;
+                    flags.CY <= 1;
+                end else begin
+                    flags.CY <= 0;
+                end
+                res = { 8'd0, temp9[7:0] };
+                calc_parity = 1; calc_sign = 1; calc_zero = 1;
+                done = 1;
+            end
+
+            ALU_OP_ADJ4S: begin 
+                temp9 = { 1'b0, ta[7:0] };
+                flags.CY <= 0;
+
+                if (flags_in.AC || ta[3:0] > 4'h9) begin
+                    temp9 = temp9 - 9'd06;
+                    flags.AC <= 1;
+                    flags.CY <= flags_in.CY | temp9[8];
+                end else begin
+                    flags.AC <= 0;
+                end
+
+                if (flags_in.CY || ta[7:0] > 8'h99) begin
+                    temp9 = temp9 - 9'h60;
+                    flags.CY <= 1;
+                end else begin
+                    flags.CY <= 0;
+                end
+                res = { 8'd0, temp9[7:0] };
+                calc_parity = 1; calc_sign = 1; calc_zero = 1;
+                done = 1;
+            end
+
+            ALU_OP_ADJBA: begin
+                if (flags_in.AC || ta[3:0] > 4'h9) begin
+                    res = ta + 16'h0106;
+                    flags.AC <= 1;
+                    flags.CY <= 1;
+                end else begin
+                    res = ta;
+                    flags.AC <= 0;
+                    flags.CY <= 0;
+                end
+                res[7:4] = 4'd0;
+                done = 1;
+            end 
+
+            ALU_OP_ADJBS: begin
+                if (flags_in.AC || ta[3:0] > 4'h9) begin
+                    res = ta - 16'h0006;
+                    res[15:7] = res[15:7] - 8'h1;
+                    flags.AC <= 1;
+                    flags.CY <= 1;
+                end else begin
+                    res = ta;
+                    flags.AC <= 0;
+                    flags.CY <= 0;
+                end
+                res[7:4] = 4'd0;
+                done = 1;
+            end 
 
             default: executing <= 0;
             endcase

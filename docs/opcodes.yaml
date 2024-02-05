@@ -164,6 +164,41 @@ b1111011W_MD_011_MEM:
 
 
 #
+# BCD Adjust
+#
+b00100111:
+  desc: ADJ4A
+  op: ALU
+  alu: ADJ4A
+  dst: REG_0
+  src: REG_0
+  reg0: AW
+
+b00101111:
+  desc: ADJ4S
+  op: ALU
+  alu: ADJ4S
+  dst: REG_0
+  src: REG_0
+  reg0: AW
+
+b00110111:
+  desc: ADJBA
+  op: ALU
+  alu: ADJBA
+  dst: REG_0
+  src: REG_0
+  reg0: AW
+
+b00111111:
+  desc: ADJBS
+  op: ALU
+  alu: ADJBS
+  dst: REG_0
+  src: REG_0
+  reg0: AW
+
+#
 # MOV
 #
 b1000100W_MD_GP0_MEM:
@@ -532,3 +567,51 @@ b001_SR_110:
   desc: SEG PREFIX
   prefix: true
   op: SEG_PREFIX
+
+
+#
+# Repeat Prefix
+#
+b11110011:
+  desc: REP/REPE/REPZ
+  prefix: true
+  op: REP_PREFIX
+
+b01100101:
+  desc: REPC
+  prefix: true
+  op: REP_PREFIX
+
+b01100100:
+  desc: REPNC
+  prefix: true
+  op: REP_PREFIX
+
+b11110010:
+  desc: REPNE/REPNZ
+  prefix: true
+  op: REP_PREFIX
+
+
+#
+# String/Block operations
+#
+b1010101W:
+  desc: STM
+  op: STM
+
+b1010011W:
+  desc: CMPBK
+  op: CMPBK
+
+b1010111W:
+  desc: CMPM
+  op: CMPM
+
+b1010110W:
+  desc: LDM
+  op: LDM
+
+b1010010W:
+  desc: MOVBK
+  op: MOVBK

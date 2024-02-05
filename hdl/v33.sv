@@ -99,6 +99,9 @@ reg prefix_active;
 reg segment_override_active;
 sreg_index_e segment_override;
 
+reg repeat_active;
+
+enum { REPEAT_C, REPEAT_NC, REPEAT_Z, REPEAT_NZ } repeat_cond;
 
 // bleh, something better here?
 function int calc_imm_size(width_e width, operand_e s0, operand_e s1);
@@ -353,12 +356,13 @@ always_ff @(posedge clk) begin
 
         prefix_active <= 0;
         segment_override_active <= 0;
+        repeat_active <= 0;
+        repeat_cond <= REPEAT_Z;
     end else if (ce_1 | ce_2) begin
         alu_execute <= 0;
 
-        if (ce_1) begin
-            case(state)
-            IDLE: begin
+        case(state)
+            IDLE: if (ce_1) begin
                 alu_result_wait <= 0;
                 new_pc <= 0; // TODO - should this be every CE?
 
@@ -366,6 +370,7 @@ always_ff @(posedge clk) begin
                 if (prefix_active & ~decoded.prefix) begin
                     prefix_active <= 0;
                     segment_override_active <= 0;
+                    repeat_active <= 0;
                 end
 
                 if (next_valid_op & ~new_pc) begin
@@ -396,134 +401,336 @@ always_ff @(posedge clk) begin
 
                     state <= FETCH_OPERANDS;
                 end
-            end
+            end // IDLE
+
             EXECUTE: begin
                 bit working = 0;
                 if (dp_ready) begin
                     exec_stage <= exec_stage + 4'd1;
 
                     case(decoded.opcode)
-                    OP_NOP: begin
-                    end
-                    OP_MOV: begin
-                        op_result <= get_operand(decoded.source0);
-                    end
-                    OP_ALU: begin
-                        alu_ta <= get_operand(decoded.source0);
-                        alu_tb <= get_operand(decoded.source1);
-                        alu_operation <= decoded.alu_operation; // TODO: flags
-                        alu_execute <= 1;
-                        alu_result_wait <= 1;
-                        alu_wide <= decoded.width == WORD ? 1 : 0;
-                    end
-                    OP_B_COND: begin
-                        bit cond = 0;
-                        case(decoded.cond)
-                        4'b0000: cond = flags.V; /* V */
-                        4'b0001: cond = ~flags.V; /* NV */
-                        4'b0010: cond = flags.CY; /* C/L */
-                        4'b0011: cond = ~flags.CY; /* NC/NL */
-                        4'b0100: cond = flags.Z; /* E/Z */
-                        4'b0101: cond = ~flags.Z; /* NE/NZ */
-                        4'b0110: cond = (flags.CY | flags.Z); /* NH */
-                        4'b0111: cond = ~(flags.CY | flags.Z); /* H */
-                        4'b1000: cond = flags.S; /* N */
-                        4'b1001: cond = ~flags.S; /* P */
-                        4'b1010: cond = flags.P; /* PE */
-                        4'b1011: cond = ~flags.P; /* PO */
-                        4'b1100: cond = (flags.S ^ flags.V); /* LT */
-                        4'b1101: cond = ~(flags.S ^ flags.V); /* GE */
-                        4'b1110: cond = (flags.S ^ flags.V); /* LE */
-                        4'b1111: cond = ~((flags.S ^ flags.V) | flags.Z); /* GT */
-                        endcase
+                        OP_NOP: begin
+                        end
 
-                        if (cond) begin
+                        OP_MOV: begin
+                            op_result <= get_operand(decoded.source0);
+                        end
+
+                        OP_ALU: begin
+                            alu_ta <= get_operand(decoded.source0);
+                            alu_tb <= get_operand(decoded.source1);
+                            alu_operation <= decoded.alu_operation; // TODO: flags
+                            alu_execute <= 1;
+                            alu_result_wait <= 1;
+                            alu_wide <= decoded.width == WORD ? 1 : 0;
+                        end
+
+                        OP_B_COND: begin
+                            bit cond = 0;
+                            case(decoded.cond)
+                            4'b0000: cond = flags.V; /* V */
+                            4'b0001: cond = ~flags.V; /* NV */
+                            4'b0010: cond = flags.CY; /* C/L */
+                            4'b0011: cond = ~flags.CY; /* NC/NL */
+                            4'b0100: cond = flags.Z; /* E/Z */
+                            4'b0101: cond = ~flags.Z; /* NE/NZ */
+                            4'b0110: cond = (flags.CY | flags.Z); /* NH */
+                            4'b0111: cond = ~(flags.CY | flags.Z); /* H */
+                            4'b1000: cond = flags.S; /* N */
+                            4'b1001: cond = ~flags.S; /* P */
+                            4'b1010: cond = flags.P; /* PE */
+                            4'b1011: cond = ~flags.P; /* PO */
+                            4'b1100: cond = (flags.S ^ flags.V); /* LT */
+                            4'b1101: cond = ~(flags.S ^ flags.V); /* GE */
+                            4'b1110: cond = (flags.S ^ flags.V); /* LE */
+                            4'b1111: cond = ~((flags.S ^ flags.V) | flags.Z); /* GT */
+                            endcase
+
+                            if (cond) begin
+                                reg_pc <= reg_pc + get_operand(decoded.source0);
+                                new_pc <= 1;
+                            end
+                        end
+
+                        OP_B_CW_COND: begin
+                            bit cond = 0;
+                            case(decoded.cond)
+                            4'b0000: begin
+                                reg_cw <= reg_cw - 16'd1;
+                                cond = reg_cw != 16'd1 && ~flags.Z;
+                            end
+                            4'b0001: begin
+                                reg_cw <= reg_cw - 16'd1;
+                                cond = reg_cw != 16'd1 && flags.Z;
+                            end
+                            4'b0010: begin
+                                reg_cw <= reg_cw - 16'd1;
+                                cond = reg_cw != 16'd1;
+                            end
+                            4'b0011: cond = (reg_cw == 0);
+                            default: begin
+                            end
+                            endcase
+
+                            if (cond) begin
+                                reg_pc <= reg_pc + get_operand(decoded.source0);
+                                new_pc <= 1;
+                            end
+                        end
+
+                        OP_BR_REL: begin
                             reg_pc <= reg_pc + get_operand(decoded.source0);
                             new_pc <= 1;
                         end
-                    end
-                    OP_B_CW_COND: begin
-                        bit cond = 0;
-                        case(decoded.cond)
-                        4'b0000: begin
-                            reg_cw <= reg_cw - 16'd1;
-                            cond = reg_cw != 16'd1 && ~flags.Z;
-                        end
-                        4'b0001: begin
-                            reg_cw <= reg_cw - 16'd1;
-                            cond = reg_cw != 16'd1 && flags.Z;
-                        end
-                        4'b0010: begin
-                            reg_cw <= reg_cw - 16'd1;
-                            cond = reg_cw != 16'd1;
-                        end
-                        4'b0011: cond = (reg_cw == 0);
-                        default: begin
-                        end
-                        endcase
 
-                        if (cond) begin
-                            reg_pc <= reg_pc + get_operand(decoded.source0);
-                            new_pc <= 1;
+                        OP_BR_ABS: begin
+                            if (decoded.source0 == OPERAND_IMM && decoded.width == DWORD) begin
+                                reg_pc <= fetched_imm[15:0];
+                                reg_ps <= fetched_imm[31:16];
+                                new_pc <= 1;
+                            end else if (decoded.width == WORD) begin
+                                reg_pc <= get_operand(decoded.source0);
+                                new_pc <= 1;
+                            end else if (decoded.source0 == OPERAND_MODRM && decoded.width == DWORD) begin
+                                reg_pc <= dp_din32[15:0];
+                                reg_ps <= dp_din32[31:16];
+                                new_pc <= 1;
+                            end
                         end
-                    end
-                    OP_BR_REL: begin
-                        reg_pc <= reg_pc + get_operand(decoded.source0);
-                        new_pc <= 1;
-                    end
-                    OP_BR_ABS: begin
-                        if (decoded.source0 == OPERAND_IMM && decoded.width == DWORD) begin
-                            reg_pc <= fetched_imm[15:0];
-                            reg_ps <= fetched_imm[31:16];
-                            new_pc <= 1;
-                        end else if (decoded.width == WORD) begin
-                            reg_pc <= get_operand(decoded.source0);
-                            new_pc <= 1;
-                        end else if (decoded.source0 == OPERAND_MODRM && decoded.width == DWORD) begin
-                            reg_pc <= dp_din32[15:0];
-                            reg_ps <= dp_din32[31:16];
-                            new_pc <= 1;
+
+                        OP_POP_VALUE: begin
+                            reg_sp <= reg_sp + get_operand(decoded.source0);
                         end
-                    end
-                    OP_POP_VALUE: begin
-                        reg_sp <= reg_sp + get_operand(decoded.source0);
-                    end
-                    OP_IN: begin
-                        if (exec_stage == 0) begin
-                            dp_write <= 0;
+
+                        OP_IN: begin
+                            if (exec_stage == 0) begin
+                                dp_write <= 0;
+                                dp_io <= 1;
+                                dp_wide <= decoded.width == WORD ? 1 : 0;
+                                if (decoded.source0 == OPERAND_IMM8) begin
+                                    dp_addr <= { 8'd0, fetched_imm[7:0] };
+                                end else begin
+                                    dp_addr <= reg_dw;
+                                end
+                                dp_req <= ~dp_req;
+                                working = 1;
+                            end else begin
+                                if (decoded.width == BYTE)
+                                    set_reg8(AL, dp_din[7:0]);
+                                else
+                                    set_reg16(AW, dp_din);
+                            end
+                        end
+
+                        OP_OUT: begin
+                            dp_write <= 1;
                             dp_io <= 1;
                             dp_wide <= decoded.width == WORD ? 1 : 0;
+                            dp_dout <= reg_aw;
                             if (decoded.source0 == OPERAND_IMM8) begin
                                 dp_addr <= { 8'd0, fetched_imm[7:0] };
                             end else begin
                                 dp_addr <= reg_dw;
                             end
                             dp_req <= ~dp_req;
-                            working = 1;
-                        end else begin
-                            if (decoded.width == BYTE)
-                                set_reg8(AL, dp_din[7:0]);
-                            else
-                                set_reg16(AW, dp_din);
                         end
-                    end
-                    OP_OUT: begin
-                        dp_write <= 1;
-                        dp_io <= 1;
-                        dp_wide <= decoded.width == WORD ? 1 : 0;
-                        dp_dout <= reg_aw;
-                        if (decoded.source0 == OPERAND_IMM8) begin
-                            dp_addr <= { 8'd0, fetched_imm[7:0] };
-                        end else begin
-                            dp_addr <= reg_dw;
+
+                        OP_SEG_PREFIX: begin
+                            segment_override <= sreg_index_e'(decoded.sreg);
+                            segment_override_active <= 1;
+                            prefix_active <= 1;
                         end
-                        dp_req <= ~dp_req;
-                    end
-                    OP_SEG_PREFIX: begin
-                        segment_override <= sreg_index_e'(decoded.sreg);
-                        segment_override_active <= 1;
-                        prefix_active <= 1;
-                    end
+
+                        OP_REP_PREFIX: begin
+                            repeat_active <= 1;
+                            prefix_active <= 1;
+                            case (decoded.opcode_byte[1:0])
+                                2'b00: repeat_cond <= REPEAT_NC;
+                                2'b01: repeat_cond <= REPEAT_C;
+                                2'b10: repeat_cond <= REPEAT_NZ;
+                                2'b11: repeat_cond <= REPEAT_Z;
+                            endcase
+                        end
+
+                        OP_STM: begin
+                            bit do_work = 1;
+                            if (repeat_active) begin
+                                if (reg_cw == 16'd0) begin
+                                    do_work = 0;
+                                end else begin
+                                    reg_cw <= reg_cw - 16'd1;
+                                    working = reg_cw == 16'd1 ? 0 : 1;
+                                end
+                            end
+
+                            if (do_work) begin
+                                write_memory(reg_iy, DS1, decoded.width, reg_aw);
+                                if (flags.DIR)
+                                    reg_iy <= reg_iy - ( decoded.width == BYTE ? 16'd1 : 16'd2 );
+                                else
+                                    reg_iy <= reg_iy + ( decoded.width == BYTE ? 16'd1 : 16'd2 );
+                            end
+                        end
+
+                        OP_LDM: begin
+                            if (exec_stage == 0) begin
+                                bit do_work = 1;
+                                if (repeat_active) begin
+                                    if (reg_cw == 16'd0) begin
+                                        do_work = 0;
+                                    end else begin
+                                        reg_cw <= reg_cw - 16'd1;
+                                    end
+                                end
+
+                                if (do_work) begin
+                                    read_memory(reg_ix, override_segment(DS0), decoded.width);
+                                    working = 1;
+                                end
+                            end else begin
+                                if (decoded.width == BYTE)
+                                    reg_aw[7:0] <= dp_din[7:0];
+                                else
+                                    reg_aw <= dp_din;
+
+                                if (flags.DIR) begin
+                                    reg_ix <= reg_ix - ( decoded.width == BYTE ? 16'd1 : 16'd2 );
+                                end else begin
+                                    reg_ix <= reg_ix + ( decoded.width == BYTE ? 16'd1 : 16'd2 );
+                                end
+                                exec_stage <= 0;
+
+                                if (repeat_active) working = reg_cw != 16'd0;
+                            end
+                        end
+
+                        OP_MOVBK: begin
+                            if (exec_stage == 0) begin
+                                bit do_work = 1;
+                                if (repeat_active) begin
+                                    if (reg_cw == 16'd0) begin
+                                        do_work = 0;
+                                    end else begin
+                                        reg_cw <= reg_cw - 16'd1;
+                                    end
+                                end
+
+                                if (do_work) begin
+                                    read_memory(reg_ix, override_segment(DS0), decoded.width);
+                                    working = 1;
+                                end
+                            end else begin
+                                write_memory(reg_iy, DS1, decoded.width, dp_din);
+                                if (flags.DIR) begin
+                                    reg_iy <= reg_iy - ( decoded.width == BYTE ? 16'd1 : 16'd2 );
+                                    reg_ix <= reg_ix - ( decoded.width == BYTE ? 16'd1 : 16'd2 );
+                                end else begin
+                                    reg_iy <= reg_iy + ( decoded.width == BYTE ? 16'd1 : 16'd2 );
+                                    reg_ix <= reg_ix + ( decoded.width == BYTE ? 16'd1 : 16'd2 );
+                                end
+                                exec_stage <= 0;
+
+                                if (repeat_active) working = reg_cw != 16'd0;
+                            end
+                        end
+                        OP_CMPBK: begin
+                            if (exec_stage == 0) begin
+                                bit do_work = 1;
+                                if (repeat_active) begin
+                                    if (reg_cw == 16'd0) begin
+                                        do_work = 0;
+                                    end else begin
+                                        reg_cw <= reg_cw - 16'd1;
+                                    end
+                                end
+
+                                if (do_work) begin
+                                    read_memory(reg_ix, override_segment(DS0), decoded.width);
+                                    working = 1;
+                                end
+                            end else if (exec_stage == 1) begin
+                                alu_ta <= dp_din;
+                                read_memory(reg_iy, DS1, decoded.width);
+                                working = 1;
+                                if (flags.DIR) begin
+                                    reg_iy <= reg_iy - ( decoded.width == BYTE ? 16'd1 : 16'd2 );
+                                    reg_ix <= reg_ix - ( decoded.width == BYTE ? 16'd1 : 16'd2 );
+                                end else begin
+                                    reg_iy <= reg_iy + ( decoded.width == BYTE ? 16'd1 : 16'd2 );
+                                    reg_ix <= reg_ix + ( decoded.width == BYTE ? 16'd1 : 16'd2 );
+                                end
+                            end else if (exec_stage == 2) begin
+                                alu_tb <= dp_din;
+                                alu_operation <= ALU_OP_CMP;
+                                alu_wide <= decoded.width == WORD ? 1 : 0;
+                                alu_execute <= 1;
+                                working = 1;
+                            end else if (exec_stage == 3) begin
+                                working = 1;
+                                if (alu_busy) begin
+                                    exec_stage <= exec_stage; // wait
+                                end else begin
+                                    flags <= alu_flags_result;
+                                    exec_stage <= 0;
+                                    if (repeat_active) begin
+                                        if (reg_cw == 16'd0) working = 0;
+                                        else if (repeat_cond == REPEAT_NZ) working = ~alu_flags_result.Z;
+                                        else if (repeat_cond == REPEAT_Z) working = alu_flags_result.Z;
+                                        else if (repeat_cond == REPEAT_NC) working = ~alu_flags_result.CY;
+                                        else if (repeat_cond == REPEAT_C) working = alu_flags_result.CY;
+                                    end else begin
+                                        working = 0;
+                                    end
+                                end
+                            end
+                        end
+
+                        OP_CMPM: begin
+                            if (exec_stage == 0) begin
+                                bit do_work = 1;
+                                if (repeat_active) begin
+                                    if (reg_cw == 16'd0) begin
+                                        do_work = 0;
+                                    end else begin
+                                        reg_cw <= reg_cw - 16'd1;
+                                    end
+                                end
+
+                                if (do_work) begin
+                                    read_memory(reg_iy, DS1, decoded.width);
+                                    working = 1;
+                                end
+                            end else if (exec_stage == 1) begin
+                                alu_ta <= reg_aw;
+                                alu_tb <= dp_din;
+                                alu_operation <= ALU_OP_CMP;
+                                alu_wide <= decoded.width == WORD ? 1 : 0;
+                                alu_execute <= 1;
+                                working = 1;
+                                if (flags.DIR) begin
+                                    reg_iy <= reg_iy - ( decoded.width == BYTE ? 16'd1 : 16'd2 );
+                                end else begin
+                                    reg_iy <= reg_iy + ( decoded.width == BYTE ? 16'd1 : 16'd2 );
+                                end
+                            end else if (exec_stage == 2) begin
+                                working = 1;
+                                if (alu_busy) begin
+                                    exec_stage <= exec_stage; // wait
+                                end else begin
+                                    flags <= alu_flags_result;
+                                    exec_stage <= 0;
+                                    if (repeat_active) begin
+                                        if (reg_cw == 16'd0) working = 0;
+                                        else if (repeat_cond == REPEAT_NZ) working = ~alu_flags_result.Z;
+                                        else if (repeat_cond == REPEAT_Z) working = alu_flags_result.Z;
+                                        else if (repeat_cond == REPEAT_NC) working = ~alu_flags_result.CY;
+                                        else if (repeat_cond == REPEAT_C) working = alu_flags_result.CY;
+                                    end else begin
+                                        working = 0;
+                                    end
+                                end
+                            end
+                        end
                     endcase
 
                     if (~working) begin
@@ -534,7 +741,8 @@ always_ff @(posedge clk) begin
                         end
                     end
                 end
-            end
+            end // EXECUTE
+
             POP_WAIT: begin
                 if (dp_ready) begin
                     int pop_idx = 0;
@@ -595,12 +803,9 @@ always_ff @(posedge clk) begin
                         state <= POP;
                     end
                 end
-            end
+            end // POP_WAIT
 
-            endcase
-        end else if (ce_2) begin
-            case(state)
-            FETCH_OPERANDS: begin
+            FETCH_OPERANDS: if (ce_2) begin
                 if (int'(ipq_len) >= (disp_size + imm_size)) begin
                     fetched_imm[7:0] <= ipq_byte(disp_size);
                     fetched_imm[15:8] <= ipq_byte(disp_size + 1);
@@ -632,8 +837,9 @@ always_ff @(posedge clk) begin
                             state <= EXECUTE;
                     end
                 end
-            end
-            FETCH_OPERANDS2: begin
+            end // FETCH_OPERANDS
+
+            FETCH_OPERANDS2: if (ce_2) begin
                 if (dp_ready) begin
                     dp_din_low <= dp_din;
 
@@ -645,9 +851,9 @@ always_ff @(posedge clk) begin
                     else
                         state <= EXECUTE;
                 end
-            end
+            end // FETCH_OPERANDS2
 
-            PUSH: begin
+            PUSH: if (ce_2) begin
                 bit [15:0] push_data;
                 if (dp_ready) begin
                     int push_idx = 0;
@@ -687,9 +893,9 @@ always_ff @(posedge clk) begin
                         end
                     end 
                 end
-            end
+            end // PUSH
 
-            POP: begin
+            POP: if (ce_2) begin
                 if (dp_ready) begin
                     int pop_idx = 0;
                     for (int i = 0; i < 15; i = i + 1) begin
@@ -701,9 +907,9 @@ always_ff @(posedge clk) begin
 
                     state <= POP_WAIT;
                 end
-            end
+            end // POP
 
-            STORE_RESULT: begin
+            STORE_RESULT: if (ce_2) begin
                 result8 = alu_result_wait ? alu_result[7:0] : op_result[7:0];
                 result16 = alu_result_wait ? alu_result : op_result;
 
@@ -754,9 +960,8 @@ always_ff @(posedge clk) begin
                     if (alu_result_wait) flags <= alu_flags_result;
                     state <= IDLE;
                 end
-            end
-            endcase
-        end
+            end // STORE_RESULT
+        endcase
     end
 end
 endmodule

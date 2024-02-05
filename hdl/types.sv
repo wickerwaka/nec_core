@@ -39,7 +39,15 @@ package types;
         OP_CALL_NEAR,
         OP_CALL_FAR,
         OP_POP_VALUE,
-        OP_SEG_PREFIX
+        OP_SEG_PREFIX,
+        OP_REP_PREFIX,
+        OP_STM,
+        OP_LDM,
+        OP_MOVBK,
+        OP_CMPBK,
+        OP_CMPM,
+        OP_INM,
+        OP_OUTM
     } opcode_e;
 
     typedef enum bit [4:0] {
@@ -56,6 +64,11 @@ package types;
         ALU_OP_NEG,
         ALU_OP_INC,
         ALU_OP_DEC,
+
+        ALU_OP_ADJ4S,
+        ALU_OP_ADJ4A,
+        ALU_OP_ADJBS,
+        ALU_OP_ADJBA,
 
         ALU_OP_SET1,
         ALU_OP_CLR1,

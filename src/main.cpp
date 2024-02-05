@@ -113,7 +113,7 @@ int main(int argc, char **argv)
     tick(10);
     top->reset = 0;
 
-    tick(400);
+    tick(800);
 
     top->final();
     tfp->close();
