@@ -50,9 +50,9 @@ end
 end
 24'b11111111xx110xxxxxxxxxxx: begin /* PUSH reg16/mem16 */
 	d.push = STACK_OPERAND;
-	d.use_modrm = 0;
+	d.use_modrm = 1;
 	d.dest = OPERAND_NONE;
-	d.source0 = OPERAND_NONE;
+	d.source0 = OPERAND_MODRM;
 	d.source1 = OPERAND_NONE;
 	d.mod = q[15:14];
 	d.rm = q[10:8];
@@ -61,8 +61,8 @@ end
 end
 24'b10001111xx000xxxxxxxxxxx: begin /* POP reg16/mem16 */
 	d.pop = STACK_OPERAND;
-	d.use_modrm = 0;
-	d.dest = OPERAND_NONE;
+	d.use_modrm = 1;
+	d.dest = OPERAND_MODRM;
 	d.source0 = OPERAND_NONE;
 	d.source1 = OPERAND_NONE;
 	d.mod = q[15:14];
@@ -1014,10 +1014,10 @@ end
 	d.pre_size = 2;
 	valid_op <= 1;
 end
-24'b1010000xxxxxxxxxxxxxxxxx: begin /* MOV */
+24'b1010000xxxxxxxxxxxxxxxxx: begin /* MOV ACC, dmem */
 	d.opcode = OP_MOV;
 	d.use_modrm = 1;
-	d.rm = 3'b101;
+	d.rm = 3'b110;
 	d.mod = 2'b00;
 	d.dest = OPERAND_ACC;
 	d.source0 = OPERAND_MODRM;
@@ -1026,10 +1026,10 @@ end
 	d.pre_size = 1;
 	valid_op <= 1;
 end
-24'b1010001xxxxxxxxxxxxxxxxx: begin /* MOV */
+24'b1010001xxxxxxxxxxxxxxxxx: begin /* MOV dmem, ACC */
 	d.opcode = OP_MOV;
 	d.use_modrm = 1;
-	d.rm = 3'b101;
+	d.rm = 3'b110;
 	d.mod = 2'b00;
 	d.dest = OPERAND_MODRM;
 	d.source0 = OPERAND_ACC;

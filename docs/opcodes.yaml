@@ -302,11 +302,13 @@ b1100011W_MD_000_MEM:
   src: IMM
 
 b1010000W:
+  desc: MOV ACC, dmem
   op: MOV
   dst: ACC
   src: DMEM
 
 b1010001W:
+  desc: MOV dmem, ACC
   op: MOV
   dst: DMEM
   src: ACC
@@ -556,6 +558,7 @@ b01101000:
 b11111111_MD_110_MEM:
   desc: PUSH reg16/mem16
   push: OPERAND
+  src: MODRM
 
 b0101_1000:
   desc: POP AW
@@ -624,6 +627,7 @@ b01100001:
 b10001111_MD_000_MEM:
   desc: POP reg16/mem16
   pop: OPERAND
+  dst: MODRM
 
 #
 # IO In/Out

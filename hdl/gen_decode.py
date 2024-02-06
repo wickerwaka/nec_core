@@ -68,7 +68,7 @@ def assign_src_dst(op_desc, assignments):
         assignments.append( f"d.use_modrm = 1")
 
         if mem_type == 'DMEM':
-            assignments.append( "d.rm = 3'b101" )
+            assignments.append( "d.rm = 3'b110" )
             assignments.append( "d.mod = 2'b00" )
             mem_type = 'MODRM'
         

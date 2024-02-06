@@ -360,7 +360,6 @@ reg [15:0] op_result;
 
 reg [3:0] exec_stage;
 
-int last_push_idx, last_pop_idx;
 reg [15:0] push_list;
 reg [15:0] pop_list;
 reg [15:0] push_sp_save;
@@ -408,14 +407,6 @@ always_ff @(posedge clk) begin
                     push_sp_save <= reg_sp;
                     push_list <= next_decode.push;
                     pop_list <= next_decode.pop;
-
-                    for (int i = 14; i >= 0; i = i - 1) begin
-                        if (next_decode.pop[i]) last_pop_idx <= i;
-                    end
-
-                    for (int i = 0; i < 15; i = i + 1) begin
-                        if (next_decode.push[i]) last_push_idx <= i;
-                    end
 
                     decoded <= next_decode;
                     reg_pc <= reg_pc + { 12'd0, next_decode.pre_size };
@@ -818,9 +809,11 @@ always_ff @(posedge clk) begin
 
             POP_WAIT: begin
                 if (dp_ready) begin
+                    bit [15:0] list;
                     int pop_idx = 0;
+                    list = pop_list;
                     for (int i = 0; i < 16; i = i + 1) begin
-                        if (pop_list[i]) pop_idx = i;
+                        if (list[i]) pop_idx = i;
                     end
 
                     case(pop_idx)
@@ -865,9 +858,10 @@ always_ff @(posedge clk) begin
                     end
                     endcase
 
-                    pop_list[pop_idx] <= 0;
+                    list[pop_idx] = 0;
+                    pop_list <= list;
 
-                    if (pop_idx == last_pop_idx) begin
+                    if (list == 16'd0) begin
                         if (decoded.opcode == OP_NOP) begin
                             state <= IDLE;
                         end else begin
@@ -929,10 +923,12 @@ always_ff @(posedge clk) begin
 
             PUSH: if (ce_2) begin
                 bit [15:0] push_data;
+                bit [15:0] list;
                 if (dp_ready) begin
                     int push_idx = 0;
+                    list = push_list;
                     for (int i = 15; i >= 0; i = i - 1) begin
-                        if (push_list[i]) push_idx = i;
+                        if (list[i]) push_idx = i;
                     end
 
                     reg_sp <= reg_sp - 16'd2;
@@ -958,9 +954,10 @@ always_ff @(posedge clk) begin
 
                     write_memory(reg_sp - 16'd2, SS, WORD, push_data);
 
-                    push_list[push_idx] <= 0;
+                    list[push_idx] = 0;
+                    push_list <= list;
 
-                    if (push_idx == last_push_idx) begin
+                    if (list == 16'd0) begin
                         if (decoded.opcode == OP_NOP) begin
                             state <= IDLE;
                         end else begin
