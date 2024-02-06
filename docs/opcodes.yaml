@@ -545,17 +545,17 @@ b01100000:
 
 b01101010:
   desc: PUSH imm8
-  push: IMM
+  push: OPERAND
   width: BYTE
 
 b01101000:
   desc: PUSH imm16
-  push: IMM
+  push: OPERAND
   width: WORD
 
 b11111111_MD_110_MEM:
   desc: PUSH reg16/mem16
-  push: MODRM
+  push: OPERAND
 
 b0101_1000:
   desc: POP AW
@@ -616,14 +616,14 @@ b01100001:
     - CW
     - DW
     - BW
-    - SP
+    - SP_DISCARD
     - BP
     - IX
     - IY
 
 b10001111_MD_000_MEM:
   desc: POP reg16/mem16
-  pop: MODRM
+  pop: OPERAND
 
 #
 # IO In/Out

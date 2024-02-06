@@ -819,7 +819,7 @@ always_ff @(posedge clk) begin
             POP_WAIT: begin
                 if (dp_ready) begin
                     int pop_idx = 0;
-                    for (int i = 0; i < 15; i = i + 1) begin
+                    for (int i = 0; i < 16; i = i + 1) begin
                         if (pop_list[i]) pop_idx = i;
                     end
 
@@ -829,11 +829,12 @@ always_ff @(posedge clk) begin
                     2:  reg_dw <= dp_din;
                     3:  reg_bw <= dp_din;
                     4:  reg_sp <= dp_din;
-                    5:  reg_bp <= dp_din;
-                    6:  reg_ix <= dp_din;
-                    7:  reg_iy <= dp_din;
-                    8:  reg_ds1 <= dp_din;
-                    9:  begin
+                    5:  begin end
+                    6:  reg_bp <= dp_din;
+                    7:  reg_ix <= dp_din;
+                    8:  reg_iy <= dp_din;
+                    9:  reg_ds1 <= dp_din;
+                    19: begin
                         flags.CY  <= dp_din[0];
                         flags.P   <= dp_din[2];
                         flags.AC  <= dp_din[4];
@@ -845,17 +846,17 @@ always_ff @(posedge clk) begin
                         flags.V   <= dp_din[11];
                         flags.MD  <= dp_din[15];
                     end
-                    10: begin
+                    11: begin
                         reg_ps <= dp_din;
                         new_pc <= 1;
                     end
-                    11: reg_ss <= dp_din;
-                    12: reg_ds0 <= dp_din;
-                    13: begin
+                    12: reg_ss <= dp_din;
+                    13: reg_ds0 <= dp_din;
+                    14: begin
                         reg_pc <= dp_din;
                         new_pc <= 1;
                     end
-                    14: begin
+                    15: begin
                         if (decoded.mod == 2'b11) begin
                             set_reg16(reg16_index_e'(decoded.rm), dp_din);
                         end else begin
@@ -930,7 +931,7 @@ always_ff @(posedge clk) begin
                 bit [15:0] push_data;
                 if (dp_ready) begin
                     int push_idx = 0;
-                    for (int i = 14; i >= 0; i = i - 1) begin
+                    for (int i = 15; i >= 0; i = i - 1) begin
                         if (push_list[i]) push_idx = i;
                     end
 
@@ -942,16 +943,17 @@ always_ff @(posedge clk) begin
                     2:  push_data = reg_dw;
                     3:  push_data = reg_bw;
                     4:  push_data = push_sp_save;
-                    5:  push_data = reg_bp;
-                    6:  push_data = reg_ix;
-                    7:  push_data = reg_iy;
-                    8:  push_data = reg_ds1;
-                    9:  push_data = reg_psw;
-                    10: push_data = reg_ps;
-                    11: push_data = reg_ss;
-                    12: push_data = reg_ds0;
-                    13: push_data = reg_pc;
-                    14: push_data = get_operand(decoded.source0);
+                    5:  push_data = push_sp_save; // DISCARD
+                    6:  push_data = reg_bp;
+                    7:  push_data = reg_ix;
+                    8:  push_data = reg_iy;
+                    9:  push_data = reg_ds1;
+                    10: push_data = reg_psw;
+                    11: push_data = reg_ps;
+                    12: push_data = reg_ss;
+                    13: push_data = reg_ds0;
+                    14: push_data = reg_pc;
+                    15: push_data = get_operand(decoded.source0);
                     endcase
 
                     write_memory(reg_sp - 16'd2, SS, WORD, push_data);

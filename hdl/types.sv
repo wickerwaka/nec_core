@@ -4,22 +4,22 @@ package types;
     typedef enum bit [2:0] {AW, CW, DW, BW, SP, BP, IX, IY} reg16_index_e;
 
     
-    const bit [15:0] STACK_AW    = 16'h0001;
-    const bit [15:0] STACK_CW    = 16'h0002;
-    const bit [15:0] STACK_DW    = 16'h0004;
-    const bit [15:0] STACK_BW    = 16'h0008;
-    const bit [15:0] STACK_SP    = 16'h0010;
-    const bit [15:0] STACK_BP    = 16'h0020;
-    const bit [15:0] STACK_IX    = 16'h0040;
-    const bit [15:0] STACK_IY    = 16'h0080;
-    const bit [15:0] STACK_DS1   = 16'h0100;
-    const bit [15:0] STACK_PSW   = 16'h0200;
-    const bit [15:0] STACK_PS    = 16'h0400;
-    const bit [15:0] STACK_SS    = 16'h0800;
-    const bit [15:0] STACK_DS0   = 16'h1000;
-    const bit [15:0] STACK_PC    = 16'h2000;
-    const bit [15:0] STACK_MODRM = 16'h4000;
-    const bit [15:0] STACK_IMM   = 16'h8000;
+    const bit [15:0] STACK_AW         = 16'h0001;
+    const bit [15:0] STACK_CW         = 16'h0002;
+    const bit [15:0] STACK_DW         = 16'h0004;
+    const bit [15:0] STACK_BW         = 16'h0008;
+    const bit [15:0] STACK_SP         = 16'h0010;
+    const bit [15:0] STACK_SP_DISCARD = 16'h0020;
+    const bit [15:0] STACK_BP         = 16'h0040;
+    const bit [15:0] STACK_IX         = 16'h0080;
+    const bit [15:0] STACK_IY         = 16'h0100;
+    const bit [15:0] STACK_DS1        = 16'h0200;
+    const bit [15:0] STACK_PSW        = 16'h0400;
+    const bit [15:0] STACK_PS         = 16'h0800;
+    const bit [15:0] STACK_SS         = 16'h1000;
+    const bit [15:0] STACK_DS0        = 16'h2000;
+    const bit [15:0] STACK_PC         = 16'h4000;
+    const bit [15:0] STACK_OPERAND    = 16'h8000;
     
     typedef enum {
         OP_NOP,

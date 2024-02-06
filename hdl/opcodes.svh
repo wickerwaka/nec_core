@@ -49,7 +49,7 @@ end
 	valid_op <= 1;
 end
 24'b11111111xx110xxxxxxxxxxx: begin /* PUSH reg16/mem16 */
-	d.push = STACK_MODRM;
+	d.push = STACK_OPERAND;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
 	d.source0 = OPERAND_NONE;
@@ -60,7 +60,7 @@ end
 	valid_op <= 1;
 end
 24'b10001111xx000xxxxxxxxxxx: begin /* POP reg16/mem16 */
-	d.pop = STACK_MODRM;
+	d.pop = STACK_OPERAND;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
 	d.source0 = OPERAND_NONE;
@@ -603,7 +603,7 @@ end
 end
 24'b01101010xxxxxxxxxxxxxxxx: begin /* PUSH imm8 */
 	d.width = BYTE;
-	d.push = STACK_IMM;
+	d.push = STACK_OPERAND;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
 	d.source0 = OPERAND_NONE;
@@ -613,7 +613,7 @@ end
 end
 24'b01101000xxxxxxxxxxxxxxxx: begin /* PUSH imm16 */
 	d.width = WORD;
-	d.push = STACK_IMM;
+	d.push = STACK_OPERAND;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
 	d.source0 = OPERAND_NONE;
@@ -739,7 +739,7 @@ end
 	valid_op <= 1;
 end
 24'b01100001xxxxxxxxxxxxxxxx: begin /* POP R */
-	d.pop = STACK_AW | STACK_CW | STACK_DW | STACK_BW | STACK_SP | STACK_BP | STACK_IX | STACK_IY;
+	d.pop = STACK_AW | STACK_CW | STACK_DW | STACK_BW | STACK_SP_DISCARD | STACK_BP | STACK_IX | STACK_IY;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
 	d.source0 = OPERAND_NONE;
