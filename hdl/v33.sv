@@ -847,7 +847,7 @@ always_ff @(posedge clk) begin
                     endcase
 
                     if (~working) begin
-                        if (decoded.dest == OPERAND_NONE) begin
+                        if (decoded.dest == OPERAND_NONE && decoded.opcode != OP_ALU) begin // check ALU for CMP and TEST
                             state <= IDLE;
                         end else begin
                             state <= STORE_RESULT;
