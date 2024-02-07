@@ -1193,8 +1193,8 @@ end
 	d.reg1 = AW;
 	d.width = WORD;
 	d.use_modrm = 0;
-	d.dest = OPERAND_REG_0;
-	d.source0 = OPERAND_REG_0;
+	d.dest = OPERAND_REG_1;
+	d.source0 = OPERAND_REG_1;
 	d.source1 = OPERAND_NONE;
 	d.reg0 = q[18:16];
 	d.pre_size = 1;

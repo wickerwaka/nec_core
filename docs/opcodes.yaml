@@ -355,8 +355,8 @@ b1000011W_MD_GP0_MEM:
 b10010_GP0:
   op: XCH
   desc: XCH AW, reg16
-  dst: REG_0
-  src: REG_0
+  dst: REG_1
+  src: REG_1
   reg1: AW
   width: WORD
 

@@ -126,7 +126,7 @@ always_ff @(posedge clk) begin
                 if (operation != ALU_OP_INC)
                     flags.CY <= wide ? temp17[16] : temp17[8];
                 
-                flags.AC <= ( {1'b0, temp1[3:0]} + {1'b0, ta[3:0]} ) > 5'd16 ? 1 : 0;
+                flags.AC <= ( {1'b0, temp1[3:0]} + {1'b0, ta[3:0]} ) > 5'd15 ? 1 : 0;
 
                 res = temp17[15:0];
 

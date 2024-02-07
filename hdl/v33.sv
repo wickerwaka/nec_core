@@ -506,11 +506,11 @@ always_ff @(posedge clk) begin
                         OP_XCH: begin
                             bit [15:0] dest;
                             dest = get_operand(decoded.dest);
-                            op_result <= get_operand(decoded.source1);
+                            op_result <= get_operand(OPERAND_REG_0);
                             if (decoded.width == BYTE)
-                                set_reg8(reg8_index_e'(decoded.reg1), dest[7:0]);
+                                set_reg8(reg8_index_e'(decoded.reg0), dest[7:0]);
                             else
-                                set_reg16(reg16_index_e'(decoded.reg1), dest);
+                                set_reg16(reg16_index_e'(decoded.reg0), dest);
                         end
 
                         OP_ALU: begin
@@ -1073,8 +1073,8 @@ always_ff @(posedge clk) begin
                             set_reg16(reg16_index_e'(decoded.reg1), result16);
                     end
                     OPERAND_PRODUCT: begin
+                        if (decoded.width == WORD) reg_dw <= result32[31:16];
                         reg_aw <= result32[15:0];
-                        reg_dw <= result32[31:16];
                     end
                     endcase
 

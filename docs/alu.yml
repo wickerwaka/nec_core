@@ -1,0 +1,261 @@
+#
+# ADDC
+#
+b0001000W_MD_GP0_MEM:
+  desc: ADDC mem/reg, reg
+  op: ALU
+  alu: ADDC
+  src0: MODRM
+  src1: REG_0
+  dst: MODRM
+
+b0001001W_MD_GP0_MEM:
+  desc: ADDC reg, mem/reg
+  op: ALU
+  alu: ADDC
+  src0: REG_0
+  src1: MODRM
+  dst: REG_0
+
+b0001010W:
+  desc: ADDC acc, imm
+  op: ALU
+  alu: ADDC
+  dst: ACC
+  src0: ACC
+  src1: IMM
+
+b1000000W_MD_010_MEM:
+  desc: ADDC mem/reg, imm
+  op: ALU
+  alu: ADDC
+  dst: MODRM
+  src0: MODRM
+  src1: IMM
+
+b1000001W_MD_010_MEM:
+  desc: ADDC mem/reg, sext_imm
+  op: ALU
+  alu: ADDC
+  dst: MODRM
+  src0: MODRM
+  src1: IMM_EXT
+
+
+#
+# AND
+#
+b0010000W_MD_GP0_MEM:
+  desc: AND mem/reg, reg
+  op: ALU
+  alu: AND
+  src0: MODRM
+  src1: REG_0
+  dst: MODRM
+
+b0010001W_MD_GP0_MEM:
+  desc: AND reg, mem/reg
+  op: ALU
+  alu: AND
+  src0: REG_0
+  src1: MODRM
+  dst: REG_0
+
+b0010010W:
+  desc: AND acc, imm
+  op: ALU
+  alu: AND
+  dst: ACC
+  src0: ACC
+  src1: IMM
+
+b1000000W_MD_100_MEM:
+  desc: AND mem/reg, imm
+  op: ALU
+  alu: AND
+  dst: MODRM
+  src0: MODRM
+  src1: IMM
+
+b1000001W_MD_100_MEM:
+  desc: AND mem/reg, sext_imm
+  op: ALU
+  alu: AND
+  dst: MODRM
+  src0: MODRM
+  src1: IMM_EXT
+
+
+
+
+#
+# CMP
+#
+b0011100W_MD_GP0_MEM:
+  desc: CMP mem/reg, reg
+  op: ALU
+  alu: CMP
+  src0: MODRM
+  src1: REG_0
+
+b0011101W_MD_GP0_MEM:
+  desc: CMP reg, mem/reg
+  op: ALU
+  alu: CMP
+  src0: REG_0
+  src1: MODRM
+
+b0011110W:
+  desc: CMP acc, imm
+  op: ALU
+  alu: CMP
+  src0: ACC
+  src1: IMM
+
+b1000000W_MD_111_MEM:
+  desc: CMP mem/reg, imm
+  op: ALU
+  alu: CMP
+  src0: MODRM
+  src1: IMM
+
+b1000001W_MD_111_MEM:
+  desc: CMP mem/reg, sext_imm
+  op: ALU
+  alu: CMP
+  src0: MODRM
+  src1: IMM_EXT
+
+
+#
+# OR
+#
+b0000100W_MD_GP0_MEM:
+  desc: OR mem/reg, reg
+  op: ALU
+  alu: OR
+  src0: MODRM
+  src1: REG_0
+  dst: MODRM
+
+b0000101W_MD_GP0_MEM:
+  desc: OR reg, mem/reg
+  op: ALU
+  alu: OR
+  src0: REG_0
+  src1: MODRM
+  dst: REG_0
+
+b0000110W:
+  desc: OR acc, imm
+  op: ALU
+  alu: OR
+  dst: ACC
+  src0: ACC
+  src1: IMM
+
+b1000000W_MD_001_MEM:
+  desc: OR mem/reg, imm
+  op: ALU
+  alu: OR
+  dst: MODRM
+  src0: MODRM
+  src1: IMM
+
+b1000001W_MD_001_MEM:
+  desc: OR mem/reg, sext_imm
+  op: ALU
+  alu: OR
+  dst: MODRM
+  src0: MODRM
+  src1: IMM_EXT
+
+
+#
+# SUBC
+#
+b0001100W_MD_GP0_MEM:
+  desc: SUBC mem/reg, reg
+  op: ALU
+  alu: SUBC
+  src0: MODRM
+  src1: REG_0
+  dst: MODRM
+
+b0001101W_MD_GP0_MEM:
+  desc: SUBC reg, mem/reg
+  op: ALU
+  alu: SUBC
+  src0: REG_0
+  src1: MODRM
+  dst: REG_0
+
+b0001110W:
+  desc: SUBC acc, imm
+  op: ALU
+  alu: SUBC
+  dst: ACC
+  src0: ACC
+  src1: IMM
+
+b1000000W_MD_011_MEM:
+  desc: SUBC mem/reg, imm
+  op: ALU
+  alu: SUBC
+  dst: MODRM
+  src0: MODRM
+  src1: IMM
+
+b1000001W_MD_011_MEM:
+  desc: SUBC mem/reg, sext_imm
+  op: ALU
+  alu: SUBC
+  dst: MODRM
+  src0: MODRM
+  src1: IMM_EXT
+
+
+
+#
+# SUB
+#
+b0010100W_MD_GP0_MEM:
+  desc: SUB mem/reg, reg
+  op: ALU
+  alu: SUB
+  src0: MODRM
+  src1: REG_0
+  dst: MODRM
+
+b0010101W_MD_GP0_MEM:
+  desc: SUB reg, mem/reg
+  op: ALU
+  alu: SUB
+  src0: REG_0
+  src1: MODRM
+  dst: REG_0
+
+b0010110W:
+  desc: SUB acc, imm
+  op: ALU
+  alu: SUB
+  dst: ACC
+  src0: ACC
+  src1: IMM
+
+b1000000W_MD_101_MEM:
+  desc: SUB mem/reg, imm
+  op: ALU
+  alu: SUB
+  dst: MODRM
+  src0: MODRM
+  src1: IMM
+
+b1000001W_MD_101_MEM:
+  desc: SUB mem/reg, sext_imm
+  op: ALU
+  alu: SUB
+  dst: MODRM
+  src0: MODRM
+  src1: IMM_EXT
+
