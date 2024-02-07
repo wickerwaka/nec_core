@@ -65,15 +65,15 @@ package types;
         OP_CVTWL
     } opcode_e;
 
-    typedef enum bit [4:0] {
-        ALU_OP_ADD  = 5'b00000,
-        ALU_OP_OR   = 5'b00001,
-        ALU_OP_ADDC = 5'b00010,
-        ALU_OP_SUBC = 5'b00011,
-        ALU_OP_AND  = 5'b00100,
-        ALU_OP_SUB  = 5'b00101,
-        ALU_OP_XOR  = 5'b00110,
-        ALU_OP_CMP  = 5'b00111,
+    typedef enum bit [5:0] {
+        ALU_OP_ADD  = 6'b00000,
+        ALU_OP_OR   = 6'b00001,
+        ALU_OP_ADDC = 6'b00010,
+        ALU_OP_SUBC = 6'b00011,
+        ALU_OP_AND  = 6'b00100,
+        ALU_OP_SUB  = 6'b00101,
+        ALU_OP_XOR  = 6'b00110,
+        ALU_OP_CMP  = 6'b00111,
 
         ALU_OP_NOT,
         ALU_OP_NEG,
@@ -87,6 +87,14 @@ package types;
         ALU_OP_SHL,
         ALU_OP_SHR,
         ALU_OP_SHRA,
+
+        ALU_OP_ROL1,
+        ALU_OP_ROR1,
+        ALU_OP_ROLC1,
+        ALU_OP_RORC1,
+        ALU_OP_SHL1,
+        ALU_OP_SHR1,
+        ALU_OP_SHRA1,
 
         ALU_OP_ADJ4S,
         ALU_OP_ADJ4A,

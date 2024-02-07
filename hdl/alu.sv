@@ -295,13 +295,23 @@ always_ff @(posedge clk) begin
                 sz = tb[4:0];
                 temp17 = { 1'b0, ta } << sz;
                 if (wide) begin
-                    res = (ta << sz[3:0]) | (ta >> ~sz[3:0]);
+                    res = (ta << sz[3:0]) | (ta >> (5'd16 - sz[3:0]));
                     flags.CY <= temp17[16];
-                    flags.V <= ta[15] ^ res[15];
                 end else begin
-                    res[7:0] = (ta[7:0] << sz[2:0]) | (ta[7:0] >> ~sz[2:0]);
+                    res[7:0] = (ta[7:0] << sz[2:0]) | (ta[7:0] >> (4'd8 - sz[2:0]));
                     flags.CY <= temp17[8];
-                    flags.V <= ta[7] ^ res[7];
+                end
+            end
+
+            ALU_OP_ROL1: begin
+                if (wide) begin
+                    res = {ta[14:0], ta[15]};
+                    flags.CY <= ta[15];
+                    flags.V <= ta[15] ^ ta[14];
+                end else begin
+                    res[7:0] = {ta[6:0], ta[7]};
+                    flags.CY <= ta[7];
+                    flags.V <= ta[7] ^ ta[6];
                 end
             end
 
@@ -317,7 +327,6 @@ always_ff @(posedge clk) begin
                     sh34 = (sh34 << sz) | (sh34 >> sz_inv);
                     res = sh34[15:0];
                     flags.CY <= sh34[16];
-                    flags.V <= ta[15] ^ res[15];
                 end else begin
                     sz = { 2'b00, tb[3:0] };
                     sz_inv = 6'd18 - sz;
@@ -325,7 +334,18 @@ always_ff @(posedge clk) begin
                     sh18 = (sh18 << sz) | (sh18 >> sz_inv);
                     res[7:0] = sh18[7:0];
                     flags.CY <= sh18[8];
-                    flags.V <= ta[7] ^ res[7];
+                end
+            end
+
+            ALU_OP_ROLC1: begin
+                if (wide) begin
+                    res = {ta[14:0], flags_in.CY};
+                    flags.CY <= ta[15];
+                    flags.V <= ta[15] ^ ta[14];
+                end else begin
+                    res[7:0] = {ta[6:0], flags_in.CY};
+                    flags.CY <= ta[7];
+                    flags.V <= ta[7] ^ ta[6];
                 end
             end
 
@@ -335,11 +355,20 @@ always_ff @(posedge clk) begin
                 temp17 = { ta, 1'b0 } >> sz;
                 flags.CY <= temp17[0];
                 if (wide) begin
-                    res = (ta >> sz[3:0]) | (ta << ~sz[3:0]);
-                    flags.V <= ta[15] ^ res[15];
+                    res = (ta >> sz[3:0]) | (ta << (5'd16 - sz[3:0]));
                 end else begin
-                    res[7:0] = (ta[7:0] >> sz[2:0]) | (ta[7:0] << ~sz[2:0]);
-                    flags.V <= ta[7] ^ res[7];
+                    res[7:0] = (ta[7:0] >> sz[2:0]) | (ta[7:0] << (4'd8 - sz[2:0]));
+                end
+            end
+
+            ALU_OP_ROR1: begin
+                flags.CY <= ta[0];
+                if (wide) begin
+                    res = {ta[0], ta[15:1]};
+                    flags.V <= ta[15] ^ ta[0];
+                end else begin
+                    res[7:0] = {ta[0], ta[7:1]};
+                    flags.V <= ta[7] ^ ta[0];
                 end
             end
 
@@ -355,7 +384,6 @@ always_ff @(posedge clk) begin
                     sh34 = (sh34 >> sz) | (sh34 << sz_inv);
                     res = sh34[15:0];
                     flags.CY <= sh34[16];
-                    flags.V <= ta[15] ^ res[15];
                 end else begin
                     sz = { 2'b00, tb[3:0] };
                     sz_inv = 6'd18 - sz;
@@ -363,46 +391,91 @@ always_ff @(posedge clk) begin
                     sh18 = (sh18 >> sz) | (sh18 << sz_inv);
                     res[7:0] = sh18[7:0];
                     flags.CY <= sh18[8];
-                    flags.V <= ta[7] ^ res[7];
+                end
+            end
+
+            ALU_OP_RORC1: begin
+                flags.CY <= ta[0];
+                if (wide) begin
+                    res = {flags_in.CY, ta[15:1]};
+                    flags.V <= ta[15] ^ flags_in.CY;
+                end else begin
+                    res[7:0] = {flags_in.CY, ta[7:1]};
+                    flags.V <= ta[7] ^ flags_in.CY;
                 end
             end
 
             ALU_OP_SHL: begin
-                temp17 = { 1'b0, ta } << ta[4:0];
+                temp17 = { 1'b0, ta } << tb[4:0];
                 if (wide) begin
                     flags.CY <= temp17[16];
-                    flags.V <= ta[15] ^ temp17[15];
                 end else begin
                     flags.CY <= temp17[8];
-                    flags.V <= ta[7] ^ temp17[7];
                 end
                 res = temp17[15:0];
                 calc_parity = 1; calc_sign = 1; calc_zero = 1;
             end
 
+            ALU_OP_SHL1: begin
+                if (wide) begin
+                    flags.CY <= ta[15];
+                    flags.V <= ta[15] ^ ta[14];
+                    res = { ta[14:0], 1'b0 };
+                end else begin
+                    flags.CY <= ta[7];
+                    flags.V <= ta[7] ^ ta[6];
+                    res[7:0] = { ta[6:0], 1'b0 };
+                end
+                calc_parity = 1; calc_sign = 1; calc_zero = 1;
+            end
+
             ALU_OP_SHR: begin
-                temp17 = { ta, 1'b0 } >> ta[4:0];
+                temp17 = { ta, 1'b0 } >> tb[4:0];
                 if (~wide) begin
                     flags.CY <= temp17[0];
-                    flags.V <= ta[7] ^ temp17[8];
                 end else begin
                     flags.CY <= temp17[0];
-                    flags.V <= ta[15] ^ temp17[16];
                 end
                 res = temp17[16:1];
+                calc_parity = 1; calc_sign = 1; calc_zero = 1;
+            end
+
+            ALU_OP_SHR1: begin
+                if (wide) begin
+                    flags.CY <= ta[0];
+                    flags.V <= ta[15];
+                    res = { 1'b0, ta[15:1] };
+                end else begin
+                    flags.CY <= ta[0];
+                    flags.V <= ta[7];
+                    res[7:0] = { 1'b0, ta[7:1] };
+                end
                 calc_parity = 1; calc_sign = 1; calc_zero = 1;
             end
 
             ALU_OP_SHRA: begin
                 flags.V <= 0;
                 if (~wide) begin
-                    temp17 = { {8{ta[7]}}, ta[7:0], 1'b0 } >>> ta[4:0];
+                    temp17 = { {8{ta[7]}}, ta[7:0], 1'b0 } >>> tb[4:0];
                     flags.CY <= temp17[0];
                 end else begin
-                    temp17 = { ta, 1'b0 } >>> ta[4:0];
+                    temp17 = { ta, 1'b0 } >>> tb[4:0];
                     flags.CY <= temp17[0];
                 end
                 res = temp17[16:1];
+                calc_parity = 1; calc_sign = 1; calc_zero = 1;
+            end
+
+            ALU_OP_SHRA1: begin
+                if (wide) begin
+                    flags.CY <= ta[0];
+                    flags.V <= 0;
+                    res = { ta[15], ta[15:1] };
+                end else begin
+                    flags.CY <= ta[0];
+                    flags.V <= 0;
+                    res[7:0] = { ta[7], ta[7:1] };
+                end
                 calc_parity = 1; calc_sign = 1; calc_zero = 1;
             end
 

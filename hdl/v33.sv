@@ -304,6 +304,19 @@ function alu_operation_e shift_alu_op(bit [2:0] shift);
     endcase
 endfunction
 
+function alu_operation_e shift1_alu_op(bit [2:0] shift);
+    case(shift)
+    3'b000: return ALU_OP_ROL1;
+    3'b001: return ALU_OP_ROR1;
+    3'b010: return ALU_OP_ROLC1;
+    3'b011: return ALU_OP_RORC1;
+    3'b100: return ALU_OP_SHL1;
+    3'b101: return ALU_OP_SHR1;
+    3'b110: return ALU_OP_NONE;
+    3'b111: return ALU_OP_SHRA1;
+    endcase
+endfunction
+
 bus_control_unit BCU(
     .clk, .ce_1, .ce_2,
     .reset, .hldrq, .n_ready, .bs16,
@@ -506,7 +519,7 @@ always_ff @(posedge clk) begin
                         end
 
                         OP_SHIFT_1: begin
-                            start_alu(get_operand(decoded.source0), 16'd1, shift_alu_op(decoded.shift), decoded.width);
+                            start_alu(get_operand(decoded.source0), 16'd0, shift1_alu_op(decoded.shift), decoded.width);
                             alu_result_wait <= 1;
                         end
 
