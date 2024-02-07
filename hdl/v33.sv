@@ -41,17 +41,26 @@ module V33(
 
 // Register file
 // Segment registers
-reg [15:0] reg_ds0, reg_ds1, reg_ss, reg_ps;
-// General purpose
-reg [15:0] reg_aw, reg_bw, reg_cw, reg_dw;
-reg [15:0] reg_sp, reg_bp, reg_ix, reg_iy;
+reg [15:0] reg_ds0 /*verilator public*/;
+reg [15:0] reg_ds1 /*verilator public*/;
+reg [15:0] reg_ss  /*verilator public*/;
+reg [15:0] reg_ps  /*verilator public*/;
 
-reg [15:0] reg_pc;
+// General purpose
+reg [15:0] reg_aw  /*verilator public*/;
+reg [15:0] reg_bw  /*verilator public*/;
+reg [15:0] reg_cw  /*verilator public*/;
+reg [15:0] reg_dw  /*verilator public*/;
+reg [15:0] reg_sp  /*verilator public*/;
+reg [15:0] reg_bp  /*verilator public*/;
+reg [15:0] reg_ix  /*verilator public*/;
+reg [15:0] reg_iy  /*verilator public*/;
+reg [15:0] reg_pc  /*verilator public*/;
 
 reg halt; // TODO, do something with this
 
 flags_t flags;
-wire [15:0] reg_psw = {
+wire [15:0] reg_psw /*verilator public*/ = {
     flags.MD,
     3'b111,
     flags.V,
@@ -350,7 +359,19 @@ alu ALU(
     .busy(alu_busy)
 );
 
-enum {IDLE, FETCH_OPERANDS, FETCH_OPERANDS2, PUSH, POP, POP_WAIT, EXECUTE, STORE_RESULT} state;
+
+typedef enum {
+    IDLE,
+    FETCH_OPERANDS,
+    FETCH_OPERANDS2,
+    PUSH,
+    POP,
+    POP_WAIT,
+    EXECUTE,
+    STORE_RESULT
+} state_e /*verilator public*/;
+
+state_e state /*verilator public*/;
 
 int disp_size, imm_size;
 reg io_read, mem_read;
@@ -373,8 +394,23 @@ always_ff @(posedge clk) begin
     if (reset) begin
         dp_req <= 0;
         reg_ps <= 16'hffff;
+        reg_ss <= 16'd0;
+        reg_ds0 <= 16'd0;
+        reg_ds1 <= 16'd0;
         reg_pc <= 16'd0;
         new_pc <= 1;
+
+        flags.V <= 0;
+        flags.S <= 0;
+        flags.Z <= 0;
+        flags.AC <= 0;
+        flags.P <= 0;
+        flags.CY <= 0;
+        flags.MD <= 1;
+        flags.DIR <= 0;
+        flags.IE <= 0;
+        flags.BRK <= 0;
+
         state <= IDLE;
         alu_execute <= 0;
         alu_result_wait <= 0;

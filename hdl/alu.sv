@@ -110,6 +110,7 @@ always_ff @(posedge clk) begin
         if (execute) begin
             executing <= 1;
             flags <= flags_in;
+            done = 1;
 
             case(operation)
             ALU_OP_ADD, ALU_OP_ADDC, ALU_OP_INC: begin
@@ -135,7 +136,6 @@ always_ff @(posedge clk) begin
                     flags.V <= (ta[7] ^ res[7]) & (temp1[7] ^ res[7]);
 
                 calc_parity = 1; calc_sign = 1; calc_zero = 1;
-                done = 1;
             end
 
             ALU_OP_SUB, ALU_OP_CMP, ALU_OP_DEC, ALU_OP_SUBC: begin
@@ -158,7 +158,6 @@ always_ff @(posedge clk) begin
                 else
                     flags.V <= (ta[7] ^ temp1[7]) & (ta[7] ^ res[7]);
                 calc_parity = 1; calc_sign = 1; calc_zero = 1;
-                done = 1;
             end
 
             ALU_OP_AND: begin
@@ -167,7 +166,6 @@ always_ff @(posedge clk) begin
                 flags.V <= 0;
                 flags.AC <= 0;
                 calc_parity = 1; calc_sign = 1; calc_zero = 1;
-                done = 1;
             end
             
             ALU_OP_OR: begin
@@ -176,7 +174,6 @@ always_ff @(posedge clk) begin
                 flags.V <= 0;
                 flags.AC <= 0;
                 calc_parity = 1; calc_sign = 1; calc_zero = 1;
-                done = 1;
             end
             
             ALU_OP_XOR: begin
@@ -185,12 +182,10 @@ always_ff @(posedge clk) begin
                 flags.V <= 0;
                 flags.AC <= 0;
                 calc_parity = 1; calc_sign = 1; calc_zero = 1;
-                done = 1;
             end
 
             ALU_OP_NOT: begin
                 res = ~ta;
-                done = 1;
             end
 
             ALU_OP_NEG: begin
@@ -202,16 +197,13 @@ always_ff @(posedge clk) begin
                 if (wide && ta == 16'h8000) flags.V <= 1;
                 if (~wide && ta[7:0] == 8'h80) flags.V <= 1;
                 calc_parity = 1; calc_sign = 1; calc_zero = 1;
-                done = 1;
             end
 
             ALU_OP_SET1: begin
                 res = ta | bit_shift_mask;
-                done = 1;
             end
             ALU_OP_CLR1: begin
                 res = ta & ~bit_shift_mask;
-                done = 1;
             end
 
             ALU_OP_TEST1: begin
@@ -221,12 +213,10 @@ always_ff @(posedge clk) begin
                 flags.V <= 0;
 
                 calc_zero = 1;
-                done = 1;
             end
 
             ALU_OP_NOT1: begin
                 res = ta ^ bit_shift_mask;
-                done = 1;
             end
             
             ALU_OP_ADJ4A: begin 
@@ -249,7 +239,6 @@ always_ff @(posedge clk) begin
                 end
                 res = { 8'd0, temp9[7:0] };
                 calc_parity = 1; calc_sign = 1; calc_zero = 1;
-                done = 1;
             end
 
             ALU_OP_ADJ4S: begin 
@@ -272,7 +261,6 @@ always_ff @(posedge clk) begin
                 end
                 res = { 8'd0, temp9[7:0] };
                 calc_parity = 1; calc_sign = 1; calc_zero = 1;
-                done = 1;
             end
 
             ALU_OP_ADJBA: begin
@@ -286,7 +274,6 @@ always_ff @(posedge clk) begin
                     flags.CY <= 0;
                 end
                 res[7:4] = 4'd0;
-                done = 1;
             end 
 
             ALU_OP_ADJBS: begin
@@ -301,7 +288,6 @@ always_ff @(posedge clk) begin
                     flags.CY <= 0;
                 end
                 res[7:4] = 4'd0;
-                done = 1;
             end 
 
             ALU_OP_ROL: begin
@@ -426,11 +412,11 @@ always_ff @(posedge clk) begin
                 use_result32 = 1;
                 result32 = ta * tb;
                 if (wide) begin
-                    flags.CY <= |result[31:16];
-                    flags.V <= |result[31:16];
+                    flags.CY <= |result32[31:16];
+                    flags.V <= |result32[31:16];
                 end else begin
-                    flags.CY <= |result[31:8];
-                    flags.V <= |result[31:8];
+                    flags.CY <= |result32[31:8];
+                    flags.V <= |result32[31:8];
                 end
             end
             
@@ -460,7 +446,7 @@ always_ff @(posedge clk) begin
             executing <= 0;
         end
 
-        if (done) begin
+        if (done & (executing | execute)) begin
             executing <= 0;
 
             if (use_result32) begin

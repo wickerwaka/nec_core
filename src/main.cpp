@@ -1,4 +1,6 @@
 #include "v33.h"
+#include "v33___024root.h"
+#include "v33_V33.h"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 
@@ -6,32 +8,70 @@ VerilatedContext *contextp;
 v33 *top;
 VerilatedVcdC *tfp;
 
-constexpr size_t MEM_SIZE = 64 * 1024;
+constexpr size_t ROM_SIZE = 512 * 1024;
+constexpr size_t RAM_SIZE = 64 * 1024;
 
-uint8_t memory[MEM_SIZE];
+uint8_t ram[RAM_SIZE];
+uint8_t rom[ROM_SIZE];
 
 uint16_t read_mem(uint32_t addr, bool ube)
 {
-    uint32_t aligned_addr = (addr & ~1) % MEM_SIZE;
-    return memory[aligned_addr] | (memory[aligned_addr + 1] << 8);
+    if( ( addr & 0xf0000 ) == 0xe0000 )
+    {
+        uint32_t aligned_addr = (addr & ~1) % RAM_SIZE;
+        return ram[aligned_addr] | (ram[aligned_addr + 1] << 8);
+    }
+    else
+    {
+        uint32_t aligned_addr = (addr & ~1) % ROM_SIZE;
+        return rom[aligned_addr] | (rom[aligned_addr + 1] << 8);
+    }
 }
 
 void write_mem(uint32_t addr, bool ube, uint16_t dout)
 {
-    addr = addr % MEM_SIZE;
-    if ((addr & 1) && ube)
+    if( ( addr & 0xf0000 ) == 0xe0000 )
     {
-        memory[addr] = dout >> 16;
+        addr = addr % RAM_SIZE;
+        if ((addr & 1) && ube)
+        {
+            ram[addr] = dout >> 16;
+        }
+        else if (((addr & 1) == 0) && !ube)
+        {
+            ram[addr] = dout & 0xff;
+        }
+        else
+        {
+            ram[addr] = dout & 0xff;
+            ram[addr + 1] = dout >> 8;
+        }
     }
-    else if (((addr & 1) == 0) && !ube)
+}
+
+v33_V33::state_e prev_state = v33_V33::IDLE;
+void print_trace(const v33_V33 *cpu)
+{
+    if( cpu->state == v33_V33::IDLE && prev_state != v33_V33::IDLE )
     {
-        memory[addr] = dout & 0xff;
+        printf("psw=%04X aw=%04X cw=%04X dw=%04X bw=%04X sp=%04X bp=%04X ix=%04X iy=%04X ds1=%04X ps=%04X ss=%04X ds0=%04X %05X\n",
+            cpu->reg_psw,
+            cpu->reg_aw,
+            cpu->reg_cw,
+            cpu->reg_dw,
+            cpu->reg_bw,
+            cpu->reg_sp,
+            cpu->reg_bp,
+            cpu->reg_ix,
+            cpu->reg_iy,
+            cpu->reg_ds1,
+            cpu->reg_ps,
+            cpu->reg_ss,
+            cpu->reg_ds0,
+            (cpu->reg_ps << 4) + cpu->reg_pc
+        );
     }
-    else
-    {
-        memory[addr] = dout & 0xff;
-        memory[addr + 1] = dout >> 8;
-    }
+    prev_state = (v33_V33::state_e)cpu->state;
 }
 
 void tick(int count = 1)
@@ -56,6 +96,7 @@ void tick(int count = 1)
 
         top->eval();
         tfp->dump(contextp->time());
+        print_trace(top->rootp->V33);
 
         contextp->timeInc(1);
         top->clk = 1;
@@ -64,6 +105,7 @@ void tick(int count = 1)
 
         top->eval();
         tfp->dump(contextp->time());
+        print_trace(top->rootp->V33);
     }
 }
 
@@ -89,7 +131,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    fread(memory, 1, 64 * 1024, fp);
+    fread(rom, 1, ROM_SIZE, fp);
     fclose(fp);
 
     contextp = new VerilatedContext;
@@ -100,12 +142,6 @@ int main(int argc, char **argv)
     top->trace(tfp, 99);
     tfp->open("v33.vcd");
 
-    memory[0xfff0] = 0xea;
-    memory[0xfff1] = 0x00;
-    memory[0xfff2] = 0x00;
-    memory[0xfff3] = 0x00;
-    memory[0xfff4] = 0x00;
-
     top->ce_1 = 0;
     top->ce_2 = 1;
 
@@ -113,7 +149,7 @@ int main(int argc, char **argv)
     tick(10);
     top->reset = 0;
 
-    tick(800);
+    tick(2000);
 
     top->final();
     tfp->close();
