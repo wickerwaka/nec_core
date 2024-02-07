@@ -466,7 +466,7 @@ always_ff @(posedge clk) begin
             if (use_result32) begin
                 result <= result32;
             end else begin
-                if (calc_parity) flags.P <= res[0] ^ res[1] ^ res[2] ^ res[3] ^ res[4] ^ res[5] ^ res[6] ^ res[7];
+                if (calc_parity) flags.P <= ~(res[0] ^ res[1] ^ res[2] ^ res[3] ^ res[4] ^ res[5] ^ res[6] ^ res[7]);
                 if (calc_sign) flags.S <= wide ? res[15] : res[7];
                 if (calc_zero) flags.Z <= wide ? res[15:0] == 16'd0 : res[7:0] == 8'd0;
 
