@@ -756,6 +756,24 @@ end
 	d.pre_size = 1;
 	valid_op <= 1;
 end
+24'b11001000xxxxxxxxxxxxxxxx: begin /* PREPARE imm16, imm8 */
+	d.opcode = OP_PREPARE;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
+24'b11001001xxxxxxxxxxxxxxxx: begin /* DISPOSE */
+	d.opcode = OP_DISPOSE;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
 24'b11110011xxxxxxxxxxxxxxxx: begin /* REP/REPE/REPZ */
 	d.opcode = OP_REP_PREFIX;
 	d.prefix = 1;

@@ -64,6 +64,9 @@ package types;
         OP_CVTBW,
         OP_CVTWL,
 
+        OP_PREPARE,
+        OP_DISPOSE,
+        
         // pseido op for interrupt procesing
         OP_INT
     } opcode_e;

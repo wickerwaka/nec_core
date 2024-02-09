@@ -636,6 +636,14 @@ b10001111_MD_000_MEM:
   pop: OPERAND
   dst: MODRM
 
+b11001000:
+  desc: PREPARE imm16, imm8
+  op: PREPARE
+
+b11001001:
+  desc: DISPOSE
+  op: DISPOSE
+
 #
 # IO In/Out
 #

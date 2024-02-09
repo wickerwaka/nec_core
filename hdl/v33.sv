@@ -412,6 +412,9 @@ reg [15:0] push_list;
 reg [15:0] pop_list;
 reg [15:0] push_sp_save;
 
+reg [4:0] prepare_nesting_level;
+reg [15:0] prepare_sp_save;
+
 always_ff @(posedge clk) begin
     bit [15:0] addr;
     bit [31:0] result32;
@@ -481,7 +484,11 @@ always_ff @(posedge clk) begin
                             mem_read <= (next_decode.source0 == OPERAND_MODRM || next_decode.source1 == OPERAND_MODRM) ? 1 : 0;
                     end
 
-                    imm_size <= calc_imm_size(next_decode.width, next_decode.source0, next_decode.source1);
+                    if (next_decode.opcode == OP_PREPARE) begin
+                        imm_size <= 3;
+                    end else begin
+                        imm_size <= calc_imm_size(next_decode.width, next_decode.source0, next_decode.source1);
+                    end
 
                     state <= FETCH_OPERANDS;
                 end
@@ -873,7 +880,47 @@ always_ff @(posedge clk) begin
                             end
                         end
 
+                        OP_PREPARE: begin
+                            working = exec_stage != 3;
+                            if (exec_stage == 0) begin
+                                prepare_nesting_level <= fetched_imm[20:16];
+                                reg_sp <= reg_sp - 16'd2;
+                                prepare_sp_save <= reg_sp - 16'd2;
+                                write_memory(reg_sp - 16'd2, SS, WORD, reg_bp);
+                                working = 1;
+
+                                case(fetched_imm[20:16])
+                                5'd0: exec_stage <= 3;
+                                5'd1: exec_stage <= 2;
+                                default: exec_stage <= 1;
+                                endcase
+                            end else if (exec_stage == 1) begin
+                                reg_sp <= reg_sp - 16'd2;
+                                reg_bp <= reg_bp - 16'd2;
+                                write_memory(reg_sp - 16'd2, SS, WORD, reg_bp - 16'd2);
+                                prepare_nesting_level <= prepare_nesting_level - 5'd1;
+                                if (prepare_nesting_level > 5'd2) exec_stage <= exec_stage; 
+                            end else if (exec_stage == 2) begin
+                                reg_sp <= reg_sp - 16'd2;
+                                write_memory(reg_sp - 16'd2, SS, WORD, prepare_sp_save);
+                            end else if (exec_stage == 3) begin
+                                reg_bp <= prepare_sp_save;
+                                reg_sp <= prepare_sp_save - fetched_imm[15:0];
+                            end
+                        end
+
+                        OP_DISPOSE: begin
+                            working = exec_stage != 1;
+                            if (exec_stage == 0) begin
+                                reg_sp <= reg_bp + 2;
+                                read_memory(reg_bp, SS, WORD);
+                            end else begin
+                                reg_bp <= dp_din;
+                            end
+                        end
+
                         OP_INT: begin
+                            working = exec_stage != 2;
                             if (exec_stage == 0) begin
                                 dp_addr <= { 6'd0, fetched_imm[7:0], 2'b00 };
                                 dp_write <= 0;
@@ -884,14 +931,11 @@ always_ff @(posedge clk) begin
 
                                 flags.IE <= 0;
                                 flags.BRK <= 0;
-                                working = 1;
                             end else if (exec_stage == 1) begin
                                 reg_pc <= dp_din;
 
                                 dp_addr <= { 6'd0, fetched_imm[7:0], 2'b10 };
                                 dp_req <= ~dp_req;
-
-                                working = 1;
                             end else begin
                                 reg_ps <= dp_din;
                                 new_pc <= 1;
