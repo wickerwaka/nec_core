@@ -241,7 +241,7 @@ always_ff @(posedge clk) begin
                     end
                     INT_ACK1,
                     INT_ACK2: begin
-                        intvec <= dp_din[7:0];
+                        intvec <= din[7:0];
                     end
                     endcase
 
