@@ -555,11 +555,13 @@ b01100000:
 b01101010:
   desc: PUSH imm8
   push: OPERAND
+  src: IMM
   width: BYTE
 
 b01101000:
   desc: PUSH imm16
   push: OPERAND
+  src: IMM
   width: WORD
 
 b11111111_MD_110_MEM:

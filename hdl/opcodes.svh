@@ -615,7 +615,7 @@ end
 	d.push = STACK_OPERAND;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
-	d.source0 = OPERAND_NONE;
+	d.source0 = OPERAND_IMM;
 	d.source1 = OPERAND_NONE;
 	d.pre_size = 1;
 	valid_op <= 1;
@@ -625,7 +625,7 @@ end
 	d.push = STACK_OPERAND;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
-	d.source0 = OPERAND_NONE;
+	d.source0 = OPERAND_IMM;
 	d.source1 = OPERAND_NONE;
 	d.pre_size = 1;
 	valid_op <= 1;
