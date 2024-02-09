@@ -35,7 +35,7 @@ void write_mem(uint32_t addr, bool ube, uint16_t dout)
         addr = addr % RAM_SIZE;
         if ((addr & 1) && ube)
         {
-            ram[addr] = dout >> 16;
+            ram[addr] = dout >> 8;
         }
         else if (((addr & 1) == 0) && !ube)
         {
@@ -149,7 +149,11 @@ int main(int argc, char **argv)
     tick(10);
     top->reset = 0;
 
-    tick(2000);
+    while(true)
+    {
+        tick(1);
+        if (!top->r_w && !top->m_io && top->addr == 0xdead) break;
+    }
 
     top->final();
     tfp->close();
