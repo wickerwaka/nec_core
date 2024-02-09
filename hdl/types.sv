@@ -62,7 +62,10 @@ package types;
         OP_SHIFT_CL,
         OP_LDEA,
         OP_CVTBW,
-        OP_CVTWL
+        OP_CVTWL,
+
+        // pseido op for interrupt procesing
+        OP_INT
     } opcode_e;
 
     typedef enum bit [5:0] {

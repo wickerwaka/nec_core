@@ -475,6 +475,15 @@ end
 	d.pre_size = 1;
 	valid_op <= 1;
 end
+24'b11001111xxxxxxxxxxxxxxxx: begin /* RETI */
+	d.pop = STACK_PC | STACK_PS | STACK_PSW;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 1;
+	valid_op <= 1;
+end
 24'b01010000xxxxxxxxxxxxxxxx: begin /* PUSH AW */
 	d.push = STACK_AW;
 	d.use_modrm = 0;

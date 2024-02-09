@@ -447,7 +447,7 @@ b1001_1010:
 
 
 #
-# RET/RETF
+# RET/RETF/RETI
 #
 b1100_0011:
   desc: RET
@@ -476,6 +476,13 @@ b1100_0010:
   pop:
     - PC
     - PS
+
+b1100_1111:
+  desc: RETI
+  pop:
+    - PC
+    - PS
+    - PSW
 
 
 #

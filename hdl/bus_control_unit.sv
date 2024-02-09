@@ -54,7 +54,6 @@ module bus_control_unit(
     output  reg [7:0]   ipq[8],
     output      [3:0]   ipq_len,
 
-
     // Data pointer read/write
     input       [15:0]  dp_addr,
     input       [15:0]  dp_dout,
@@ -64,9 +63,15 @@ module bus_control_unit(
     input               dp_wide,
     input               dp_io,
     input               dp_req, // edge triggered
+    input               dp_zero_seg,
     output              dp_ready,
 
-    output  reg         implementation_fault
+    output  reg         implementation_fault,
+
+    // Interrupt handling
+    input               intreq,
+    output  reg         intack,
+    output  reg  [7:0]  intvec
 );
 
 function bit [23:0] physical_addr(sreg_index_e sreg, bit [15:0] ea);
@@ -81,14 +86,15 @@ function bit [23:0] physical_addr(sreg_index_e sreg, bit [15:0] ea);
 endfunction
 
 enum {T_1, T_2, T_IDLE} t_state;
-enum {INT_ACK, IO_READ, IO_WRITE, HALT_ACK, IPQ_FETCH, MEM_READ, MEM_WRITE} cycle_type;
+enum {INT_ACK1, INT_ACK2, IO_READ, IO_WRITE, HALT_ACK, IPQ_FETCH, MEM_READ, MEM_WRITE} cycle_type;
 
 assign n_bcyst = ~(t_state == T_1);
 
 // Set external bus status signals based on cycle_type
 always_comb begin
     case(cycle_type)
-    INT_ACK:   begin m_io = 0; r_w = 1; busst1 = 0; busst0 = 0; end
+    INT_ACK1,
+    INT_ACK2:  begin m_io = 0; r_w = 1; busst1 = 0; busst0 = 0; end
     IO_READ:   begin m_io = 0; r_w = 1; busst1 = 0; busst0 = 1; end
     IO_WRITE:  begin m_io = 0; r_w = 0; busst1 = 0; busst0 = 1; end
     HALT_ACK:  begin m_io = 0; r_w = 0; busst1 = 1; busst0 = 1; end
@@ -105,6 +111,8 @@ assign ipq_len = pfp_set ? 4'd0 : reg_pfp[3:0] - ipq_head[3:0];
 assign dp_ready = (dp_ack == dp_req);
 reg dp_ack;
 reg second_byte;
+int intack_idles;
+
 
 always_ff @(posedge clk) begin
     bit [3:0] new_ipq_used;
@@ -117,6 +125,7 @@ always_ff @(posedge clk) begin
         n_dstb <= 1;
 
         cycle_type <= IPQ_FETCH;
+        intack <= 0;
 
         implementation_fault <= 0;
 
@@ -136,19 +145,42 @@ always_ff @(posedge clk) begin
             cur_pfp = ipq_head;
             new_ipq_used = 0;
             discard_ipq_fetch <= 1;
-        end        
+        end
+
+        if (~intreq) intack <= 0;
 
         if (ce_1) begin
             case(t_state)
             T_IDLE: begin
                 n_dstb <= 1; // clear data strobe
-                if (dp_req != dp_ack) begin
+                intack_idles <= intack_idles + 1;
+                if (cycle_type == INT_ACK1) begin
+                    if (intack_idles == 6) begin
+                        t_state <= T_1;
+                        cycle_type <= INT_ACK2;
+                        intack_idles <= 0;
+                    end
+                end else if (cycle_type == INT_ACK2) begin
+                    if (intack_idles == 5) begin
+                        cycle_type <= IPQ_FETCH;
+                        intack <= 1;
+                    end
+                end else if (intreq & ~intack) begin
+                    cycle_type <= INT_ACK1;
+                    t_state <= T_1;
+                    intack_idles <= 0;
+                    n_ube <= 1;
+                end else if (dp_req != dp_ack) begin
                     t_state <= T_1;
                     if (dp_io) begin
                         addr <= {8'd0, second_byte ? (dp_addr + 16'd1) : dp_addr};
                         cycle_type <= dp_write ? IO_WRITE : IO_READ;
                     end else begin
-                        addr <= physical_addr(dp_sreg, second_byte ? (dp_addr + 16'd1) : dp_addr);
+                        if (dp_zero_seg) begin
+                            addr <= { 8'd0, second_byte ? (dp_addr + 16'd1) : dp_addr };
+                        end else begin
+                            addr <= physical_addr(dp_sreg, second_byte ? (dp_addr + 16'd1) : dp_addr);
+                        end
                         cycle_type <= dp_write ? MEM_WRITE : MEM_READ;
                     end
                     n_ube <= second_byte | (~dp_wide & ~dp_addr[0]);
@@ -206,6 +238,10 @@ always_ff @(posedge clk) begin
                         end else begin
                             dp_ack <= dp_req;
                         end
+                    end
+                    INT_ACK1,
+                    INT_ACK2: begin
+                        intvec <= dp_din[7:0];
                     end
                     endcase
 

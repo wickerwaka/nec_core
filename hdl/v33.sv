@@ -82,6 +82,7 @@ reg [15:0] dp_addr;
 reg [15:0] dp_dout;
 wire [15:0] dp_din;
 sreg_index_e dp_sreg;
+reg dp_zero_seg;
 reg dp_write;
 reg dp_wide;
 reg dp_io;
@@ -224,6 +225,7 @@ task write_memory(input bit [15:0] addr, input sreg_index_e seg, input width_e w
     dp_dout <= data;
     dp_write <= 1;
     dp_io <= 0;
+    dp_zero_seg <= 0;
     dp_sreg <= seg;
     dp_wide <= width == BYTE ? 0 : 1;
     dp_req <= ~dp_req;
@@ -234,6 +236,7 @@ task read_memory(input bit [15:0] addr, input sreg_index_e seg, input width_e wi
     dp_write <= 0;
     dp_io <= 0;
     dp_sreg <= seg;
+    dp_zero_seg <= 0;
     dp_wide <= width == BYTE ? 0 : 1;
     dp_req <= ~dp_req;
 endtask
@@ -317,6 +320,10 @@ function alu_operation_e shift1_alu_op(bit [2:0] shift);
     endcase
 endfunction
 
+wire bcu_intreq;
+wire bcu_intack;
+wire [7:0] bcu_intvec;
+
 bus_control_unit BCU(
     .clk, .ce_1, .ce_2,
     .reset, .hldrq, .n_ready, .bs16,
@@ -332,7 +339,9 @@ bus_control_unit BCU(
 
     .dp_addr, .dp_dout, .dp_din, .dp_sreg,
     .dp_write, .dp_wide, .dp_io, .dp_req,
-    .dp_ready,
+    .dp_ready, .dp_zero_seg,
+
+    .intreq(bcu_intreq), .intack(bcu_intack), .intvec(bcu_intvec),
 
     .implementation_fault()
 );
@@ -381,10 +390,15 @@ typedef enum {
     POP,
     POP_WAIT,
     EXECUTE,
-    STORE_RESULT
-} state_e /*verilator public*/;
+    STORE_RESULT,
+    INTACK_WAIT
+} state_e /* verilator public */;
 
-state_e state /*verilator public*/;
+
+state_e state /* verilator public */;
+
+
+assign bcu_intreq = state == INTACK_WAIT;
 
 int disp_size, imm_size;
 reg io_read, mem_read;
@@ -440,6 +454,7 @@ always_ff @(posedge clk) begin
             IDLE: if (ce_1) begin
                 alu_result_wait <= 0;
                 new_pc <= 0; // TODO - should this be every CE?
+                exec_stage <= 4'd0;
 
                 // If prefixes are active and the _last_ op was not a prefix, then end it
                 if (prefix_active & ~decoded.prefix) begin
@@ -448,10 +463,11 @@ always_ff @(posedge clk) begin
                     repeat_active <= 0;
                 end
 
-                if (next_valid_op & ~new_pc) begin
+                if (intreq & ~prefix_active & flags.IE) begin
+                    state <= INTACK_WAIT;
+                end else if (next_valid_op & ~new_pc) begin
                     disp_size <= 0;
                     mem_read <= 0;
-                    exec_stage <= 4'd0;
 
                     push_sp_save <= reg_sp;
                     push_list <= next_decode.push;
@@ -470,6 +486,18 @@ always_ff @(posedge clk) begin
                     state <= FETCH_OPERANDS;
                 end
             end // IDLE
+
+            INTACK_WAIT: if (ce_1) begin
+                if (bcu_intack) begin
+                    decoded.opcode <= OP_INT;
+                    decoded.pop <= 16'd0;
+                    push_list <= STACK_PC | STACK_PS | STACK_PSW;
+                    decoded.dest <= OPERAND_NONE;
+                    decoded.source0 <= OPERAND_IMM8;
+                    fetched_imm[7:0] <= bcu_intvec;
+                    state <= PUSH;
+                end
+            end
 
             EXECUTE: begin
                 bit working;
@@ -842,6 +870,31 @@ always_ff @(posedge clk) begin
                                         working = 0;
                                     end
                                 end
+                            end
+                        end
+
+                        OP_INT: begin
+                            if (exec_stage == 0) begin
+                                dp_addr <= { 6'd0, fetched_imm[7:0], 2'b00 };
+                                dp_write <= 0;
+                                dp_io <= 0;
+                                dp_zero_seg <= 1;
+                                dp_wide <= 1;
+                                dp_req <= ~dp_req;
+
+                                flags.IE <= 0;
+                                flags.BRK <= 0;
+                                working = 1;
+                            end else if (exec_stage == 1) begin
+                                reg_pc <= dp_din;
+
+                                dp_addr <= { 6'd0, fetched_imm[7:0], 2'b10 };
+                                dp_req <= ~dp_req;
+
+                                working = 1;
+                            end else begin
+                                reg_ps <= dp_din;
+                                new_pc <= 1;
                             end
                         end
                     endcase
