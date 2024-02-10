@@ -7,7 +7,7 @@ find_package(verilator HINTS $ENV{VERILATOR_ROOT})
 add_executable(bus_control_unit src/bcu.cpp)
 verilate(bus_control_unit
     TRACE
-    SOURCES hdl/types.sv hdl/bus_control_unit.sv
+    SOURCES hdl/types.sv hdl/bus_control_unit.sv hdl/divu_int.sv hdl/divider.sv
     INCLUDE_DIRS hdl
     TOP_MODULE bus_control_unit
     PREFIX bus_control_unit)

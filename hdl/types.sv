@@ -63,6 +63,8 @@ package types;
         OP_LDEA,
         OP_CVTBW,
         OP_CVTWL,
+        OP_DIV,
+        OP_DIVU,
 
         OP_PREPARE,
         OP_DISPOSE,

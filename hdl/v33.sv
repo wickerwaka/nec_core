@@ -381,6 +381,26 @@ alu ALU(
     .busy(alu_busy)
 );
 
+reg div_start, div_wide, div_signed;
+wire div_done, div_valid, div_dbz;
+reg [31:0] div_num, div_denom;
+wire [31:0] div_quot, div_rem;
+
+divider divider(
+    .clk, .ce(ce_1 | ce_2),
+    .reset,
+    .start(div_start),
+    .done(div_done),
+    .valid(div_valid),
+    .dbz(div_dbz),
+    .wide(div_wide),
+    .is_signed(div_signed),
+    .num(div_num),
+    .denom(div_denom),
+    .quot(div_quot),
+    .rem(div_rem)
+);
+
 
 typedef enum {
     IDLE,
@@ -452,6 +472,7 @@ always_ff @(posedge clk) begin
         halt <= 0;
     end else if (ce_1 | ce_2) begin
         alu_execute <= 0;
+        div_start <= 0;
 
         case(state)
             IDLE: if (ce_1) begin
@@ -876,6 +897,66 @@ always_ff @(posedge clk) begin
                                     end else begin
                                         working = 0;
                                     end
+                                end
+                            end
+                        end
+
+                        OP_DIVU: begin
+                            bit [15:0] operand;
+                            operand = get_operand(OPERAND_MODRM);
+
+                            if (exec_stage == 0) begin
+                                div_signed <= 0;
+                                div_start <= 1;
+                                if (decoded.width == BYTE) begin
+                                    div_num <= { 16'd0, reg_aw };
+                                    div_denom <= { 24'd0, operand[7:0] };
+                                end else begin
+                                    div_num <= { reg_dw, reg_aw };
+                                    div_denom <= { 16'd0, operand[15:0] };
+                                end
+                                working = 1;
+                            end else begin
+                                if (div_done) begin
+                                    if (decoded.width == BYTE) begin
+                                        reg_aw <= { div_rem[7:0], div_quot[7:0] };
+                                    end else begin
+                                        reg_aw <= div_quot[15:0];
+                                        reg_dw <= div_rem[15:0];
+                                    end
+                                end else begin
+                                    working = 1;
+                                    exec_stage <= exec_stage;
+                                end
+                            end
+                        end
+
+                        OP_DIV: begin
+                            bit [15:0] operand;
+                            operand = get_operand(OPERAND_MODRM);
+
+                            if (exec_stage == 0) begin
+                                div_signed <= 1;
+                                div_start <= 1;
+                                if (decoded.width == BYTE) begin
+                                    div_num <= { {16{reg_aw[15]}}, reg_aw };
+                                    div_denom <= { {24{operand[7]}}, operand[7:0] };
+                                end else begin
+                                    div_num <= { reg_dw, reg_aw };
+                                    div_denom <= { {16{operand[15]}}, operand[15:0] };
+                                end
+                                working = 1;
+                            end else begin
+                                if (div_done) begin
+                                    if (decoded.width == BYTE) begin
+                                        reg_aw <= { div_rem[7:0], div_quot[7:0] };
+                                    end else begin
+                                        reg_aw <= div_quot[15:0];
+                                        reg_dw <= div_rem[15:0];
+                                    end
+                                end else begin
+                                    working = 1;
+                                    exec_stage <= exec_stage;
                                 end
                             end
                         end

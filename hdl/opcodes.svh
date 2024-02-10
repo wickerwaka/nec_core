@@ -187,6 +187,30 @@ end
 	d.pre_size = 2;
 	valid_op <= 1;
 end
+24'b1111011xxx110xxxxxxxxxxx: begin /* DIVU mem/reg */
+	d.opcode = OP_DIVU;
+	d.use_modrm = 1;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_MODRM;
+	d.source1 = OPERAND_NONE;
+	d.mod = q[15:14];
+	d.rm = q[10:8];
+	d.width = q[16] ? WORD : BYTE;
+	d.pre_size = 2;
+	valid_op <= 1;
+end
+24'b1111011xxx111xxxxxxxxxxx: begin /* DIV mem/reg */
+	d.opcode = OP_DIV;
+	d.use_modrm = 1;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_MODRM;
+	d.source1 = OPERAND_NONE;
+	d.mod = q[15:14];
+	d.rm = q[10:8];
+	d.width = q[16] ? WORD : BYTE;
+	d.pre_size = 2;
+	valid_op <= 1;
+end
 24'b1100011xxx000xxxxxxxxxxx: begin /* MOV */
 	d.opcode = OP_MOV;
 	d.use_modrm = 1;

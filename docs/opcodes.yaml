@@ -221,6 +221,19 @@ b01101001_MD_GP0_MEM:
   src1: IMM
   width: WORD
 
+#
+# DIV
+#
+b1111011W_MD_110_MEM:
+  desc: DIVU mem/reg
+  op: DIVU
+  src: MODRM
+
+b1111011W_MD_111_MEM:
+  desc: DIV mem/reg
+  op: DIV
+  src: MODRM
+
 
 #
 # BCD Adjust
