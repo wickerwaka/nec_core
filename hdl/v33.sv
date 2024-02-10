@@ -104,7 +104,7 @@ endfunction
 
 wire next_valid_op;
 pre_decode_t next_decode;
-pre_decode_t decoded;
+pre_decode_t decoded /*verilator public*/;
 
 
 reg prefix_active;
@@ -231,7 +231,7 @@ task set_sreg(input sreg_index_e r, input bit[15:0] val);
     case(r)
     DS0: reg_ds0 <= val;
     DS1: reg_ds1 <= val;
-    SP: reg_sp <= val;
+    SS: reg_sp <= val;
     PS: reg_ps <= val;
     endcase
 endtask
@@ -592,11 +592,7 @@ always_ff @(posedge clk) begin
                         end
 
                         OP_MOV_AH_PSW: begin
-                            reg_aw[8]  <= flags.CY;
-                            reg_aw[10] <= flags.P;
-                            reg_aw[12] <= flags.AC;
-                            reg_aw[14] <= flags.Z;
-                            reg_aw[15] <= flags.S;
+                            reg_aw[15:8]  <= reg_psw[7:0];
                         end
 
                         OP_LDEA: begin

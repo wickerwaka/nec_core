@@ -49,6 +49,7 @@ end
 	valid_op <= 1;
 end
 24'b11111111xx110xxxxxxxxxxx: begin /* PUSH reg16/mem16 */
+	d.width = WORD;
 	d.push = STACK_OPERAND;
 	d.use_modrm = 1;
 	d.dest = OPERAND_NONE;
