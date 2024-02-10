@@ -231,8 +231,11 @@ task set_sreg(input sreg_index_e r, input bit[15:0] val);
     case(r)
     DS0: reg_ds0 <= val;
     DS1: reg_ds1 <= val;
-    SS: reg_sp <= val;
-    PS: reg_ps <= val;
+    SS: reg_ss <= val;
+    PS: begin
+        reg_ps <= val;
+        new_pc <= 1;
+    end
     endcase
 endtask
 
@@ -644,10 +647,10 @@ always_ff @(posedge clk) begin
                             4'b1001: cond = ~flags.S; /* P */
                             4'b1010: cond = flags.P; /* PE */
                             4'b1011: cond = ~flags.P; /* PO */
-                            4'b1100: cond = (flags.S ^ flags.V); /* LT */
-                            4'b1101: cond = ~(flags.S ^ flags.V); /* GE */
-                            4'b1110: cond = (flags.S ^ flags.V); /* LE */
-                            4'b1111: cond = ~((flags.S ^ flags.V) | flags.Z); /* GT */
+                            4'b1100: cond = (flags.S ^ flags.V) & ~flags.Z; /* LT */
+                            4'b1101: cond = ~(flags.S ^ flags.V) | flags.Z; /* GE */
+                            4'b1110: cond = (flags.S ^ flags.V) | flags.Z; /* LE */
+                            4'b1111: cond = ~((flags.S ^ flags.V) & ~flags.Z); /* GT */
                             endcase
 
                             if (cond) begin
@@ -1266,19 +1269,11 @@ always_ff @(posedge clk) begin
                             else
                                 set_reg16(reg16_index_e'(decoded.rm), result16);
                         end else begin
-                            write_memory(calculated_ea, override_segment(DS0), decoded.width, result16);
+                            write_memory(calculated_ea, override_segment(calculated_seg), decoded.width, result16);
                         end
                     end
                     OPERAND_SREG: begin
-                        case(decoded.sreg)
-                        DS0: reg_ds0 <= result16;
-                        DS1: reg_ds1 <= result16;
-                        SS: reg_ss <= result16;
-                        PS: begin
-                            reg_ps <= result16;
-                            new_pc <= 1;
-                        end
-                        endcase
+                        set_sreg(sreg_index_e'(decoded.sreg), result16);
                     end
                     OPERAND_REG_0: begin
                         if (decoded.width == BYTE)
