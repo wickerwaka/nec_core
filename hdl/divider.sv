@@ -1,4 +1,4 @@
-module divider(
+module divider2(
     input clk,
     input ce,
     input reset,

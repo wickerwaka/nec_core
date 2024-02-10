@@ -398,7 +398,7 @@ wire div_done, div_valid, div_dbz;
 reg [31:0] div_num, div_denom;
 wire [31:0] div_quot, div_rem;
 
-divider divider(
+divider2 divider(
     .clk, .ce(ce_1 | ce_2),
     .reset,
     .start(div_start),
