@@ -341,14 +341,12 @@ b10001100_MD_0_SR_MEM:
 b11000101_MD_GP0_MEM:
   op: MOV_SEG
   sreg: DS0
-  dst: REG_0
   src: MODRM
   width: DWORD
 
 b11000100_MD_GP0_MEM:
   op: MOV_SEG
   sreg: DS1
-  dst: REG_0
   src: MODRM
   width: DWORD
 

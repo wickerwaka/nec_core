@@ -157,7 +157,7 @@ function bit [15:0] calc_ea(bit [2:0] mem, bit [1:0] mod, bit [15:0] disp);
     3'b111: addr = reg_bw;
     endcase
 
-    if (mod == 2'b01) addr = addr + { 8'd0, disp[7:0] };
+    if (mod == 2'b01) addr = addr + { {8{disp[7]}}, disp[7:0] };
     else if (mod == 2'b10) addr = addr + disp;
 
     return addr;
@@ -224,6 +224,15 @@ task set_reg16(input reg16_index_e r, input bit[15:0] val);
     BP: reg_bp <= val;
     IX: reg_ix <= val;
     IY: reg_iy <= val;
+    endcase
+endtask
+
+task set_sreg(input sreg_index_e r, input bit[15:0] val);
+    case(r)
+    DS0: reg_ds0 <= val;
+    DS1: reg_ds1 <= val;
+    SP: reg_sp <= val;
+    PS: reg_ps <= val;
     endcase
 endtask
 
@@ -567,6 +576,27 @@ always_ff @(posedge clk) begin
 
                         OP_MOV: begin
                             op_result <= get_operand(decoded.source0);
+                        end
+
+                        OP_MOV_SEG: begin
+                            set_reg16(reg16_index_e'(decoded.reg0), dp_din32[15:0]);
+                            set_sreg(sreg_index_e'(decoded.sreg), dp_din32[31:16]);
+                        end
+
+                        OP_MOV_PSW_AH: begin
+                            flags.CY  <= reg_aw[8];
+                            flags.P   <= reg_aw[10];
+                            flags.AC  <= reg_aw[12];
+                            flags.Z   <= reg_aw[14];
+                            flags.S   <= reg_aw[15];
+                        end
+
+                        OP_MOV_AH_PSW: begin
+                            reg_aw[8]  <= flags.CY;
+                            reg_aw[10] <= flags.P;
+                            reg_aw[12] <= flags.AC;
+                            reg_aw[14] <= flags.Z;
+                            reg_aw[15] <= flags.S;
                         end
 
                         OP_LDEA: begin
@@ -1058,45 +1088,45 @@ always_ff @(posedge clk) begin
                     end
 
                     case(pop_idx)
-                    0:  reg_aw <= dp_din;
-                    1:  reg_cw <= dp_din;
-                    2:  reg_dw <= dp_din;
-                    3:  reg_bw <= dp_din;
-                    4:  reg_sp <= dp_din;
-                    5:  begin end
-                    6:  reg_bp <= dp_din;
-                    7:  reg_ix <= dp_din;
-                    8:  reg_iy <= dp_din;
-                    9:  reg_ds1 <= dp_din;
-                    19: begin
-                        flags.CY  <= dp_din[0];
-                        flags.P   <= dp_din[2];
-                        flags.AC  <= dp_din[4];
-                        flags.Z   <= dp_din[6];
-                        flags.S   <= dp_din[7];
-                        flags.BRK <= dp_din[8];
-                        flags.IE  <= dp_din[9];
-                        flags.DIR <= dp_din[10];
-                        flags.V   <= dp_din[11];
-                        flags.MD  <= dp_din[15];
-                    end
-                    11: begin
-                        reg_ps <= dp_din;
-                        new_pc <= 1;
-                    end
-                    12: reg_ss <= dp_din;
-                    13: reg_ds0 <= dp_din;
-                    14: begin
-                        reg_pc <= dp_din;
-                        new_pc <= 1;
-                    end
-                    15: begin
-                        if (decoded.mod == 2'b11) begin
-                            set_reg16(reg16_index_e'(decoded.rm), dp_din);
-                        end else begin
-                            write_memory(calculated_ea, override_segment(calculated_seg), WORD, dp_din);
+                        0:  reg_aw <= dp_din;
+                        1:  reg_cw <= dp_din;
+                        2:  reg_dw <= dp_din;
+                        3:  reg_bw <= dp_din;
+                        4:  reg_sp <= dp_din;
+                        5:  begin end
+                        6:  reg_bp <= dp_din;
+                        7:  reg_ix <= dp_din;
+                        8:  reg_iy <= dp_din;
+                        9:  reg_ds1 <= dp_din;
+                        10: begin
+                            flags.CY  <= dp_din[0];
+                            flags.P   <= dp_din[2];
+                            flags.AC  <= dp_din[4];
+                            flags.Z   <= dp_din[6];
+                            flags.S   <= dp_din[7];
+                            flags.BRK <= dp_din[8];
+                            flags.IE  <= dp_din[9];
+                            flags.DIR <= dp_din[10];
+                            flags.V   <= dp_din[11];
+                            flags.MD  <= dp_din[15];
                         end
-                    end
+                        11: begin
+                            reg_ps <= dp_din;
+                            new_pc <= 1;
+                        end
+                        12: reg_ss <= dp_din;
+                        13: reg_ds0 <= dp_din;
+                        14: begin
+                            reg_pc <= dp_din;
+                            new_pc <= 1;
+                        end
+                        15: begin
+                            if (decoded.mod == 2'b11) begin
+                                set_reg16(reg16_index_e'(decoded.rm), dp_din);
+                            end else begin
+                                write_memory(calculated_ea, override_segment(calculated_seg), WORD, dp_din);
+                            end
+                        end
                     endcase
 
                     list[pop_idx] = 0;

@@ -366,7 +366,7 @@ end
 	d.sreg = DS0;
 	d.width = DWORD;
 	d.use_modrm = 1;
-	d.dest = OPERAND_REG_0;
+	d.dest = OPERAND_NONE;
 	d.source0 = OPERAND_MODRM;
 	d.source1 = OPERAND_NONE;
 	d.mod = q[15:14];
@@ -380,7 +380,7 @@ end
 	d.sreg = DS1;
 	d.width = DWORD;
 	d.use_modrm = 1;
-	d.dest = OPERAND_REG_0;
+	d.dest = OPERAND_NONE;
 	d.source0 = OPERAND_MODRM;
 	d.source1 = OPERAND_NONE;
 	d.mod = q[15:14];
