@@ -163,6 +163,18 @@ function bit [15:0] calc_ea(bit [2:0] mem, bit [1:0] mod, bit [15:0] disp);
     return addr;
 endfunction
 
+function sreg_index_e calc_seg(bit [2:0] mem, bit [1:0] mod);
+    sreg_index_e seg;
+    case(mem)
+    3'b010: seg = SS;
+    3'b011: seg = SS;
+    3'b110: seg = mod == 0 ? DS0 : SS;
+    default: seg = DS0;
+    endcase
+
+    return seg;
+endfunction
+
 function bit [7:0] get_reg8(reg8_index_e r);
     case(r)
     AL: return reg_aw[7:0];
@@ -423,6 +435,7 @@ assign bcu_intreq = state == INTACK_WAIT;
 int disp_size, imm_size;
 reg io_read, mem_read;
 reg [15:0] calculated_ea;
+sreg_index_e calculated_seg;
 reg [31:0] fetched_imm;
 reg [15:0] op_result;
 
@@ -437,6 +450,7 @@ reg [15:0] prepare_sp_save;
 
 always_ff @(posedge clk) begin
     bit [15:0] addr;
+    sreg_index_e seg;
     bit [31:0] result32;
     bit [15:0] result16;
     bit [7:0] result8;
@@ -1080,7 +1094,7 @@ always_ff @(posedge clk) begin
                         if (decoded.mod == 2'b11) begin
                             set_reg16(reg16_index_e'(decoded.rm), dp_din);
                         end else begin
-                            write_memory(calculated_ea, override_segment(DS0), WORD, dp_din);
+                            write_memory(calculated_ea, override_segment(calculated_seg), WORD, dp_din);
                         end
                     end
                     endcase
@@ -1107,10 +1121,12 @@ always_ff @(posedge clk) begin
                     fetched_imm[23:16] <= ipq_byte(disp_size + 2);
                     fetched_imm[31:24] <= ipq_byte(disp_size + 3);
                     addr = calc_ea(decoded.rm, decoded.mod, { ipq_byte(1), ipq_byte(0) });
+                    seg = calc_seg(decoded.rm, decoded.mod);
                     calculated_ea <= addr;
+                    calculated_seg <= seg;
 
                     if (dp_ready & mem_read) begin
-                        read_memory(addr, override_segment(DS0), decoded.width);
+                        read_memory(addr, override_segment(seg), decoded.width);
                         reg_pc <= reg_pc + disp_size[15:0] + imm_size[15:0];
                         if (decoded.width == DWORD) begin
                             state <= FETCH_OPERANDS2;
@@ -1138,7 +1154,7 @@ always_ff @(posedge clk) begin
                 if (dp_ready) begin
                     dp_din_low <= dp_din;
 
-                    read_memory(calculated_ea + 16'd2, override_segment(DS0), WORD);
+                    read_memory(calculated_ea + 16'd2, override_segment(calculated_seg), WORD);
                     if (push_list != 16'd0)
                         state <= PUSH;
                     else if (pop_list != 16'd0)
