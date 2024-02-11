@@ -1029,7 +1029,7 @@ always_ff @(posedge clk) begin
                                 write_memory(reg_sp - 16'd2, SS, WORD, prepare_sp_save);
                             end else if (exec_stage == 3) begin
                                 reg_bp <= prepare_sp_save;
-                                reg_sp <= prepare_sp_save - fetched_imm[15:0];
+                                reg_sp <= reg_sp - fetched_imm[15:0];
                             end
                         end
 

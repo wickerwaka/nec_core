@@ -30,6 +30,9 @@ divu_int #(.WIDTH(32)) divu(
     .rem(div_rem)
 );
 
+reg done2;
+assign done = done2 & ~start;
+
 always_ff @(posedge clk) begin
     div_start <= 0;
     if (ce) begin
@@ -37,17 +40,17 @@ always_ff @(posedge clk) begin
             div_num <= num[31] & is_signed ? -num : num;
             div_denom <= denom[31] & is_signed ? -denom : denom;
             div_start <= 1;
-            done <= 0;
+            done2 <= 0;
         end
     end
 
     if (div_done) begin
-        done <= 1;
+        done2 <= 1;
         quot <= div_quot;
         rem <= div_rem;
         if (is_signed) begin
             if (num[31] ^ denom[31]) quot <= -div_quot;
-            if (num[31]) rem <= -rem;
+            if (num[31]) rem <= -div_rem;
         end
     end
 end
