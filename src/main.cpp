@@ -52,7 +52,7 @@ void write_mem(uint32_t addr, bool ube, uint16_t dout)
 v33_V33::state_e prev_state = v33_V33::IDLE;
 void print_trace(const v33_V33 *cpu)
 {
-    if( cpu->state == v33_V33::IDLE && prev_state != v33_V33::IDLE )
+    if( cpu->state == v33_V33::IDLE && prev_state != v33_V33::IDLE && cpu->decoded.__PVT__prefix == 0)
     {
         printf("psw=%04X aw=%04X cw=%04X dw=%04X bw=%04X sp=%04X bp=%04X ix=%04X iy=%04X ds1=%04X ps=%04X ss=%04X ds0=%04X %05X\n",
             cpu->reg_psw,
