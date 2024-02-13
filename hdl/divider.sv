@@ -4,7 +4,7 @@ module divider2(
     input reset,
     input start,
     output reg done,
-    output valid,
+    output reg overflow,
     output dbz,
     input wide,
     input is_signed,
@@ -21,7 +21,7 @@ wire div_done;
 
 divu_int #(.WIDTH(32)) divu(
     .clk, .rst(reset),
-    .valid, .dbz, .busy(),
+    .valid(), .dbz, .busy(),
     .start(div_start),
     .done(div_done),
     .a(div_num),
@@ -48,6 +48,12 @@ always_ff @(posedge clk) begin
         done2 <= 1;
         quot <= div_quot;
         rem <= div_rem;
+
+        if (wide)
+            overflow <= |div_quot[31:16];
+        else
+            overflow <= |div_quot[31:8];
+
         if (is_signed) begin
             if (num[31] ^ denom[31]) quot <= -div_quot;
             if (num[31]) rem <= -div_rem;

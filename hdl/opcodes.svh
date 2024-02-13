@@ -1,3 +1,21 @@
+24'b1101010100001010xxxxxxxx: begin /* CVTDB */
+	d.opcode = OP_CVTDB;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 2;
+	valid_op <= 1;
+end
+24'b1101010000001010xxxxxxxx: begin /* CVTBD */
+	d.opcode = OP_CVTBD;
+	d.use_modrm = 0;
+	d.dest = OPERAND_NONE;
+	d.source0 = OPERAND_NONE;
+	d.source1 = OPERAND_NONE;
+	d.pre_size = 2;
+	valid_op <= 1;
+end
 24'b11111111xx100xxxxxxxxxxx: begin /* BR ptr16 */
 	d.opcode = OP_BR_ABS;
 	d.width = WORD;

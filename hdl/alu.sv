@@ -27,60 +27,6 @@ reg executing = 0;
 
 assign busy = execute | executing;
 
-/*
-
-                           when ALU_OP_ROR4 =>
-                              result := x"00" & regs.reg_ax(3 downto 0) & source1Val(7 downto 4);
-                              regs.reg_ax(7 downto 0) <= regs.reg_ax(7 downto 4) & source1Val(3 downto 0);
-
-                           when ALU_OP_ROL4 =>
-                              result := x"00" & source1Val(3 downto 0) & regs.reg_ax(3 downto 0);
-                              regs.reg_ax(7 downto 0) <= regs.reg_ax(7 downto 4) & source1Val(7 downto 4);
-                           
-                           
-                           
-                           when ALU_OP_MUL =>
-                              regs.FlagCar <= '0'; regs.FlagOvf <= '0';
-                              if (opsize = 1) then
-                                 result32 := resize(source1Val(7 downto 0) * memFetchValue2, 32);
-                                 regs.reg_ax <= result32(15 downto 0);
-                                 if (result32(31 downto 8) /= x"000000") then
-                                    regs.FlagCar <= '1'; regs.FlagOvf <= '1';
-                                 end if;
-                              else
-                                 result32 := source1Val * memFetchValue2;
-                                 regs.reg_ax <= result32(15 downto 0);
-                                 regs.reg_dx <= result32(31 downto 16);
-                                 if (result32(31 downto 16) /= x"0000") then
-                                    regs.FlagCar <= '1'; regs.FlagOvf <= '1';
-                                 end if;
-                              end if;
-                           
-                           when ALU_OP_MULI => 
-                              regs.FlagCar <= '0'; regs.FlagOvf <= '0';
-                              if (opsize = 1) then
-                                 result32 := unsigned(to_signed(to_integer(signed(source1Val(7 downto 0))) * to_integer(signed(memFetchValue2(7 downto 0))), 32));
-                                 if (opcode = OP_NOP) then regs.reg_ax <= result32(15 downto 0); end if;
-                                 if (result32(31 downto 8) /= x"000000") then
-                                    regs.FlagCar <= '1'; regs.FlagOvf <= '1';
-                                 end if;
-                              else
-                                 if (source1 = OPSOURCE_FETCHVALUE8) then
-                                    result32 := unsigned(to_signed(to_integer(signed(source1Val(7 downto 0))) * to_integer(signed(memFetchValue2)), 32));
-                                 else
-                                    result32 := unsigned(to_signed(to_integer(signed(source1Val)) * to_integer(signed(memFetchValue2)), 32));
-                                 end if;
-                                 if (opcode = OP_NOP) then
-                                    regs.reg_ax <= result32(15 downto 0);
-                                    regs.reg_dx <= result32(31 downto 16);
-                                 end if;
-                                 if (result32(31 downto 16) /= x"0000") then
-                                    regs.FlagCar <= '1'; regs.FlagOvf <= '1';
-                                 end if;
-                              end if;
-                              result := result32(15 downto 0);                              
-*/
-
 always_ff @(posedge clk) begin
     bit done;
     bit calc_parity;

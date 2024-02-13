@@ -270,6 +270,14 @@ b00111111:
   src: REG_0
   reg0: AW
 
+b11010101_00001010:
+  desc: CVTDB
+  op: CVTDB
+
+b11010100_00001010:
+  desc: CVTBD
+  op: CVTBD
+
 b10011000:
   desc: CVTBW
   op: CVTBW

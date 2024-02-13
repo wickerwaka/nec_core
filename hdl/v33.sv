@@ -344,6 +344,7 @@ function alu_operation_e shift1_alu_op(bit [2:0] shift);
     endcase
 endfunction
 
+reg [7:0] interrupt_vector;
 wire bcu_intreq;
 wire bcu_intack;
 wire [7:0] bcu_intvec;
@@ -406,7 +407,7 @@ alu ALU(
 );
 
 reg div_start, div_wide, div_signed;
-wire div_done, div_valid, div_dbz;
+wire div_done, div_overflow, div_dbz;
 reg [31:0] div_num, div_denom;
 wire [31:0] div_quot, div_rem;
 
@@ -415,7 +416,7 @@ divider2 divider(
     .reset,
     .start(div_start),
     .done(div_done),
-    .valid(div_valid),
+    .overflow(div_overflow),
     .dbz(div_dbz),
     .wide(div_wide),
     .is_signed(div_signed),
@@ -435,14 +436,19 @@ typedef enum {
     POP_WAIT,
     EXECUTE,
     STORE_RESULT,
-    INTACK_WAIT
+    INT_ACK_WAIT,
+    INT_INITIATE,
+    INT_FETCH_VEC,
+    INT_FETCH_WAIT1,
+    INT_FETCH_WAIT2,
+    INT_PUSH
 } state_e /* verilator public */;
 
 
 state_e state /* verilator public */;
 
 
-assign bcu_intreq = state == INTACK_WAIT;
+assign bcu_intreq = state == INT_ACK_WAIT;
 
 int disp_size, imm_size;
 reg io_read, mem_read;
@@ -514,7 +520,7 @@ always_ff @(posedge clk) begin
                 end
 
                 if (intreq & ~prefix_active & flags.IE) begin
-                    state <= INTACK_WAIT;
+                    state <= INT_ACK_WAIT;
                 end else if (next_valid_op & ~new_pc) begin
                     disp_size <= 0;
                     mem_read <= 0;
@@ -541,16 +547,41 @@ always_ff @(posedge clk) begin
                 end
             end // IDLE
 
-            INTACK_WAIT: if (ce_1) begin
+            INT_ACK_WAIT: if (ce_1) begin
                 if (bcu_intack) begin
-                    decoded.opcode <= OP_INT;
-                    decoded.pop <= 16'd0;
-                    push_list <= STACK_PC | STACK_PS | STACK_PSW;
-                    decoded.dest <= OPERAND_NONE;
-                    decoded.source0 <= OPERAND_IMM8;
-                    fetched_imm[7:0] <= bcu_intvec;
-                    state <= PUSH;
+                    interrupt_vector <= bcu_intvec;
+                    state <= INT_INITIATE;
                 end
+            end
+
+            INT_INITIATE: begin
+                push_list <= STACK_PC | STACK_PS | STACK_PSW;
+                state <= INT_PUSH;
+            end
+
+            INT_FETCH_VEC: if (dp_ready) begin
+                flags.IE <= 0;
+                flags.BRK <= 0;
+                dp_addr <= { 6'd0, interrupt_vector[7:0], 2'b00 };
+                dp_write <= 0;
+                dp_io <= 0;
+                dp_zero_seg <= 1;
+                dp_wide <= 1;
+                dp_req <= ~dp_req;
+                state <= INT_FETCH_WAIT1;
+            end
+
+            INT_FETCH_WAIT1: if (dp_ready) begin
+                reg_pc <= dp_din;
+                dp_addr <= { 6'd0, interrupt_vector[7:0], 2'b10 };
+                dp_req <= ~dp_req;
+                state <= INT_FETCH_WAIT2;
+            end
+
+            INT_FETCH_WAIT2: if (dp_ready) begin
+                reg_ps <= dp_din;
+                new_pc <= 1;
+                state <= IDLE;
             end
 
             EXECUTE: begin
@@ -576,6 +607,36 @@ always_ff @(posedge clk) begin
 
                         OP_CVTWL: reg_dw <= reg_aw[15] ? 16'hffff : 16'h0000;
                         OP_CVTBW: reg_aw[15:8] <= reg_aw[7] ? 8'hff : 8'h00;
+
+                        OP_CVTBD: begin
+                            if (exec_stage == 0) begin
+                                div_signed <= 0;
+                                div_start <= 1;
+                                div_num <= { 24'd0, reg_aw[7:0] };
+                                div_denom <= 32'd10;
+                                working = 1;
+                            end else begin
+                                if (div_done) begin
+                                    reg_aw[15:8] <= div_quot[7:0];
+                                    reg_aw[7:0] <= div_rem[7:0];
+                                    flags.Z <= ~(|{div_quot[7:0], div_rem[7:0]});
+                                    flags.S <= div_rem[7];
+                                    flags.P <= ~(^div_rem[7:0]);
+                                end else begin
+                                    working = 1;
+                                    exec_stage <= exec_stage;
+                                end
+                            end
+                        end
+
+                        // TODO verify
+                        OP_CVTDB: begin
+                            result8 = reg_aw[7:0] + (reg_aw[15:8] * 8'd10);
+                            flags.Z <= ~|result8;
+                            flags.S <= result8[7];
+                            flags.P <= ~(^result8);
+                            reg_aw <= { 8'd0, result8 };
+                        end
 
                         OP_MOV: begin
                             op_result <= get_operand(decoded.source0);
@@ -944,58 +1005,56 @@ always_ff @(posedge clk) begin
                             end
                         end
 
+                        OP_DIV,
                         OP_DIVU: begin
                             bit [15:0] operand;
                             operand = get_operand(OPERAND_MODRM);
 
                             if (exec_stage == 0) begin
-                                div_signed <= 0;
                                 div_start <= 1;
-                                if (decoded.width == BYTE) begin
-                                    div_num <= { 16'd0, reg_aw };
-                                    div_denom <= { 24'd0, operand[7:0] };
-                                end else begin
-                                    div_num <= { reg_dw, reg_aw };
-                                    div_denom <= { 16'd0, operand[15:0] };
-                                end
-                                working = 1;
-                            end else begin
-                                if (div_done) begin
+                                if (decoded.opcode == OP_DIVU) begin
+                                    div_signed <= 0;
                                     if (decoded.width == BYTE) begin
-                                        reg_aw <= { div_rem[7:0], div_quot[7:0] };
+                                        div_wide <= 0;
+                                        div_num <= { 16'd0, reg_aw };
+                                        div_denom <= { 24'd0, operand[7:0] };
                                     end else begin
-                                        reg_aw <= div_quot[15:0];
-                                        reg_dw <= div_rem[15:0];
+                                        div_wide <= 1;
+                                        div_num <= { reg_dw, reg_aw };
+                                        div_denom <= { 16'd0, operand[15:0] };
                                     end
                                 end else begin
-                                    working = 1;
-                                    exec_stage <= exec_stage;
-                                end
-                            end
-                        end
-
-                        OP_DIV: begin
-                            bit [15:0] operand;
-                            operand = get_operand(OPERAND_MODRM);
-
-                            if (exec_stage == 0) begin
-                                div_signed <= 1;
-                                div_start <= 1;
-                                if (decoded.width == BYTE) begin
-                                    div_num <= { {16{reg_aw[15]}}, reg_aw };
-                                    div_denom <= { {24{operand[7]}}, operand[7:0] };
-                                end else begin
-                                    div_num <= { reg_dw, reg_aw };
-                                    div_denom <= { {16{operand[15]}}, operand[15:0] };
+                                    div_signed <= 1;
+                                    if (decoded.width == BYTE) begin
+                                        div_wide <= 0;
+                                        div_num <= { {16{reg_aw[15]}}, reg_aw };
+                                        div_denom <= { {24{operand[7]}}, operand[7:0] };
+                                    end else begin
+                                        div_wide <= 1;
+                                        div_num <= { reg_dw, reg_aw };
+                                        div_denom <= { {16{operand[15]}}, operand[15:0] };
+                                    end
                                 end
                                 working = 1;
                             end else begin
                                 if (div_done) begin
                                     if (decoded.width == BYTE) begin
-                                        reg_aw <= { div_rem[7:0], div_quot[7:0] };
+                                        if (div_dbz | div_overflow) begin
+                                            interrupt_vector <= 8'd0;
+                                            state <= INT_INITIATE;
+                                            working = 1; // need this so state doesn't get overridden
+                                        end else begin
+                                            reg_aw <= { div_rem[7:0], div_quot[7:0] };
+                                        end
                                     end else begin
-                                        reg_aw <= div_quot[15:0];
-                                        reg_dw <= div_rem[15:0];
+                                        if (div_dbz | div_overflow) begin
+                                            interrupt_vector <= 8'd0;
+                                            state <= INT_INITIATE;
+                                            working = 1;
+                                        end else begin
+                                            reg_aw <= div_quot[15:0];
+                                            reg_dw <= div_rem[15:0];
+                                        end
                                     end
                                 end else begin
                                     working = 1;
@@ -1040,29 +1099,6 @@ always_ff @(posedge clk) begin
                                 read_memory(reg_bp, SS, WORD);
                             end else begin
                                 reg_bp <= dp_din;
-                            end
-                        end
-
-                        OP_INT: begin
-                            working = exec_stage != 2;
-                            if (exec_stage == 0) begin
-                                dp_addr <= { 6'd0, fetched_imm[7:0], 2'b00 };
-                                dp_write <= 0;
-                                dp_io <= 0;
-                                dp_zero_seg <= 1;
-                                dp_wide <= 1;
-                                dp_req <= ~dp_req;
-
-                                flags.IE <= 0;
-                                flags.BRK <= 0;
-                            end else if (exec_stage == 1) begin
-                                reg_pc <= dp_din;
-
-                                dp_addr <= { 6'd0, fetched_imm[7:0], 2'b10 };
-                                dp_req <= ~dp_req;
-                            end else begin
-                                reg_ps <= dp_din;
-                                new_pc <= 1;
                             end
                         end
                     endcase
@@ -1193,6 +1229,7 @@ always_ff @(posedge clk) begin
                 end
             end // FETCH_OPERANDS2
 
+            INT_PUSH,
             PUSH: if (ce_2) begin
                 bit [15:0] push_data;
                 bit [15:0] list;
@@ -1230,7 +1267,9 @@ always_ff @(posedge clk) begin
                     push_list <= list;
 
                     if (list == 16'd0) begin
-                        if (decoded.opcode == OP_NOP) begin
+                        if (state == INT_PUSH) begin
+                            state <= INT_FETCH_VEC;
+                        end else if (decoded.opcode == OP_NOP) begin
                             state <= IDLE;
                         end else begin
                             state <= EXECUTE;
