@@ -625,10 +625,6 @@ b000_00_111:
   desc: POP DS1
   pop: DS1
 
-b000_01_111:
-  desc: PPOP PS
-  pop: PS
-
 b000_10_111:
   desc: POP SS
   pop: SS
@@ -792,3 +788,129 @@ b11111101:
   op: SET1_DIR
   desc: SET1 DIR
 
+
+#
+# CHKIND
+#
+b01100010__MD_GP0_MEM:
+  desc: CHKIND reg16, mem32
+  op: CHKIND
+  src: MODRM
+  width: DWORD
+
+#
+# TRANS
+#
+
+b11010111:
+  desc: TRANS
+  op: TRANS
+
+
+b11001100:
+  desc: BRK 3
+  op: BRK3
+
+b11001101:
+  desc: BRK imm
+  op: BRK
+  src: IMM
+  width: BYTE
+
+b11001110:
+  desc: BRKV
+  op: BRKV
+
+
+
+
+#
+# V33 Group3
+#
+b00001111_0001000W_MD_000_MEM:
+  desc: TEST1 reg, CL
+  op: ALU
+  alu: TEST1
+  src0: MODRM
+  src1: CL
+
+b00001111_0001100W_MD_000_MEM:
+  desc: TEST1 reg, imm
+  op: ALU
+  alu: TEST1
+  src0: MODRM
+  src1: IMM8
+
+b00001111_0001001W_MD_000_MEM:
+  desc: CLR1 reg, CL
+  op: ALU
+  alu: CLR1
+  dst: MODRM
+  src0: MODRM
+  src1: CL
+
+b00001111_0001101W_MD_000_MEM:
+  desc: CLR1 reg, imm
+  op: ALU
+  alu: CLR1
+  dst: MODRM
+  src0: MODRM
+  src1: IMM8
+
+b00001111_0001010W_MD_000_MEM:
+  desc: SET1 reg, CL
+  op: ALU
+  alu: SET1
+  dst: MODRM
+  src0: MODRM
+  src1: CL
+
+b00001111_0001110W_MD_000_MEM:
+  desc: SET1 reg, imm
+  op: ALU
+  alu: SET1
+  dst: MODRM
+  src0: MODRM
+  src1: IMM8
+
+b00001111_0001011W_MD_000_MEM:
+  desc: NOT1 reg, CL
+  op: ALU
+  alu: NOT1
+  dst: MODRM
+  src0: MODRM
+  src1: CL
+
+b00001111_0001111W_MD_000_MEM:
+  desc: NOT1 reg, imm
+  op: ALU
+  alu: NOT1
+  dst: MODRM
+  src0: MODRM
+  src1: IMM8
+
+b00001111_00100000:
+  desc: ADD4S
+  op: ADD4S
+
+b00001111_00100010:
+  desc: SUB4S
+  op: SUB4S
+
+b00001111_00100110:
+  desc: CMP4S
+  op: CMP4S
+
+b00001111_00101010_MD_000_MEM:
+  desc: ROR4 reg8/mem8
+  op: ROR4
+  dst: MODRM
+  src: MODRM
+  width: BYTE
+
+b00001111_00101000_MD_000_MEM:
+  desc: ROL4 reg8/mem8
+  op: ROL4
+  dst: MODRM
+  src: MODRM
+  width: BYTE

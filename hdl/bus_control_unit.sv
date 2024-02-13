@@ -26,7 +26,7 @@ module bus_control_unit(
     input               bs16,
 
     output  reg         hldak,
-    output              n_buslock,
+    output  reg         n_buslock,
     output  reg         n_ube,
     output              r_w,
     output              m_io,
@@ -66,6 +66,7 @@ module bus_control_unit(
     input               dp_zero_seg,
     output              dp_ready,
 
+    input               buslock_prefix,
     output  reg         implementation_fault,
 
     // Interrupt handling
@@ -153,12 +154,15 @@ always_ff @(posedge clk) begin
             case(t_state)
             T_IDLE: begin
                 n_dstb <= 1; // clear data strobe
+                n_buslock <= ~buslock_prefix;
                 intack_idles <= intack_idles + 1;
                 if (cycle_type == INT_ACK1) begin
                     if (intack_idles == 6) begin
                         t_state <= T_1;
                         cycle_type <= INT_ACK2;
                         intack_idles <= 0;
+                    end else begin
+                        n_buslock <= 0;
                     end
                 end else if (cycle_type == INT_ACK2) begin
                     if (intack_idles == 5) begin
@@ -166,6 +170,7 @@ always_ff @(posedge clk) begin
                         intack <= 1;
                     end
                 end else if (intreq & ~intack) begin
+                    n_buslock <= 0;
                     cycle_type <= INT_ACK1;
                     t_state <= T_1;
                     intack_idles <= 0;

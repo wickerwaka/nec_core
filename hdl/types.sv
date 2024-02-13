@@ -22,6 +22,8 @@ package types;
     const bit [15:0] STACK_OPERAND    = 16'h8000;
     
     typedef enum {
+        OP_INVALID,
+        
         OP_NOP,
         OP_ALU,
         OP_MOV,
@@ -69,7 +71,19 @@ package types;
         OP_DIVU,
 
         OP_PREPARE,
-        OP_DISPOSE
+        OP_DISPOSE,
+        OP_CHKIND,
+        OP_TRANS,
+        OP_BRK3,
+        OP_BRK,
+        OP_BRKV,
+
+        OP_ADD4S,
+        OP_SUB4S,
+        OP_CMP4S,
+
+        OP_ROR4,
+        OP_ROL4
     } opcode_e;
 
     typedef enum bit [5:0] {
@@ -129,6 +143,7 @@ package types;
         OPERAND_REG_1,
         OPERAND_SREG,
         OPERAND_PRODUCT, // DW:AW registers
+        OPERAND_CL,
         OPERAND_NONE
     } operand_e;
 

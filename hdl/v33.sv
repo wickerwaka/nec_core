@@ -112,6 +112,7 @@ reg segment_override_active;
 sreg_index_e segment_override;
 
 reg repeat_active;
+reg buslock_active;
 
 enum { REPEAT_C, REPEAT_NC, REPEAT_Z, REPEAT_NZ } repeat_cond;
 
@@ -289,6 +290,7 @@ function bit [15:0] get_operand(operand_e operand);
         end
         OPERAND_REG_0: return { 8'd0, get_reg8(reg8_index_e'(decoded.reg0)) };
         OPERAND_REG_1: return { 8'd0, get_reg8(reg8_index_e'(decoded.reg1)) };
+        OPERAND_CL: return { 8'd0, reg_cw[7:0] };
         endcase
     end else if (decoded.width == WORD) begin
         case(operand)
@@ -312,6 +314,7 @@ function bit [15:0] get_operand(operand_e operand);
         end
         OPERAND_REG_0: return get_reg16(reg16_index_e'(decoded.reg0));
         OPERAND_REG_1: return get_reg16(reg16_index_e'(decoded.reg1));
+        OPERAND_CL: return { 8'd0, reg_cw[7:0] };
         endcase
     end
     return 16'hfefe;
@@ -365,6 +368,8 @@ bus_control_unit BCU(
     .dp_addr, .dp_dout, .dp_din, .dp_sreg,
     .dp_write, .dp_wide, .dp_io, .dp_req,
     .dp_ready, .dp_zero_seg,
+
+    .buslock_prefix(buslock_active),
 
     .intreq(bcu_intreq), .intack(bcu_intack), .intvec(bcu_intvec),
 
@@ -466,12 +471,19 @@ reg [15:0] push_sp_save;
 reg [4:0] prepare_nesting_level;
 reg [15:0] prepare_sp_save;
 
+reg [6:0] bcd_offset;
+reg [4:0] bcd_acc_high, bcd_acc_low;
+reg [7:0] bcd_acc, bcd_src;
+reg [4:0] bcd_result_high, bcd_result_low;
+
 always_ff @(posedge clk) begin
     bit [15:0] addr;
     sreg_index_e seg;
     bit [31:0] result32;
     bit [15:0] result16;
     bit [7:0] result8;
+    bit [15:0] temp;
+    bit [15:0] src;
 
     if (reset) begin
         dp_req <= 0;
@@ -501,6 +513,7 @@ always_ff @(posedge clk) begin
         segment_override_active <= 0;
         repeat_active <= 0;
         repeat_cond <= REPEAT_Z;
+        buslock_active <= 0;
         halt <= 0;
     end else if (ce_1 | ce_2) begin
         alu_execute <= 0;
@@ -517,6 +530,7 @@ always_ff @(posedge clk) begin
                     prefix_active <= 0;
                     segment_override_active <= 0;
                     repeat_active <= 0;
+                    buslock_active <= 0;
                 end
 
                 if (intreq & ~prefix_active & flags.IE) begin
@@ -586,8 +600,10 @@ always_ff @(posedge clk) begin
 
             EXECUTE: begin
                 bit working;
+                bit exception;
 
                 working = 0;
+                exception = 0;
                 
                 if (dp_ready) begin
                     exec_stage <= exec_stage + 4'd1;
@@ -820,9 +836,9 @@ always_ff @(posedge clk) begin
                             endcase
                         end
 
-                        // TODO
                         OP_BUSLOCK_PREFIX: begin
                             prefix_active <= 1;
+                            buslock_active <= 1;
                         end
 
                         OP_STM: begin
@@ -1041,16 +1057,14 @@ always_ff @(posedge clk) begin
                                     if (decoded.width == BYTE) begin
                                         if (div_dbz | div_overflow) begin
                                             interrupt_vector <= 8'd0;
-                                            state <= INT_INITIATE;
-                                            working = 1; // need this so state doesn't get overridden
+                                            exception = 1;
                                         end else begin
                                             reg_aw <= { div_rem[7:0], div_quot[7:0] };
                                         end
                                     end else begin
                                         if (div_dbz | div_overflow) begin
                                             interrupt_vector <= 8'd0;
-                                            state <= INT_INITIATE;
-                                            working = 1;
+                                            exception = 1;
                                         end else begin
                                             reg_aw <= div_quot[15:0];
                                             reg_dw <= div_rem[15:0];
@@ -1093,7 +1107,7 @@ always_ff @(posedge clk) begin
                         end
 
                         OP_DISPOSE: begin
-                            working = exec_stage != 1;
+                            working = exec_stage == 0;
                             if (exec_stage == 0) begin
                                 reg_sp <= reg_bp + 2;
                                 read_memory(reg_bp, SS, WORD);
@@ -1101,10 +1115,115 @@ always_ff @(posedge clk) begin
                                 reg_bp <= dp_din;
                             end
                         end
+
+                        OP_CHKIND: begin
+                            temp = get_reg16(reg16_index_e'(decoded.reg0));
+                            if (dp_din_low > temp || dp_din < temp) begin
+                                interrupt_vector <= 8'd5;
+                                exception = 1;
+                            end
+                        end
+
+                        OP_TRANS: begin
+                            working = exec_stage == 0;
+                            if (exec_stage == 0) begin
+                                read_memory(reg_bw + { 8'd0, reg_aw[7:0]}, override_segment(DS0), BYTE);
+                            end else begin
+                                reg_aw[7:0] <= dp_din[7:0];
+                            end
+                        end
+
+                        OP_BRK3: begin
+                            interrupt_vector <= 8'd3;
+                            exception = 1;
+                        end
+
+                        OP_BRK: begin
+                            interrupt_vector <= fetched_imm[7:0];
+                            exception = 1;
+                        end
+
+                        OP_BRKV: begin
+                            if (flags.V) begin
+                                interrupt_vector <= 8'd4;
+                                exception = 1;
+                            end
+                        end
+
+                        OP_ADD4S, OP_SUB4S, OP_CMP4S: begin
+                            working = 1;
+                            if (exec_stage == 0) begin
+                                bcd_offset <= 7'd0;
+                                flags.Z <= 1;
+                                flags.CY <= 0;
+                            end else if (exec_stage == 1) begin
+                                if (bcd_offset == reg_cw[7:1]) begin
+                                    working = 0;
+                                end else begin
+                                    read_memory(reg_ix + {9'd0, bcd_offset}, override_segment(DS0), BYTE);
+                                end
+                            end else if (exec_stage == 2) begin
+                                bcd_src <= dp_din[7:0] + { 7'd0, flags.CY };
+                                flags.CY <= 0;
+                                read_memory(reg_iy + {9'd0, bcd_offset}, DS1, BYTE);
+                            end else if (exec_stage == 3) begin
+                                if (decoded.opcode == OP_ADD4S) begin
+                                    bcd_acc_low  <= { 1'b0, dp_din[3:0] } + { 1'b0, bcd_src[3:0] };
+                                    bcd_acc_high <= { 1'b0, dp_din[7:4] } + { 1'b0, bcd_src[7:4] };
+                                end else begin
+                                    bcd_acc_low  <= { 1'b0, dp_din[3:0] } - { 1'b0, bcd_src[3:0] };
+                                    bcd_acc_high <= { 1'b0, dp_din[7:4] } - { 1'b0, bcd_src[7:4] };
+                                end
+                            end else if (exec_stage == 4) begin
+                                bcd_result_low = bcd_acc_low;
+                                bcd_result_high = bcd_acc_high;
+                                if (bcd_result_low > 5'd9) begin
+                                    if (decoded.opcode == OP_ADD4S) begin
+                                        bcd_result_low = bcd_acc_low + 5'd6;
+                                        bcd_result_high = bcd_acc_high + 5'd1;
+                                    end else begin
+                                        bcd_result_low = bcd_acc_low + 5'd6;
+                                        bcd_result_high = bcd_acc_high + 5'd1;
+                                    end
+                                end
+
+                                if (bcd_result_high > 5'd9) begin
+                                    if (decoded.opcode == OP_ADD4S) begin
+                                        bcd_result_high = bcd_result_high + 5'd6;
+                                    end else begin
+                                        bcd_result_high = bcd_result_high - 5'd6;
+                                    end
+                                    flags.CY <= 1;
+                                end
+                                bcd_acc <= { bcd_result_high[3:0], bcd_result_low[3:0] };
+                            end else if (exec_stage == 5) begin
+                                if (|bcd_acc) flags.Z <= 0;
+                                if (decoded.opcode != OP_CMP4S) begin
+                                    write_memory(reg_iy + { 9'd0, bcd_offset}, DS1, BYTE, { 8'd0, bcd_acc });
+                                end
+                                bcd_offset <= bcd_offset + 7'd1;
+                                exec_stage <= 1; // loop                                
+                            end
+                        end
+
+                        OP_ROL4: begin
+                            temp = get_operand(decoded.source0);
+                            reg_aw[3:0] <= temp[7:4];
+                            op_result <= { 8'd0, temp[3:0], reg_aw[3:0] };
+                        end
+
+                        OP_ROR4: begin
+                            temp = get_operand(decoded.source0);
+                            reg_aw[3:0] <= temp[3:0];
+                            op_result <= { 8'd0, reg_aw[3:0], temp[7:4] };
+                        end
+
                     endcase
 
                     if (~working) begin
-                        if (decoded.dest == OPERAND_NONE && decoded.opcode != OP_ALU) begin // check ALU for CMP and TEST
+                        if (exception) begin
+                            state <= INT_INITIATE;
+                        end else if (decoded.dest == OPERAND_NONE && decoded.opcode != OP_ALU) begin // check ALU for CMP and TEST
                             state <= IDLE;
                         end else begin
                             state <= STORE_RESULT;

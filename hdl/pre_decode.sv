@@ -27,7 +27,7 @@ always_ff @(posedge clk) begin
     if (ce) begin
         valid_op <= 0;
 
-        d.opcode = OP_NOP;
+        d.opcode = OP_INVALID;
         d.push = 16'd0;
         d.pop = 16'd0;
         d.alu_operation = ALU_OP_NONE;
