@@ -45,7 +45,7 @@ package types;
         bit prefix;
 
         bit [3:0] pre_size;
-    } pre_decode_t;
+    } nec_decode_t;
 
     typedef struct {
         bit V;

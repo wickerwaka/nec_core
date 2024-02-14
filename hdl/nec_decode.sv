@@ -4,7 +4,7 @@
 
 import types::*;
 
-module pre_decode(
+module nec_decode(
     input clk,
     input ce,
 
@@ -15,7 +15,7 @@ module pre_decode(
 
     output reg valid_op,
 
-    output pre_decode_t decoded
+    output nec_decode_t decoded
 );
 
 wire [23:0] q = { q0, q1, q2 };
@@ -23,7 +23,7 @@ wire [23:0] q = { q0, q1, q2 };
 /* verilator lint_off CASEX */
 
 always_ff @(posedge clk) begin
-    pre_decode_t d;
+    nec_decode_t d;
     if (ce) begin
         valid_op <= 0;
 

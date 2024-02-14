@@ -15,7 +15,7 @@ verilate(bus_control_unit
 add_executable(v33 src/main.cpp)
 verilate(v33
     TRACE
-    SOURCES hdl/types.sv hdl/bus_control_unit.sv  hdl/divu_int.sv hdl/divider.sv hdl/v33.sv hdl/pre_decode.sv hdl/alu.sv
+    SOURCES hdl/types.sv hdl/bus_control_unit.sv hdl/nec_divider.sv hdl/v33.sv hdl/nec_decode.sv hdl/alu.sv
     INCLUDE_DIRS hdl
     TOP_MODULE V33
     PREFIX v33)

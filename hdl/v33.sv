@@ -103,8 +103,8 @@ function bit [7:0] ipq_byte(int ofs);
 endfunction
 
 wire next_valid_op;
-pre_decode_t next_decode;
-pre_decode_t decoded /*verilator public*/;
+nec_decode_t next_decode;
+nec_decode_t decoded /*verilator public*/;
 
 
 reg prefix_active;
@@ -380,7 +380,7 @@ bus_control_unit BCU(
     .implementation_fault()
 );
 
-pre_decode pre_decode(
+nec_decode nec_decode(
     .clk, .ce(ce_1 | ce_2),
     .q_len(ipq_len),
     .q0(ipq_byte(0)), .q1(ipq_byte(1)), .q2(ipq_byte(2)),
@@ -417,10 +417,10 @@ alu ALU(
 
 reg div_start, div_wide, div_signed;
 wire div_done, div_overflow, div_dbz;
-reg [31:0] div_num, div_denom;
-wire [31:0] div_quot, div_rem;
+reg [32:0] div_num, div_denom;
+wire [15:0] div_quot, div_rem;
 
-divider2 divider(
+nec_divider divider(
     .clk, .ce(ce_1 | ce_2),
     .reset,
     .start(div_start),
@@ -428,9 +428,8 @@ divider2 divider(
     .overflow(div_overflow),
     .dbz(div_dbz),
     .wide(div_wide),
-    .is_signed(div_signed),
-    .num(div_num),
-    .denom(div_denom),
+    .a(div_num),
+    .b(div_denom),
     .quot(div_quot),
     .rem(div_rem)
 );
@@ -612,8 +611,8 @@ always_ff @(posedge clk) begin
                             if (exec_stage == 0) begin
                                 div_signed <= 0;
                                 div_start <= 1;
-                                div_num <= { 24'd0, reg_aw[7:0] };
-                                div_denom <= 32'd10;
+                                div_num <= { 25'd0, reg_aw[7:0] };
+                                div_denom <= 33'd10;
                                 working = 1;
                             end else begin
                                 if (div_done) begin
@@ -1013,26 +1012,24 @@ always_ff @(posedge clk) begin
                             if (exec_stage == 0) begin
                                 div_start <= 1;
                                 if (decoded.opcode == OP_DIVU) begin
-                                    div_signed <= 0;
                                     if (decoded.width == BYTE) begin
                                         div_wide <= 0;
-                                        div_num <= { 16'd0, reg_aw };
-                                        div_denom <= { 24'd0, operand[7:0] };
+                                        div_num <= { 17'd0, reg_aw };
+                                        div_denom <= { 25'd0, operand[7:0] };
                                     end else begin
                                         div_wide <= 1;
-                                        div_num <= { reg_dw, reg_aw };
-                                        div_denom <= { 16'd0, operand[15:0] };
+                                        div_num <= { 1'd0, reg_dw, reg_aw };
+                                        div_denom <= { 17'd0, operand[15:0] };
                                     end
                                 end else begin
-                                    div_signed <= 1;
                                     if (decoded.width == BYTE) begin
                                         div_wide <= 0;
-                                        div_num <= { {16{reg_aw[15]}}, reg_aw };
-                                        div_denom <= { {24{operand[7]}}, operand[7:0] };
+                                        div_num <= { {17{reg_aw[15]}}, reg_aw };
+                                        div_denom <= { {25{operand[7]}}, operand[7:0] };
                                     end else begin
                                         div_wide <= 1;
-                                        div_num <= { reg_dw, reg_aw };
-                                        div_denom <= { {16{operand[15]}}, operand[15:0] };
+                                        div_num <= { reg_dw[15], reg_dw, reg_aw };
+                                        div_denom <= { {17{operand[15]}}, operand[15:0] };
                                     end
                                 end
                                 working = 1;
