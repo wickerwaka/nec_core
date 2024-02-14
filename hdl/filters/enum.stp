@@ -85,6 +85,8 @@
     <symbol name="CMP4S" value="110111" />
     <symbol name="ROR4" value="111000" />
     <symbol name="ROL4" value="111001" />
+    <symbol name="PUSH" value="111010" />
+    <symbol name="POP" value="111011" />
   </table>
   <table name="alu_operation_e" width="6">
     <symbol name="ADD" value="000000" />

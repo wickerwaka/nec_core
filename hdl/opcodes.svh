@@ -222,6 +222,7 @@ end
 	valid_op <= 1;
 end
 24'b11111111xx110xxxxxxxxxxx: begin /* PUSH reg16/mem16 */
+	d.opcode = OP_PUSH;
 	d.width = WORD;
 	d.push = STACK_OPERAND;
 	d.use_modrm = 1;
@@ -234,6 +235,8 @@ end
 	valid_op <= 1;
 end
 24'b10001111xx000xxxxxxxxxxx: begin /* POP reg16/mem16 */
+	d.opcode = OP_POP;
+	d.width = WORD;
 	d.pop = STACK_OPERAND;
 	d.use_modrm = 1;
 	d.dest = OPERAND_MODRM;
@@ -683,6 +686,7 @@ end
 	valid_op <= 1;
 end
 24'b01010000xxxxxxxxxxxxxxxx: begin /* PUSH AW */
+	d.opcode = OP_PUSH;
 	d.push = STACK_AW;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -692,6 +696,7 @@ end
 	valid_op <= 1;
 end
 24'b01010001xxxxxxxxxxxxxxxx: begin /* PUSH CW */
+	d.opcode = OP_PUSH;
 	d.push = STACK_CW;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -701,6 +706,7 @@ end
 	valid_op <= 1;
 end
 24'b01010010xxxxxxxxxxxxxxxx: begin /* PUSH DW */
+	d.opcode = OP_PUSH;
 	d.push = STACK_DW;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -710,6 +716,7 @@ end
 	valid_op <= 1;
 end
 24'b01010011xxxxxxxxxxxxxxxx: begin /* PUSH BW */
+	d.opcode = OP_PUSH;
 	d.push = STACK_BW;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -719,6 +726,7 @@ end
 	valid_op <= 1;
 end
 24'b01010100xxxxxxxxxxxxxxxx: begin /* PUSH SP */
+	d.opcode = OP_PUSH;
 	d.push = STACK_SP;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -728,6 +736,7 @@ end
 	valid_op <= 1;
 end
 24'b01010101xxxxxxxxxxxxxxxx: begin /* PUSH BP */
+	d.opcode = OP_PUSH;
 	d.push = STACK_BP;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -737,6 +746,7 @@ end
 	valid_op <= 1;
 end
 24'b01010110xxxxxxxxxxxxxxxx: begin /* PUSH IX */
+	d.opcode = OP_PUSH;
 	d.push = STACK_IX;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -746,6 +756,7 @@ end
 	valid_op <= 1;
 end
 24'b01010111xxxxxxxxxxxxxxxx: begin /* PUSH IY */
+	d.opcode = OP_PUSH;
 	d.push = STACK_IY;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -755,6 +766,7 @@ end
 	valid_op <= 1;
 end
 24'b00000110xxxxxxxxxxxxxxxx: begin /* PUSH DS1 */
+	d.opcode = OP_PUSH;
 	d.push = STACK_DS1;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -764,6 +776,7 @@ end
 	valid_op <= 1;
 end
 24'b00001110xxxxxxxxxxxxxxxx: begin /* PUSH PS */
+	d.opcode = OP_PUSH;
 	d.push = STACK_PS;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -773,6 +786,7 @@ end
 	valid_op <= 1;
 end
 24'b00010110xxxxxxxxxxxxxxxx: begin /* PUSH SS */
+	d.opcode = OP_PUSH;
 	d.push = STACK_SS;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -782,6 +796,7 @@ end
 	valid_op <= 1;
 end
 24'b00011110xxxxxxxxxxxxxxxx: begin /* PUSH DS0 */
+	d.opcode = OP_PUSH;
 	d.push = STACK_DS0;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -791,6 +806,7 @@ end
 	valid_op <= 1;
 end
 24'b10011100xxxxxxxxxxxxxxxx: begin /* PUSH PSW */
+	d.opcode = OP_PUSH;
 	d.push = STACK_PSW;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -800,6 +816,7 @@ end
 	valid_op <= 1;
 end
 24'b01100000xxxxxxxxxxxxxxxx: begin /* PUSH R */
+	d.opcode = OP_PUSH;
 	d.push = STACK_AW | STACK_CW | STACK_DW | STACK_BW | STACK_SP | STACK_BP | STACK_IX | STACK_IY;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -809,6 +826,7 @@ end
 	valid_op <= 1;
 end
 24'b01101010xxxxxxxxxxxxxxxx: begin /* PUSH imm8 */
+	d.opcode = OP_PUSH;
 	d.width = BYTE;
 	d.push = STACK_OPERAND;
 	d.use_modrm = 0;
@@ -819,6 +837,7 @@ end
 	valid_op <= 1;
 end
 24'b01101000xxxxxxxxxxxxxxxx: begin /* PUSH imm16 */
+	d.opcode = OP_PUSH;
 	d.width = WORD;
 	d.push = STACK_OPERAND;
 	d.use_modrm = 0;
@@ -829,6 +848,7 @@ end
 	valid_op <= 1;
 end
 24'b01011000xxxxxxxxxxxxxxxx: begin /* POP AW */
+	d.opcode = OP_POP;
 	d.pop = STACK_AW;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -838,6 +858,7 @@ end
 	valid_op <= 1;
 end
 24'b01011001xxxxxxxxxxxxxxxx: begin /* POP CW */
+	d.opcode = OP_POP;
 	d.pop = STACK_CW;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -847,6 +868,7 @@ end
 	valid_op <= 1;
 end
 24'b01011010xxxxxxxxxxxxxxxx: begin /* POP DW */
+	d.opcode = OP_POP;
 	d.pop = STACK_DW;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -856,6 +878,7 @@ end
 	valid_op <= 1;
 end
 24'b01011011xxxxxxxxxxxxxxxx: begin /* POP BW */
+	d.opcode = OP_POP;
 	d.pop = STACK_BW;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -865,6 +888,7 @@ end
 	valid_op <= 1;
 end
 24'b01011100xxxxxxxxxxxxxxxx: begin /* POP SP */
+	d.opcode = OP_POP;
 	d.pop = STACK_SP;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -874,6 +898,7 @@ end
 	valid_op <= 1;
 end
 24'b01011101xxxxxxxxxxxxxxxx: begin /* POP BP */
+	d.opcode = OP_POP;
 	d.pop = STACK_BP;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -883,6 +908,7 @@ end
 	valid_op <= 1;
 end
 24'b01011110xxxxxxxxxxxxxxxx: begin /* POP IX */
+	d.opcode = OP_POP;
 	d.pop = STACK_IX;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -892,6 +918,7 @@ end
 	valid_op <= 1;
 end
 24'b01011111xxxxxxxxxxxxxxxx: begin /* POP IY */
+	d.opcode = OP_POP;
 	d.pop = STACK_IY;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -901,6 +928,7 @@ end
 	valid_op <= 1;
 end
 24'b00000111xxxxxxxxxxxxxxxx: begin /* POP DS1 */
+	d.opcode = OP_POP;
 	d.pop = STACK_DS1;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -910,6 +938,7 @@ end
 	valid_op <= 1;
 end
 24'b00010111xxxxxxxxxxxxxxxx: begin /* POP SS */
+	d.opcode = OP_POP;
 	d.pop = STACK_SS;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -919,6 +948,7 @@ end
 	valid_op <= 1;
 end
 24'b00011111xxxxxxxxxxxxxxxx: begin /* POP DS0 */
+	d.opcode = OP_POP;
 	d.pop = STACK_DS0;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -928,6 +958,7 @@ end
 	valid_op <= 1;
 end
 24'b10011101xxxxxxxxxxxxxxxx: begin /* POP PSW */
+	d.opcode = OP_POP;
 	d.pop = STACK_PSW;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;
@@ -937,6 +968,7 @@ end
 	valid_op <= 1;
 end
 24'b01100001xxxxxxxxxxxxxxxx: begin /* POP R */
+	d.opcode = OP_POP;
 	d.pop = STACK_AW | STACK_CW | STACK_DW | STACK_BW | STACK_SP_DISCARD | STACK_BP | STACK_IX | STACK_IY;
 	d.use_modrm = 0;
 	d.dest = OPERAND_NONE;

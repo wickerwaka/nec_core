@@ -509,58 +509,72 @@ b1100_1111:
 #
 b01010_000:
   desc: PUSH AW
+  op: PUSH
   push: AW
 
 b01010_001:
   desc: PUSH CW
+  op: PUSH
   push: CW
 
 b01010_010:
   desc: PUSH DW
+  op: PUSH
   push: DW
 
 b01010_011:
   desc: PUSH BW
+  op: PUSH
   push: BW
 
 b01010_100:
   desc: PUSH SP
+  op: PUSH
   push: SP
 
 b01010_101:
   desc: PUSH BP
+  op: PUSH
   push: BP
 
 b01010_110:
   desc: PUSH IX
+  op: PUSH
   push: IX
 
 b01010_111:
   desc: PUSH IY
+  op: PUSH
   push: IY
 
 b000_00_110:
   desc: PUSH DS1
+  op: PUSH
   push: DS1
 
 b000_01_110:
   desc: PUSH PS
+  op: PUSH
   push: PS
 
 b000_10_110:
   desc: PUSH SS
+  op: PUSH
   push: SS
 
 b000_11_110:
   desc: PUSH DS0
+  op: PUSH
   push: DS0
 
 b10011100:
   desc: PUSH PSW
+  op: PUSH
   push: PSW
 
 b01100000:
   desc: PUSH R
+  op: PUSH
   push:
     - AW
     - CW
@@ -573,72 +587,88 @@ b01100000:
 
 b01101010:
   desc: PUSH imm8
+  op: PUSH
   push: OPERAND
   src: IMM
   width: BYTE
 
 b01101000:
   desc: PUSH imm16
+  op: PUSH
   push: OPERAND
   src: IMM
   width: WORD
 
 b11111111_MD_110_MEM:
   desc: PUSH reg16/mem16
+  op: PUSH
   push: OPERAND
   src: MODRM
   width: WORD
 
 b0101_1000:
   desc: POP AW
+  op: POP
   pop: AW
 
 b0101_1001:
   desc: POP CW
+  op: POP
   pop: CW
 
 b0101_1010:
   desc: POP DW
+  op: POP
   pop: DW
 
 b0101_1011:
   desc: POP BW
+  op: POP
   pop: BW
 
 b0101_1100:
   desc: POP SP
+  op: POP
   pop: SP
 
 b0101_1101:
   desc: POP BP
+  op: POP
   pop: BP
 
 b0101_1110:
   desc: POP IX
+  op: POP
   pop: IX
 
 b0101_1111:
   desc: POP IY
+  op: POP
   pop: IY
 
 b000_00_111:
   desc: POP DS1
+  op: POP
   pop: DS1
 
 b000_10_111:
   desc: POP SS
+  op: POP
   pop: SS
 
 b000_11_111:
   desc: POP DS0
+  op: POP
   pop: DS0
 
 b10011101:
   desc: POP PSW
+  op: POP
   pop: PSW
 
 b01100001:
   desc: POP R
+  op: POP
   pop:
     - AW
     - CW
@@ -651,8 +681,10 @@ b01100001:
 
 b10001111_MD_000_MEM:
   desc: POP reg16/mem16
+  op: POP
   pop: OPERAND
   dst: MODRM
+  width: WORD
 
 b11001000:
   desc: PREPARE imm16, imm8

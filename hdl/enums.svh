@@ -88,7 +88,9 @@ typedef enum bit [5:0] {
     OP_SUB4S          = 6'b110110,
     OP_CMP4S          = 6'b110111,
     OP_ROR4           = 6'b111000,
-    OP_ROL4           = 6'b111001
+    OP_ROL4           = 6'b111001,
+    OP_PUSH           = 6'b111010,
+    OP_POP            = 6'b111011
 } opcode_e /* verilator public */;
 
 typedef enum bit [5:0] {

@@ -592,7 +592,7 @@ always_ff @(posedge clk) begin
                     exec_stage <= exec_stage + 4'd1;
 
                     case(decoded.opcode)
-                        OP_NOP: begin
+                        OP_NOP, OP_PUSH, OP_POP: begin
                         end
 
                         OP_NOT1_CY:  flags.CY <= ~flags.CY;
@@ -1271,7 +1271,7 @@ always_ff @(posedge clk) begin
                     pop_list <= list;
 
                     if (list == 16'd0) begin
-                        if (decoded.opcode == OP_NOP) begin
+                        if (decoded.opcode == OP_POP) begin
                             state <= IDLE;
                         end else begin
                             state <= EXECUTE;
@@ -1372,7 +1372,7 @@ always_ff @(posedge clk) begin
                     if (list == 16'd0) begin
                         if (state == INT_PUSH) begin
                             state <= INT_FETCH_VEC;
-                        end else if (decoded.opcode == OP_NOP) begin
+                        end else if (decoded.opcode == OP_PUSH) begin
                             state <= IDLE;
                         end else begin
                             state <= EXECUTE;

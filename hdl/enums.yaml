@@ -91,6 +91,8 @@ opcode_e:
     - CMP4S
     - ROR4
     - ROL4
+    - PUSH
+    - POP
 
 alu_operation_e:
   prefix: ALU_OP_
