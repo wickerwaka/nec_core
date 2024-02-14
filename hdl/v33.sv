@@ -122,12 +122,14 @@ function int calc_imm_size(width_e width, operand_e s0, operand_e s1);
     OPERAND_IMM: return width == DWORD ? 4 : width == WORD ? 2 : 1;
     OPERAND_IMM8: return 1;
     OPERAND_IMM_EXT: return 1;
+    default: begin end
     endcase
 
     case(s1)
     OPERAND_IMM: return width == DWORD ? 4 : width == WORD ? 2 : 1;
     OPERAND_IMM8: return 1;
     OPERAND_IMM_EXT: return 1;
+    default: begin end
     endcase
 
     return 0;
@@ -291,6 +293,7 @@ function bit [15:0] get_operand(operand_e operand);
         OPERAND_REG_0: return { 8'd0, get_reg8(reg8_index_e'(decoded.reg0)) };
         OPERAND_REG_1: return { 8'd0, get_reg8(reg8_index_e'(decoded.reg1)) };
         OPERAND_CL: return { 8'd0, reg_cw[7:0] };
+        default: return 16'hffff;
         endcase
     end else if (decoded.width == WORD) begin
         case(operand)
@@ -315,6 +318,7 @@ function bit [15:0] get_operand(operand_e operand);
         OPERAND_REG_0: return get_reg16(reg16_index_e'(decoded.reg0));
         OPERAND_REG_1: return get_reg16(reg16_index_e'(decoded.reg1));
         OPERAND_CL: return { 8'd0, reg_cw[7:0] };
+        default: return 16'hffff;
         endcase
     end
     return 16'hfefe;
@@ -431,27 +435,7 @@ divider2 divider(
     .rem(div_rem)
 );
 
-
-typedef enum {
-    IDLE,
-    FETCH_OPERANDS,
-    FETCH_OPERANDS2,
-    PUSH,
-    POP,
-    POP_WAIT,
-    EXECUTE,
-    STORE_RESULT,
-    INT_ACK_WAIT,
-    INT_INITIATE,
-    INT_FETCH_VEC,
-    INT_FETCH_WAIT1,
-    INT_FETCH_WAIT2,
-    INT_PUSH
-} state_e /* verilator public */;
-
-
-state_e state /* verilator public */;
-
+cpu_state_e state /* verilator public */;
 
 assign bcu_intreq = state == INT_ACK_WAIT;
 
@@ -1218,6 +1202,9 @@ always_ff @(posedge clk) begin
                             op_result <= { 8'd0, reg_aw[3:0], temp[7:4] };
                         end
 
+                        default: begin // TODO exception
+                        end
+
                     endcase
 
                     if (~working) begin
@@ -1449,12 +1436,16 @@ always_ff @(posedge clk) begin
                         if (decoded.width == WORD) reg_dw <= result32[31:16];
                         reg_aw <= result32[15:0];
                     end
+                    default: begin end
                     endcase
 
                     if (alu_result_wait) flags <= alu_flags_result;
                     state <= IDLE;
                 end
             end // STORE_RESULT
+
+            // for linting, should not be possible
+            default: begin end
         endcase
     end
 end

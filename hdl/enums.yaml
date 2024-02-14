@@ -1,0 +1,172 @@
+sreg_index_e:
+  bits: 2
+  values:
+    - DS1
+    - PS
+    - SS
+    - DS0
+
+reg8_index_e:
+  bits: 3
+  values:
+    - AL
+    - CL
+    - DL
+    - BL
+    - AH
+    - CH
+    - DH
+    - BH
+
+reg16_index_e:
+  bits: 3
+  values:
+    - AW
+    - CW
+    - DW
+    - BW
+    - SP
+    - BP
+    - IX
+    - IY
+
+opcode_e:
+  prefix: OP_
+  values:
+    - INVALID
+    - NOP
+    - ALU
+    - MOV
+    - MOV_SEG
+    - MOV_AH_PSW
+    - MOV_PSW_AH
+    - XCH
+    - B_COND
+    - B_CW_COND
+    - IN
+    - OUT
+    - BR_REL
+    - BR_ABS
+    - CALL_REL
+    - CALL_NEAR
+    - CALL_FAR
+    - POP_VALUE
+    - SEG_PREFIX
+    - REP_PREFIX
+    - BUSLOCK_PREFIX
+    - STM
+    - LDM
+    - MOVBK
+    - CMPBK
+    - CMPM
+    - INM
+    - OUTM
+    - NOT1_CY
+    - CLR1_CY
+    - SET1_CY
+    - DI
+    - EI
+    - CLR1_DIR
+    - SET1_DIR
+    - HALT
+    - SHIFT
+    - SHIFT_1
+    - SHIFT_CL
+    - LDEA
+    - CVTDB
+    - CVTBD
+    - CVTBW
+    - CVTWL
+    - DIV
+    - DIVU
+    - PREPARE
+    - DISPOSE
+    - CHKIND
+    - TRANS
+    - BRK3
+    - BRK
+    - BRKV
+    - ADD4S
+    - SUB4S
+    - CMP4S
+    - ROR4
+    - ROL4
+
+alu_operation_e:
+  prefix: ALU_OP_
+  values:
+    - ADD: 0b00000
+    - OR: 0b00001
+    - ADDC: 0b00010
+    - SUBC: 0b00011
+    - AND: 0b00100
+    - SUB: 0b00101
+    - XOR: 0b00110
+    - CMP: 0b00111
+    - NOT
+    - NEG
+    - INC
+    - DEC
+    - ROL
+    - ROR
+    - ROLC
+    - RORC
+    - SHL
+    - SHR
+    - SHRA
+    - ROL1
+    - ROR1
+    - ROLC1
+    - RORC1
+    - SHL1
+    - SHR1
+    - SHRA1
+    - ADJ4S
+    - ADJ4A
+    - ADJBS
+    - ADJBA
+    - SET1
+    - CLR1
+    - TEST1
+    - NOT1
+    - MULU
+    - MUL
+    - NONE
+
+operand_e:
+  prefix: OPERAND_
+  values:
+    - NONE
+    - ACC
+    - IMM
+    - IMM8
+    - IMM_EXT
+    - MODRM
+    - REG_0
+    - REG_1
+    - SREG
+    - PRODUCT
+    - CL
+
+width_e:
+  values:
+    - BYTE
+    - WORD
+    - DWORD
+
+cpu_state_e:
+  values:
+    - IDLE
+    - FETCH_OPERANDS
+    - FETCH_OPERANDS2
+    - PUSH
+    - POP
+    - POP_WAIT
+    - EXECUTE
+    - STORE_RESULT
+    - INT_ACK_WAIT
+    - INT_INITIATE
+    - INT_FETCH_VEC
+    - INT_FETCH_WAIT1
+    - INT_FETCH_WAIT2
+    - INT_PUSH
