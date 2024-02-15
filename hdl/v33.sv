@@ -272,8 +272,6 @@ task start_alu(input bit [15:0] ta, input bit [15:0] tb, input alu_operation_e o
     alu_ta <= ta;
     alu_tb <= tb;
     alu_operation <= op;
-    alu_execute <= 1;
-    alu_result_wait <= 1;
     alu_wide <= width == WORD ? 1 : 0;
 endtask
 
@@ -390,17 +388,13 @@ nec_decode nec_decode(
 
 alu_operation_e alu_operation;
 reg [15:0] alu_ta, alu_tb;
-reg alu_execute;
-wire alu_busy;
 wire [31:0] alu_result;
 flags_t alu_flags_result;
-reg alu_result_wait;
+reg use_alu_result;
 reg alu_wide;
 
 alu ALU(
-    .clk, .ce(ce_1|ce_2),
-
-    .reset,
+    .clk,
 
     .operation(alu_operation),
     .ta(alu_ta),
@@ -409,10 +403,7 @@ alu ALU(
     .wide(alu_wide),
 
     .flags_in(flags),
-    .flags(alu_flags_result),
-
-    .execute(alu_execute),
-    .busy(alu_busy)
+    .flags(alu_flags_result)
 );
 
 reg div_start, div_wide, div_signed;
@@ -489,8 +480,7 @@ always_ff @(posedge clk) begin
         flags.BRK <= 0;
 
         state <= IDLE;
-        alu_execute <= 0;
-        alu_result_wait <= 0;
+        use_alu_result <= 0;
 
         prefix_active <= 0;
         segment_override_active <= 0;
@@ -499,12 +489,11 @@ always_ff @(posedge clk) begin
         buslock_active <= 0;
         halt <= 0;
     end else if (ce_1 | ce_2) begin
-        alu_execute <= 0;
         div_start <= 0;
 
         case(state)
             IDLE: if (ce_1) begin
-                alu_result_wait <= 0;
+                use_alu_result <= 0;
                 new_pc <= 0; // TODO - should this be every CE?
                 exec_stage <= 4'd0;
 
@@ -544,12 +533,62 @@ always_ff @(posedge clk) begin
                 end
             end // IDLE
 
+            FETCH_OPERANDS: if (ce_2) begin
+                if (int'(ipq_len) >= (disp_size + imm_size)) begin
+                    fetched_imm[7:0] <= ipq_byte(disp_size);
+                    fetched_imm[15:8] <= ipq_byte(disp_size + 1);
+                    fetched_imm[23:16] <= ipq_byte(disp_size + 2);
+                    fetched_imm[31:24] <= ipq_byte(disp_size + 3);
+                    addr = calc_ea(decoded.rm, decoded.mod, { ipq_byte(1), ipq_byte(0) });
+                    seg = calc_seg(decoded.rm, decoded.mod);
+                    calculated_ea <= addr;
+                    calculated_seg <= seg;
+
+                    if (dp_ready & mem_read) begin
+                        read_memory(addr, override_segment(seg), decoded.width);
+                        reg_pc <= reg_pc + disp_size[15:0] + imm_size[15:0];
+                        if (decoded.width == DWORD) begin
+                            state <= FETCH_OPERANDS2;
+                        end else begin
+                            if (push_list != 16'd0)
+                                state <= PUSH;
+                            else if (pop_list != 16'd0)
+                                state <= POP;
+                            else
+                                state <= EXECUTE;
+                        end
+                    end else if (~mem_read) begin
+                        reg_pc <= reg_pc + disp_size[15:0] + imm_size[15:0];
+                        if (push_list != 16'd0)
+                            state <= PUSH;
+                        else if (pop_list != 16'd0)
+                            state <= POP;
+                        else
+                            state <= EXECUTE;
+                    end
+                end
+            end // FETCH_OPERANDS
+
+            FETCH_OPERANDS2: if (ce_2) begin
+                if (dp_ready) begin
+                    dp_din_low <= dp_din;
+
+                    read_memory(calculated_ea + 16'd2, override_segment(calculated_seg), WORD);
+                    if (push_list != 16'd0)
+                        state <= PUSH;
+                    else if (pop_list != 16'd0)
+                        state <= POP;
+                    else
+                        state <= EXECUTE;
+                end
+            end // FETCH_OPERANDS2
+
             INT_ACK_WAIT: if (ce_1) begin
                 if (bcu_intack) begin
                     interrupt_vector <= bcu_intvec;
                     state <= INT_INITIATE;
                 end
-            end
+            end // INT_ACK_WAIT
 
             INT_INITIATE: begin
                 push_list <= STACK_PC | STACK_PS | STACK_PSW;
@@ -674,22 +713,22 @@ always_ff @(posedge clk) begin
 
                         OP_ALU: begin
                             start_alu(get_operand(decoded.source0), get_operand(decoded.source1), decoded.alu_operation, decoded.width);
-                            alu_result_wait <= 1;
+                            use_alu_result <= 1;
                         end
 
                         OP_SHIFT_1: begin
                             start_alu(get_operand(decoded.source0), 16'd0, shift1_alu_op(decoded.shift), decoded.width);
-                            alu_result_wait <= 1;
+                            use_alu_result <= 1;
                         end
 
                         OP_SHIFT_CL: begin
                             start_alu(get_operand(decoded.source0), {8'd0, reg_cw[7:0]}, shift_alu_op(decoded.shift), decoded.width);
-                            alu_result_wait <= 1;
+                            use_alu_result <= 1;
                         end
 
                         OP_SHIFT: begin
                             start_alu(get_operand(decoded.source0), get_operand(decoded.source1), shift_alu_op(decoded.shift), decoded.width);
-                            alu_result_wait <= 1;
+                            use_alu_result <= 1;
                         end
 
                         OP_B_COND: begin
@@ -935,24 +974,19 @@ always_ff @(posedge clk) begin
                                 alu_tb <= dp_din;
                                 alu_operation <= ALU_OP_CMP;
                                 alu_wide <= decoded.width == WORD ? 1 : 0;
-                                alu_execute <= 1;
                                 working = 1;
                             end else if (exec_stage == 3) begin
                                 working = 1;
-                                if (alu_busy) begin
-                                    exec_stage <= exec_stage; // wait
+                                flags <= alu_flags_result;
+                                exec_stage <= 0;
+                                if (repeat_active) begin
+                                    if (reg_cw == 16'd0) working = 0;
+                                    else if (repeat_cond == REPEAT_NZ) working = ~alu_flags_result.Z;
+                                    else if (repeat_cond == REPEAT_Z) working = alu_flags_result.Z;
+                                    else if (repeat_cond == REPEAT_NC) working = ~alu_flags_result.CY;
+                                    else if (repeat_cond == REPEAT_C) working = alu_flags_result.CY;
                                 end else begin
-                                    flags <= alu_flags_result;
-                                    exec_stage <= 0;
-                                    if (repeat_active) begin
-                                        if (reg_cw == 16'd0) working = 0;
-                                        else if (repeat_cond == REPEAT_NZ) working = ~alu_flags_result.Z;
-                                        else if (repeat_cond == REPEAT_Z) working = alu_flags_result.Z;
-                                        else if (repeat_cond == REPEAT_NC) working = ~alu_flags_result.CY;
-                                        else if (repeat_cond == REPEAT_C) working = alu_flags_result.CY;
-                                    end else begin
-                                        working = 0;
-                                    end
+                                    working = 0;
                                 end
                             end
                         end
@@ -977,7 +1011,6 @@ always_ff @(posedge clk) begin
                                 alu_tb <= dp_din;
                                 alu_operation <= ALU_OP_CMP;
                                 alu_wide <= decoded.width == WORD ? 1 : 0;
-                                alu_execute <= 1;
                                 working = 1;
                                 if (flags.DIR) begin
                                     reg_iy <= reg_iy - ( decoded.width == BYTE ? 16'd1 : 16'd2 );
@@ -986,20 +1019,16 @@ always_ff @(posedge clk) begin
                                 end
                             end else if (exec_stage == 2) begin
                                 working = 1;
-                                if (alu_busy) begin
-                                    exec_stage <= exec_stage; // wait
+                                flags <= alu_flags_result;
+                                exec_stage <= 0;
+                                if (repeat_active) begin
+                                    if (reg_cw == 16'd0) working = 0;
+                                    else if (repeat_cond == REPEAT_NZ) working = ~alu_flags_result.Z;
+                                    else if (repeat_cond == REPEAT_Z) working = alu_flags_result.Z;
+                                    else if (repeat_cond == REPEAT_NC) working = ~alu_flags_result.CY;
+                                    else if (repeat_cond == REPEAT_C) working = alu_flags_result.CY;
                                 end else begin
-                                    flags <= alu_flags_result;
-                                    exec_stage <= 0;
-                                    if (repeat_active) begin
-                                        if (reg_cw == 16'd0) working = 0;
-                                        else if (repeat_cond == REPEAT_NZ) working = ~alu_flags_result.Z;
-                                        else if (repeat_cond == REPEAT_Z) working = alu_flags_result.Z;
-                                        else if (repeat_cond == REPEAT_NC) working = ~alu_flags_result.CY;
-                                        else if (repeat_cond == REPEAT_C) working = alu_flags_result.CY;
-                                    end else begin
-                                        working = 0;
-                                    end
+                                    working = 0;
                                 end
                             end
                         end
@@ -1282,56 +1311,6 @@ always_ff @(posedge clk) begin
                 end
             end // POP_WAIT
 
-            FETCH_OPERANDS: if (ce_2) begin
-                if (int'(ipq_len) >= (disp_size + imm_size)) begin
-                    fetched_imm[7:0] <= ipq_byte(disp_size);
-                    fetched_imm[15:8] <= ipq_byte(disp_size + 1);
-                    fetched_imm[23:16] <= ipq_byte(disp_size + 2);
-                    fetched_imm[31:24] <= ipq_byte(disp_size + 3);
-                    addr = calc_ea(decoded.rm, decoded.mod, { ipq_byte(1), ipq_byte(0) });
-                    seg = calc_seg(decoded.rm, decoded.mod);
-                    calculated_ea <= addr;
-                    calculated_seg <= seg;
-
-                    if (dp_ready & mem_read) begin
-                        read_memory(addr, override_segment(seg), decoded.width);
-                        reg_pc <= reg_pc + disp_size[15:0] + imm_size[15:0];
-                        if (decoded.width == DWORD) begin
-                            state <= FETCH_OPERANDS2;
-                        end else begin
-                            if (push_list != 16'd0)
-                                state <= PUSH;
-                            else if (pop_list != 16'd0)
-                                state <= POP;
-                            else
-                                state <= EXECUTE;
-                        end
-                    end else if (~mem_read) begin
-                        reg_pc <= reg_pc + disp_size[15:0] + imm_size[15:0];
-                        if (push_list != 16'd0)
-                            state <= PUSH;
-                        else if (pop_list != 16'd0)
-                            state <= POP;
-                        else
-                            state <= EXECUTE;
-                    end
-                end
-            end // FETCH_OPERANDS
-
-            FETCH_OPERANDS2: if (ce_2) begin
-                if (dp_ready) begin
-                    dp_din_low <= dp_din;
-
-                    read_memory(calculated_ea + 16'd2, override_segment(calculated_seg), WORD);
-                    if (push_list != 16'd0)
-                        state <= PUSH;
-                    else if (pop_list != 16'd0)
-                        state <= POP;
-                    else
-                        state <= EXECUTE;
-                end
-            end // FETCH_OPERANDS2
-
             INT_PUSH,
             PUSH: if (ce_2) begin
                 bit [15:0] push_data;
@@ -1391,12 +1370,12 @@ always_ff @(posedge clk) begin
             end // POP
 
             STORE_RESULT: if (ce_2) begin
-                result8 = alu_result_wait ? alu_result[7:0] : op_result[7:0];
-                result16 = alu_result_wait ? alu_result[15:0] : op_result;
-                result32 = alu_result_wait ? alu_result : { 16'd0, op_result };
+                result8 = use_alu_result ? alu_result[7:0] : op_result[7:0];
+                result16 = use_alu_result ? alu_result[15:0] : op_result;
+                result32 = use_alu_result ? alu_result : { 16'd0, op_result };
 
                 // TODO, do we need to wait for dp_ready here? should it be more focused on just the writing case?
-                if (dp_ready & (~alu_result_wait | ~alu_busy)) begin
+                if (dp_ready) begin
                     case(decoded.dest)
                     OPERAND_ACC: begin
                         if (decoded.width == BYTE)
@@ -1436,7 +1415,7 @@ always_ff @(posedge clk) begin
                     default: begin end
                     endcase
 
-                    if (alu_result_wait) flags <= alu_flags_result;
+                    if (use_alu_result) flags <= alu_flags_result;
                     state <= IDLE;
                 end
             end // STORE_RESULT
