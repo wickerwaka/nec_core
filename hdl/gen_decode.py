@@ -156,7 +156,7 @@ def to_entry(k: str, op_desc: dict):
     
     pre_size = (len(k) + 7) // 8
     assignments.append( f"d.pre_size = {pre_size}" )
-    assignments.append( f"valid_op <= 1" )
+    assignments.append( f"valid_op = 1" )
 
     k = k + 'x' * (24 - len(k))
 

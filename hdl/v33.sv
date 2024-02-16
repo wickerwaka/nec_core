@@ -275,6 +275,24 @@ task start_alu(input bit [15:0] ta, input bit [15:0] tb, input alu_operation_e o
     alu_wide <= width == WORD ? 1 : 0;
 endtask
 
+task do_fast_mov(input bit [15:0] addr, input sreg_index_e seg, input [15:0] imm_data);
+    bit [15:0] data;
+
+    if (decoded.source0 == OPERAND_IMM)
+        data = imm_data;
+    else
+        data = get_operand(decoded.source0);
+
+    dp_addr <= addr;
+    dp_dout <= data;
+    dp_write <= 1;
+    dp_io <= 0;
+    dp_zero_seg <= 0;
+    dp_sreg <= seg;
+    dp_wide <= decoded.width == BYTE ? 0 : 1;
+    dp_req <= ~dp_req;
+endtask
+
 function bit [15:0] get_operand(operand_e operand);
     if (decoded.width == BYTE) begin
         case(operand)
@@ -435,6 +453,7 @@ reg [15:0] calculated_ea;
 sreg_index_e calculated_seg;
 reg [31:0] fetched_imm;
 reg [15:0] op_result;
+reg fast_mov;
 
 reg [3:0] exec_stage;
 
@@ -496,6 +515,7 @@ always_ff @(posedge clk) begin
                 use_alu_result <= 0;
                 new_pc <= 0; // TODO - should this be every CE?
                 exec_stage <= 4'd0;
+                fast_mov <= 0;
 
                 // If prefixes are active and the _last_ op was not a prefix, then end it
                 if (prefix_active & ~decoded.prefix) begin
@@ -529,6 +549,13 @@ always_ff @(posedge clk) begin
                         imm_size <= calc_imm_size(next_decode.width, next_decode.source0, next_decode.source1);
                     end
 
+                    if (next_decode.opcode == OP_MOV
+                        && next_decode.dest == OPERAND_MODRM
+                        && next_decode.mod != 2'b11
+                        && (next_decode.source0 == OPERAND_IMM || next_decode.source0 == OPERAND_REG_0 || next_decode.source0 == OPERAND_SREG)) begin
+                            fast_mov <= 1;
+                    end
+
                     state <= FETCH_OPERANDS;
                 end
             end // IDLE
@@ -559,7 +586,10 @@ always_ff @(posedge clk) begin
                         end
                     end else if (~mem_read) begin
                         reg_pc <= reg_pc + disp_size[15:0] + imm_size[15:0];
-                        if (push_list != 16'd0)
+                        if (dp_ready & fast_mov) begin
+                            do_fast_mov(addr, override_segment(seg), { ipq_byte(disp_size + 1), ipq_byte(disp_size) });
+                            state <= IDLE;
+                        end else if (push_list != 16'd0)
                             state <= PUSH;
                         else if (pop_list != 16'd0)
                             state <= POP;

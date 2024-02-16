@@ -13,7 +13,7 @@ module nec_decode(
     input [7:0] q1,
     input [7:0] q2,
 
-    output reg valid_op,
+    output logic valid_op,
 
     output nec_decode_t decoded
 );
@@ -22,10 +22,10 @@ wire [23:0] q = { q0, q1, q2 };
 
 /* verilator lint_off CASEX */
 
-always_ff @(posedge clk) begin
+always_comb begin
     nec_decode_t d;
-    if (ce) begin
-        valid_op <= 0;
+    //if (ce) begin
+        valid_op = 0;
 
         d.opcode = OP_INVALID;
         d.push = 16'd0;
@@ -39,10 +39,10 @@ always_ff @(posedge clk) begin
 
         d.opcode_byte = q0;
 
-        if (q_len < d.pre_size) valid_op <= 0;
+        if (q_len < d.pre_size) valid_op = 0;
         
-        decoded <= d;
-    end
+        decoded = d;
+    //end
 end
 
 endmodule
