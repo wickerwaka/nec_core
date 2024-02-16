@@ -466,7 +466,7 @@ always_comb begin
         if (calc_sign) flags.S = wide ? res[15] : res[7];
         if (calc_zero) flags.Z = wide ? res[15:0] == 16'd0 : res[7:0] == 8'd0;
 
-        result[15:0] = wide ? res[15:0] : { 8'd0, res[7:0] };
+        result = { 16'd0, wide ? res[15:0] : { 8'd0, res[7:0] } };
     end
 end
 
