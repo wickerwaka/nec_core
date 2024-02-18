@@ -152,6 +152,13 @@ always_ff @(posedge clk) begin
 
         if (ce_1) begin
             case(t_state)
+                T_1: begin
+                    n_dstb <= 0;
+                    dout <= dp_addr[0] ? { dp_dout[7:0], dp_dout[15:8] } : dp_dout;
+                end
+            endcase
+        end else if (ce_2) begin
+            case(t_state)
             T_IDLE: begin
                 n_dstb <= 1; // clear data strobe
                 n_buslock <= ~buslock_prefix;
@@ -197,14 +204,9 @@ always_ff @(posedge clk) begin
                     discard_ipq_fetch <= 0;
                 end
             end
+            
             T_1: t_state <= T_2;
-            endcase
-        end else if (ce_2) begin
-            case(t_state)
-            T_1: begin
-                n_dstb <= 0;
-                dout <= dp_addr[0] ? { dp_dout[7:0], dp_dout[15:8] } : dp_dout;
-            end
+            
             T_2: begin
                 if (~n_ready) begin
                     second_byte <= 0;
