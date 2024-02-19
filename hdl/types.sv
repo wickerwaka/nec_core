@@ -6,7 +6,7 @@ package types;
     const bit [15:0] STACK_DW         = 16'h0004;
     const bit [15:0] STACK_BW         = 16'h0008;
     const bit [15:0] STACK_SP         = 16'h0010;
-    const bit [15:0] STACK_SP_DISCARD = 16'h0020;
+    const bit [15:0] STACK_BP_SKIP_SP = 16'h0020;
     const bit [15:0] STACK_BP         = 16'h0040;
     const bit [15:0] STACK_IX         = 16'h0080;
     const bit [15:0] STACK_IY         = 16'h0100;
@@ -19,13 +19,23 @@ package types;
     const bit [15:0] STACK_OPERAND    = 16'h8000;
     
     typedef struct {
+        bit [15:0] pc;
+        bit [15:0] end_pc;
+
         opcode_e opcode;
         alu_operation_e alu_operation;
         operand_e source0;
         operand_e source1;
         operand_e dest;
 
-        bit [7:0] opcode_byte;
+        bit mem_read;
+        bit mem_write;
+
+        bit [15:0] disp;
+        bit [31:0] imm;
+        sreg_index_e segment;
+        bit buslock;
+        repeat_e rep;
 
         bit use_modrm;
         bit [1:0] mod;
@@ -42,9 +52,8 @@ package types;
         bit [15:0] push;
         bit [15:0] pop;
 
-        bit prefix;
-
-        bit [3:0] pre_size;
+        bit [5:0] cycles;
+        bit [5:0] mem_cycles;
     } nec_decode_t;
 
     typedef struct {

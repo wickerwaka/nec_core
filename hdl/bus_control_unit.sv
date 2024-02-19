@@ -155,6 +155,7 @@ always_ff @(posedge clk) begin
                 T_1: begin
                     n_dstb <= 0;
                     dout <= dp_addr[0] ? { dp_dout[7:0], dp_dout[15:8] } : dp_dout;
+                    t_state <= T_2;
                 end
             endcase
         end else if (ce_2) begin
@@ -182,6 +183,12 @@ always_ff @(posedge clk) begin
                     t_state <= T_1;
                     intack_idles <= 0;
                     n_ube <= 1;
+                end else if (new_ipq_used < 7) begin
+                    t_state <= T_1;
+                    cycle_type <= IPQ_FETCH;
+                    addr <= physical_addr(PS, cur_pfp);
+                    n_ube <= 0; // always
+                    discard_ipq_fetch <= 0;
                 end else if (dp_req != dp_ack) begin
                     t_state <= T_1;
                     if (dp_io) begin
@@ -196,12 +203,6 @@ always_ff @(posedge clk) begin
                         cycle_type <= dp_write ? MEM_WRITE : MEM_READ;
                     end
                     n_ube <= second_byte | (~dp_wide & ~dp_addr[0]);
-                end else if (new_ipq_used < 7) begin
-                    t_state <= T_1;
-                    cycle_type <= IPQ_FETCH;
-                    addr <= physical_addr(PS, cur_pfp);
-                    n_ube <= 0; // always
-                    discard_ipq_fetch <= 0;
                 end
             end
             

@@ -55,7 +55,10 @@ reg [15:0] reg_sp  /*verilator public*/;
 reg [15:0] reg_bp  /*verilator public*/;
 reg [15:0] reg_ix  /*verilator public*/;
 reg [15:0] reg_iy  /*verilator public*/;
-reg [15:0] reg_pc  /*verilator public*/;
+
+wire [15:0] cur_pc  /*verilator public*/;
+
+reg [15:0] next_pc;
 
 reg halt; // TODO, do something with this
 
@@ -93,59 +96,14 @@ reg [15:0] dp_din_low; // for 32-bit reads
 wire [31:0] dp_din32 = { dp_din, dp_din_low };
 
 // Instruction prefetch
-reg new_pc;
+reg [15:0] new_pc;
+reg set_pc;
 
 wire [7:0] ipq[8];
 wire [3:0] ipq_len;
 
-function bit [7:0] ipq_byte(int ofs);
-    return ipq[reg_pc[2:0] + ofs[2:0]];
-endfunction
-
-wire next_valid_op;
 nec_decode_t next_decode;
 nec_decode_t decoded /*verilator public*/;
-
-
-reg prefix_active;
-reg segment_override_active;
-sreg_index_e segment_override;
-
-reg repeat_active;
-reg buslock_active;
-
-enum { REPEAT_C, REPEAT_NC, REPEAT_Z, REPEAT_NZ } repeat_cond;
-
-// bleh, something better here?
-function int calc_imm_size(width_e width, operand_e s0, operand_e s1);
-    case(s0)
-    OPERAND_IMM: return width == DWORD ? 4 : width == WORD ? 2 : 1;
-    OPERAND_IMM8: return 1;
-    OPERAND_IMM_EXT: return 1;
-    default: begin end
-    endcase
-
-    case(s1)
-    OPERAND_IMM: return width == DWORD ? 4 : width == WORD ? 2 : 1;
-    OPERAND_IMM8: return 1;
-    OPERAND_IMM_EXT: return 1;
-    default: begin end
-    endcase
-
-    return 0;
-endfunction
-
-function int calc_disp_size(bit [2:0] mem, bit [1:0] mod);
-    case(mod)
-    2'b00: begin
-        if (mem == 3'b110) return 2;
-        return 0;
-    end
-    2'b01: return 1;
-    2'b10: return 2;
-    2'b11: return 0;
-    endcase
-endfunction
 
 function bit [15:0] calc_ea(bit [2:0] mem, bit [1:0] mod, bit [15:0] disp);
     bit [15:0] addr;
@@ -164,18 +122,6 @@ function bit [15:0] calc_ea(bit [2:0] mem, bit [1:0] mod, bit [15:0] disp);
     else if (mod == 2'b10) addr = addr + disp;
 
     return addr;
-endfunction
-
-function sreg_index_e calc_seg(bit [2:0] mem, bit [1:0] mod);
-    sreg_index_e seg;
-    case(mem)
-    3'b010: seg = SS;
-    3'b011: seg = SS;
-    3'b110: seg = mod == 0 ? DS0 : SS;
-    default: seg = DS0;
-    endcase
-
-    return seg;
 endfunction
 
 function bit [7:0] get_reg8(reg8_index_e r);
@@ -237,15 +183,11 @@ task set_sreg(input sreg_index_e r, input bit[15:0] val);
     SS: reg_ss <= val;
     PS: begin
         reg_ps <= val;
-        new_pc <= 1;
+        new_pc <= decoded.end_pc;
+        set_pc <= 1;
     end
     endcase
 endtask
-
-function sreg_index_e override_segment(sreg_index_e seg);
-    if (segment_override_active) return segment_override;
-    return seg;
-endfunction
 
 task write_memory(input bit [15:0] addr, input sreg_index_e seg, input width_e width, input [15:0] data);
     dp_addr <= addr;
@@ -275,31 +217,13 @@ task start_alu(input bit [15:0] ta, input bit [15:0] tb, input alu_operation_e o
     alu_wide <= width == WORD ? 1 : 0;
 endtask
 
-task do_fast_mov(input bit [15:0] addr, input sreg_index_e seg, input [15:0] imm_data);
-    bit [15:0] data;
-
-    if (decoded.source0 == OPERAND_IMM)
-        data = imm_data;
-    else
-        data = get_operand(decoded.source0);
-
-    dp_addr <= addr;
-    dp_dout <= data;
-    dp_write <= 1;
-    dp_io <= 0;
-    dp_zero_seg <= 0;
-    dp_sreg <= seg;
-    dp_wide <= decoded.width == BYTE ? 0 : 1;
-    dp_req <= ~dp_req;
-endtask
-
 function bit [15:0] get_operand(operand_e operand);
     if (decoded.width == BYTE) begin
         case(operand)
         OPERAND_ACC: return { 8'd0, reg_aw[7:0] };
-        OPERAND_IMM: return { 8'd0, fetched_imm[7:0] };
-        OPERAND_IMM8: return { 8'd0, fetched_imm[7:0] };
-        OPERAND_IMM_EXT: return { {8{fetched_imm[7]}}, fetched_imm[7:0] };
+        OPERAND_IMM: return { 8'd0, decoded.imm[7:0] };
+        OPERAND_IMM8: return { 8'd0, decoded.imm[7:0] };
+        OPERAND_IMM_EXT: return { {8{decoded.imm[7]}}, decoded.imm[7:0] };
         OPERAND_MODRM: begin
             if (decoded.mod == 2'b11)
                 return { 8'd0, get_reg8(reg8_index_e'(decoded.rm)) };
@@ -314,9 +238,9 @@ function bit [15:0] get_operand(operand_e operand);
     end else if (decoded.width == WORD) begin
         case(operand)
         OPERAND_ACC: return reg_aw;
-        OPERAND_IMM: return fetched_imm[15:0];
-        OPERAND_IMM8: return { 8'd0, fetched_imm[7:0] };
-        OPERAND_IMM_EXT: return { {8{fetched_imm[7]}}, fetched_imm[7:0] };
+        OPERAND_IMM: return decoded.imm[15:0];
+        OPERAND_IMM8: return { 8'd0, decoded.imm[7:0] };
+        OPERAND_IMM_EXT: return { {8{decoded.imm[7]}}, decoded.imm[7:0] };
         OPERAND_MODRM: begin
             if (decoded.mod == 2'b11)
                 return get_reg16(reg16_index_e'(decoded.rm));
@@ -382,25 +306,33 @@ bus_control_unit BCU(
 
     .reg_ps, .reg_ss, .reg_ds0, .reg_ds1,
 
-    .pfp_set(new_pc),
-    .ipq, .ipq_head(reg_pc), .ipq_len,
+    .pfp_set(set_pc),
+    .ipq, .ipq_head(set_pc ? new_pc : cur_pc), .ipq_len,
 
     .dp_addr, .dp_dout, .dp_din, .dp_sreg,
     .dp_write, .dp_wide, .dp_io, .dp_req,
     .dp_ready, .dp_zero_seg,
 
-    .buslock_prefix(buslock_active),
+    .buslock_prefix(decoded.buslock),
 
     .intreq(bcu_intreq), .intack(bcu_intack), .intvec(bcu_intvec),
 
     .implementation_fault()
 );
 
+reg start_decode;
+wire next_decode_valid;
+wire decode_busy;
+
 nec_decode nec_decode(
     .clk, .ce(ce_1 | ce_2),
-    .q_len(ipq_len),
-    .q0(ipq_byte(0)), .q1(ipq_byte(1)), .q2(ipq_byte(2)),
-    .valid_op(next_valid_op),
+    .ipq_len,
+    .ipq,
+    .new_pc, .set_pc,
+    .pc(cur_pc),
+    .start(start_decode),
+    .valid(next_decode_valid),
+    .busy(decode_busy),
     .decoded(next_decode)
 );
 
@@ -410,6 +342,7 @@ wire [31:0] alu_result;
 flags_t alu_flags_result;
 reg use_alu_result;
 reg alu_wide;
+wire [5:0] alu_cycles;
 
 alu ALU(
     .clk,
@@ -419,6 +352,8 @@ alu ALU(
     .tb(alu_tb),
     .result(alu_result),
     .wide(alu_wide),
+
+    .alu_cycles,
 
     .flags_in(flags),
     .flags(alu_flags_result)
@@ -447,13 +382,12 @@ cpu_state_e state /* verilator public */;
 
 assign bcu_intreq = state == INT_ACK_WAIT;
 
-int disp_size, imm_size;
-reg io_read, mem_read;
 reg [15:0] calculated_ea;
-sreg_index_e calculated_seg;
-reg [31:0] fetched_imm;
 reg [15:0] op_result;
-reg fast_mov;
+
+reg [15:0] branch_new_pc;
+reg [15:0] branch_new_ps;
+reg use_branch_result;
 
 reg [3:0] exec_stage;
 
@@ -469,14 +403,17 @@ reg [4:0] bcd_acc_high, bcd_acc_low;
 reg [7:0] bcd_acc, bcd_src;
 reg [4:0] bcd_result_high, bcd_result_low;
 
+reg stack_modified_pc, stack_modified_ps;
+
+reg [5:0] cycles;
+reg [5:0] op_cycles = 0;
+
 always_ff @(posedge clk) begin
     bit [15:0] addr;
-    sreg_index_e seg;
     bit [31:0] result32;
-    bit [15:0] result16;
-    bit [7:0] result8;
     bit [15:0] temp;
     bit [15:0] src;
+    bit [7:0] temp8;
 
     if (reset) begin
         dp_req <= 0;
@@ -484,8 +421,9 @@ always_ff @(posedge clk) begin
         reg_ss <= 16'd0;
         reg_ds0 <= 16'd0;
         reg_ds1 <= 16'd0;
-        reg_pc <= 16'd0;
-        new_pc <= 1;
+        new_pc <= 16'd0;
+        set_pc <= 1;
+        next_pc <= 16'd0;
 
         flags.V <= 0;
         flags.S <= 0;
@@ -500,110 +438,78 @@ always_ff @(posedge clk) begin
 
         state <= IDLE;
         use_alu_result <= 0;
+        use_branch_result <= 0;
 
-        prefix_active <= 0;
-        segment_override_active <= 0;
-        repeat_active <= 0;
-        repeat_cond <= REPEAT_Z;
-        buslock_active <= 0;
+        stack_modified_pc <= 0;
+        stack_modified_ps <= 0;
+
         halt <= 0;
     end else if (ce_1 | ce_2) begin
         div_start <= 0;
+        start_decode <= 0;
+        set_pc <= 0;
+
+        if (ce_1 & dp_ready & ~&cycles) cycles <= cycles + 6'd1;
 
         case(state)
             IDLE: if (ce_1) begin
                 use_alu_result <= 0;
-                new_pc <= 0; // TODO - should this be every CE?
+                use_branch_result <= 0;
+                stack_modified_pc <= 0;
+                stack_modified_ps <= 0;
+
                 exec_stage <= 4'd0;
-                fast_mov <= 0;
 
-                // If prefixes are active and the _last_ op was not a prefix, then end it
-                if (prefix_active & ~decoded.prefix) begin
-                    prefix_active <= 0;
-                    segment_override_active <= 0;
-                    repeat_active <= 0;
-                    buslock_active <= 0;
-                end
+                if (cycles >= op_cycles) begin
+                    op_cycles <= 6'd0;
+                    cycles <= 6'd1;
 
-                if (intreq & ~prefix_active & flags.IE) begin
-                    state <= INT_ACK_WAIT;
-                end else if (next_valid_op & ~new_pc) begin
-                    disp_size <= 0;
-                    mem_read <= 0;
+                    if (intreq & flags.IE) begin
+                        state <= INT_ACK_WAIT;
+                    end else if (~decode_busy & next_decode_valid & (dp_ready | ~next_decode.mem_read)) begin
+                        push_sp_save <= reg_sp;
+                        push_list <= next_decode.push;
+                        pop_list <= next_decode.pop;
 
-                    push_sp_save <= reg_sp;
-                    push_list <= next_decode.push;
-                    pop_list <= next_decode.pop;
+                        decoded <= next_decode;
 
-                    decoded <= next_decode;
-                    reg_pc <= reg_pc + { 12'd0, next_decode.pre_size };
-                    if (next_decode.use_modrm & next_decode.mod != 2'b11) begin
-                        disp_size <= calc_disp_size(next_decode.rm, next_decode.mod);
-                        if (next_decode.opcode != OP_LDEA)
-                            mem_read <= (next_decode.source0 == OPERAND_MODRM || next_decode.source1 == OPERAND_MODRM) ? 1 : 0;
-                    end
+                        op_cycles <= next_decode.cycles;
+                        if (next_decode.mem_read | next_decode.mem_write) begin
+                            op_cycles <= next_decode.cycles + next_decode.mem_cycles;
+                        end
 
-                    if (next_decode.opcode == OP_PREPARE) begin
-                        imm_size <= 3;
-                    end else begin
-                        imm_size <= calc_imm_size(next_decode.width, next_decode.source0, next_decode.source1);
-                    end
+                        addr = calc_ea(next_decode.rm, next_decode.mod, next_decode.disp);
+                        calculated_ea <= addr;
 
-                    if (next_decode.opcode == OP_MOV
-                        && next_decode.dest == OPERAND_MODRM
-                        && next_decode.mod != 2'b11
-                        && (next_decode.source0 == OPERAND_IMM || next_decode.source0 == OPERAND_REG_0 || next_decode.source0 == OPERAND_SREG)) begin
-                            fast_mov <= 1;
-                    end
-
-                    state <= FETCH_OPERANDS;
-                end
-            end // IDLE
-
-            FETCH_OPERANDS: if (ce_2) begin
-                if (int'(ipq_len) >= (disp_size + imm_size)) begin
-                    fetched_imm[7:0] <= ipq_byte(disp_size);
-                    fetched_imm[15:8] <= ipq_byte(disp_size + 1);
-                    fetched_imm[23:16] <= ipq_byte(disp_size + 2);
-                    fetched_imm[31:24] <= ipq_byte(disp_size + 3);
-                    addr = calc_ea(decoded.rm, decoded.mod, { ipq_byte(1), ipq_byte(0) });
-                    seg = calc_seg(decoded.rm, decoded.mod);
-                    calculated_ea <= addr;
-                    calculated_seg <= seg;
-
-                    if (dp_ready & mem_read) begin
-                        read_memory(addr, override_segment(seg), decoded.width);
-                        reg_pc <= reg_pc + disp_size[15:0] + imm_size[15:0];
-                        if (decoded.width == DWORD) begin
-                            state <= FETCH_OPERANDS2;
+                        if (next_decode.mem_read) begin
+                            read_memory(addr, next_decode.segment, next_decode.width);
+                            if (next_decode.width == DWORD) begin
+                                state <= FETCH_OPERANDS2;
+                            end else begin
+                                if (next_decode.push != 16'd0)
+                                    state <= PUSH;
+                                else if (next_decode.pop != 16'd0)
+                                    state <= POP;
+                                else
+                                    state <= EXECUTE;
+                            end
                         end else begin
-                            if (push_list != 16'd0)
+                            if (next_decode.push != 16'd0)
                                 state <= PUSH;
-                            else if (pop_list != 16'd0)
+                            else if (next_decode.pop != 16'd0)
                                 state <= POP;
                             else
                                 state <= EXECUTE;
                         end
-                    end else if (~mem_read) begin
-                        reg_pc <= reg_pc + disp_size[15:0] + imm_size[15:0];
-                        if (dp_ready & fast_mov) begin
-                            do_fast_mov(addr, override_segment(seg), { ipq_byte(disp_size + 1), ipq_byte(disp_size) });
-                            state <= IDLE;
-                        end else if (push_list != 16'd0)
-                            state <= PUSH;
-                        else if (pop_list != 16'd0)
-                            state <= POP;
-                        else
-                            state <= EXECUTE;
                     end
                 end
-            end // FETCH_OPERANDS
+            end // IDLE
 
-            FETCH_OPERANDS2: if (ce_2) begin
+            FETCH_OPERANDS2: if (ce_1) begin
                 if (dp_ready) begin
                     dp_din_low <= dp_din;
 
-                    read_memory(calculated_ea + 16'd2, override_segment(calculated_seg), WORD);
+                    read_memory(calculated_ea + 16'd2, decoded.segment, WORD);
                     if (push_list != 16'd0)
                         state <= PUSH;
                     else if (pop_list != 16'd0)
@@ -620,12 +526,12 @@ always_ff @(posedge clk) begin
                 end
             end // INT_ACK_WAIT
 
-            INT_INITIATE: begin
+            INT_INITIATE: if (ce_1) begin
                 push_list <= STACK_PC | STACK_PS | STACK_PSW;
                 state <= INT_PUSH;
             end
 
-            INT_FETCH_VEC: if (dp_ready) begin
+            INT_FETCH_VEC: if (dp_ready & ce_1) begin
                 flags.IE <= 0;
                 flags.BRK <= 0;
                 dp_addr <= { 6'd0, interrupt_vector[7:0], 2'b00 };
@@ -637,16 +543,16 @@ always_ff @(posedge clk) begin
                 state <= INT_FETCH_WAIT1;
             end
 
-            INT_FETCH_WAIT1: if (dp_ready) begin
-                reg_pc <= dp_din;
+            INT_FETCH_WAIT1: if (dp_ready & ce_1) begin
+                new_pc <= dp_din;
                 dp_addr <= { 6'd0, interrupt_vector[7:0], 2'b10 };
                 dp_req <= ~dp_req;
                 state <= INT_FETCH_WAIT2;
             end
 
-            INT_FETCH_WAIT2: if (dp_ready) begin
+            INT_FETCH_WAIT2: if (dp_ready & ce_1) begin
                 reg_ps <= dp_din;
-                new_pc <= 1;
+                set_pc <= 1;
                 state <= IDLE;
             end
 
@@ -654,10 +560,10 @@ always_ff @(posedge clk) begin
                 bit working;
                 bit exception;
 
-                working = 0;
-                exception = 0;
+                if (dp_ready & ce_1) begin
+                    working = 0;
+                    exception = 0;
                 
-                if (dp_ready) begin
                     exec_stage <= exec_stage + 4'd1;
 
                     case(decoded.opcode)
@@ -699,11 +605,11 @@ always_ff @(posedge clk) begin
 
                         // TODO verify
                         OP_CVTDB: begin
-                            result8 = reg_aw[7:0] + (reg_aw[15:8] * 8'd10);
-                            flags.Z <= ~|result8;
-                            flags.S <= result8[7];
-                            flags.P <= ~(^result8);
-                            reg_aw <= { 8'd0, result8 };
+                            temp8 = reg_aw[7:0] + (reg_aw[15:8] * 8'd10);
+                            flags.Z <= ~|temp8;
+                            flags.S <= temp8[7];
+                            flags.P <= ~(^temp8);
+                            reg_aw <= { 8'd0, temp8 };
                         end
 
                         OP_MOV: begin
@@ -782,9 +688,12 @@ always_ff @(posedge clk) begin
                             4'b1111: cond = ~((flags.S ^ flags.V) & ~flags.Z); /* GT */
                             endcase
 
+                            op_cycles <= cond ? 6 : 3;
+
                             if (cond) begin
-                                reg_pc <= reg_pc + get_operand(decoded.source0);
-                                new_pc <= 1;
+                                branch_new_pc <= decoded.end_pc + get_operand(decoded.source0);
+                                branch_new_ps <= reg_ps;
+                                use_branch_result <= 1;
                             end
                         end
 
@@ -809,33 +718,39 @@ always_ff @(posedge clk) begin
                             endcase
 
                             if (cond) begin
-                                reg_pc <= reg_pc + get_operand(decoded.source0);
-                                new_pc <= 1;
+                                branch_new_pc <= decoded.end_pc + get_operand(decoded.source0);
+                                branch_new_ps <= reg_ps;
+                                use_branch_result <= 1;
                             end
                         end
 
                         OP_BR_REL: begin
-                            reg_pc <= reg_pc + get_operand(decoded.source0);
-                            new_pc <= 1;
+                            branch_new_pc <= decoded.end_pc + get_operand(decoded.source0);
+                            branch_new_ps <= reg_ps;
+                            use_branch_result <= 1;
                         end
 
                         OP_BR_ABS: begin
                             if (decoded.source0 == OPERAND_IMM && decoded.width == DWORD) begin
-                                reg_pc <= fetched_imm[15:0];
-                                reg_ps <= fetched_imm[31:16];
-                                new_pc <= 1;
+                                branch_new_pc <= decoded.imm[15:0];
+                                branch_new_ps <= decoded.imm[31:16];
                             end else if (decoded.width == WORD) begin
-                                reg_pc <= get_operand(decoded.source0);
-                                new_pc <= 1;
+                                branch_new_pc <= get_operand(decoded.source0);
+                                branch_new_ps <= reg_ps;
                             end else if (decoded.source0 == OPERAND_MODRM && decoded.width == DWORD) begin
-                                reg_pc <= dp_din32[15:0];
-                                reg_ps <= dp_din32[31:16];
-                                new_pc <= 1;
+                                branch_new_pc <= dp_din32[15:0];
+                                branch_new_ps <= dp_din32[31:16];
                             end
+                            use_branch_result <= 1;
                         end
 
-                        OP_POP_VALUE: begin
+                        OP_RET: begin
+                            set_pc <= 1;
+                        end
+
+                        OP_RET_POP_VALUE: begin
                             reg_sp <= reg_sp + get_operand(decoded.source0);
+                            set_pc <= 1;
                         end
 
                         OP_IN: begin
@@ -844,7 +759,7 @@ always_ff @(posedge clk) begin
                                 dp_io <= 1;
                                 dp_wide <= decoded.width == WORD ? 1 : 0;
                                 if (decoded.source0 == OPERAND_IMM8) begin
-                                    dp_addr <= { 8'd0, fetched_imm[7:0] };
+                                    dp_addr <= { 8'd0, decoded.imm[7:0] };
                                 end else begin
                                     dp_addr <= reg_dw;
                                 end
@@ -864,38 +779,16 @@ always_ff @(posedge clk) begin
                             dp_wide <= decoded.width == WORD ? 1 : 0;
                             dp_dout <= reg_aw;
                             if (decoded.source0 == OPERAND_IMM8) begin
-                                dp_addr <= { 8'd0, fetched_imm[7:0] };
+                                dp_addr <= { 8'd0, decoded.imm[7:0] };
                             end else begin
                                 dp_addr <= reg_dw;
                             end
                             dp_req <= ~dp_req;
                         end
 
-                        OP_SEG_PREFIX: begin
-                            segment_override <= sreg_index_e'(decoded.sreg);
-                            segment_override_active <= 1;
-                            prefix_active <= 1;
-                        end
-
-                        OP_REP_PREFIX: begin
-                            repeat_active <= 1;
-                            prefix_active <= 1;
-                            case (decoded.opcode_byte[1:0])
-                                2'b00: repeat_cond <= REPEAT_NC;
-                                2'b01: repeat_cond <= REPEAT_C;
-                                2'b10: repeat_cond <= REPEAT_NZ;
-                                2'b11: repeat_cond <= REPEAT_Z;
-                            endcase
-                        end
-
-                        OP_BUSLOCK_PREFIX: begin
-                            prefix_active <= 1;
-                            buslock_active <= 1;
-                        end
-
                         OP_STM: begin
                             bit do_work = 1;
-                            if (repeat_active) begin
+                            if (decoded.rep != REPEAT_NONE) begin
                                 if (reg_cw == 16'd0) begin
                                     do_work = 0;
                                 end else begin
@@ -916,7 +809,7 @@ always_ff @(posedge clk) begin
                         OP_LDM: begin
                             if (exec_stage == 0) begin
                                 bit do_work = 1;
-                                if (repeat_active) begin
+                                if (decoded.rep != REPEAT_NONE) begin
                                     if (reg_cw == 16'd0) begin
                                         do_work = 0;
                                     end else begin
@@ -925,7 +818,7 @@ always_ff @(posedge clk) begin
                                 end
 
                                 if (do_work) begin
-                                    read_memory(reg_ix, override_segment(DS0), decoded.width);
+                                    read_memory(reg_ix, decoded.segment, decoded.width);
                                     working = 1;
                                 end
                             end else begin
@@ -941,14 +834,14 @@ always_ff @(posedge clk) begin
                                 end
                                 exec_stage <= 0;
 
-                                if (repeat_active) working = reg_cw != 16'd0;
+                                if (decoded.rep != REPEAT_NONE) working = reg_cw != 16'd0;
                             end
                         end
 
                         OP_MOVBK: begin
                             if (exec_stage == 0) begin
                                 bit do_work = 1;
-                                if (repeat_active) begin
+                                if (decoded.rep != REPEAT_NONE) begin
                                     if (reg_cw == 16'd0) begin
                                         do_work = 0;
                                     end else begin
@@ -957,7 +850,7 @@ always_ff @(posedge clk) begin
                                 end
 
                                 if (do_work) begin
-                                    read_memory(reg_ix, override_segment(DS0), decoded.width);
+                                    read_memory(reg_ix, decoded.segment, decoded.width);
                                     working = 1;
                                 end
                             end else begin
@@ -971,13 +864,13 @@ always_ff @(posedge clk) begin
                                 end
                                 exec_stage <= 0;
 
-                                if (repeat_active) working = reg_cw != 16'd0;
+                                if (decoded.rep != REPEAT_NONE) working = reg_cw != 16'd0;
                             end
                         end
                         OP_CMPBK: begin
                             if (exec_stage == 0) begin
                                 bit do_work = 1;
-                                if (repeat_active) begin
+                                if (decoded.rep != REPEAT_NONE) begin
                                     if (reg_cw == 16'd0) begin
                                         do_work = 0;
                                     end else begin
@@ -986,7 +879,7 @@ always_ff @(posedge clk) begin
                                 end
 
                                 if (do_work) begin
-                                    read_memory(reg_ix, override_segment(DS0), decoded.width);
+                                    read_memory(reg_ix, decoded.segment, decoded.width);
                                     working = 1;
                                 end
                             end else if (exec_stage == 1) begin
@@ -1009,12 +902,12 @@ always_ff @(posedge clk) begin
                                 working = 1;
                                 flags <= alu_flags_result;
                                 exec_stage <= 0;
-                                if (repeat_active) begin
+                                if (decoded.rep != REPEAT_NONE) begin
                                     if (reg_cw == 16'd0) working = 0;
-                                    else if (repeat_cond == REPEAT_NZ) working = ~alu_flags_result.Z;
-                                    else if (repeat_cond == REPEAT_Z) working = alu_flags_result.Z;
-                                    else if (repeat_cond == REPEAT_NC) working = ~alu_flags_result.CY;
-                                    else if (repeat_cond == REPEAT_C) working = alu_flags_result.CY;
+                                    else if (decoded.rep == REPEAT_NZ) working = ~alu_flags_result.Z;
+                                    else if (decoded.rep == REPEAT_Z) working = alu_flags_result.Z;
+                                    else if (decoded.rep == REPEAT_NC) working = ~alu_flags_result.CY;
+                                    else if (decoded.rep == REPEAT_C) working = alu_flags_result.CY;
                                 end else begin
                                     working = 0;
                                 end
@@ -1024,7 +917,7 @@ always_ff @(posedge clk) begin
                         OP_CMPM: begin
                             if (exec_stage == 0) begin
                                 bit do_work = 1;
-                                if (repeat_active) begin
+                                if (decoded.rep != REPEAT_NONE) begin
                                     if (reg_cw == 16'd0) begin
                                         do_work = 0;
                                     end else begin
@@ -1051,12 +944,12 @@ always_ff @(posedge clk) begin
                                 working = 1;
                                 flags <= alu_flags_result;
                                 exec_stage <= 0;
-                                if (repeat_active) begin
+                                if (decoded.rep != REPEAT_NONE) begin
                                     if (reg_cw == 16'd0) working = 0;
-                                    else if (repeat_cond == REPEAT_NZ) working = ~alu_flags_result.Z;
-                                    else if (repeat_cond == REPEAT_Z) working = alu_flags_result.Z;
-                                    else if (repeat_cond == REPEAT_NC) working = ~alu_flags_result.CY;
-                                    else if (repeat_cond == REPEAT_C) working = alu_flags_result.CY;
+                                    else if (decoded.rep == REPEAT_NZ) working = ~alu_flags_result.Z;
+                                    else if (decoded.rep == REPEAT_Z) working = alu_flags_result.Z;
+                                    else if (decoded.rep == REPEAT_NC) working = ~alu_flags_result.CY;
+                                    else if (decoded.rep == REPEAT_C) working = alu_flags_result.CY;
                                 end else begin
                                     working = 0;
                                 end
@@ -1120,13 +1013,13 @@ always_ff @(posedge clk) begin
                         OP_PREPARE: begin
                             working = exec_stage != 3;
                             if (exec_stage == 0) begin
-                                prepare_nesting_level <= fetched_imm[20:16];
+                                prepare_nesting_level <= decoded.imm[20:16];
                                 reg_sp <= reg_sp - 16'd2;
                                 prepare_sp_save <= reg_sp - 16'd2;
                                 write_memory(reg_sp - 16'd2, SS, WORD, reg_bp);
                                 working = 1;
 
-                                case(fetched_imm[20:16])
+                                case(decoded.imm[20:16])
                                 5'd0: exec_stage <= 3;
                                 5'd1: exec_stage <= 2;
                                 default: exec_stage <= 1;
@@ -1142,7 +1035,7 @@ always_ff @(posedge clk) begin
                                 write_memory(reg_sp - 16'd2, SS, WORD, prepare_sp_save);
                             end else if (exec_stage == 3) begin
                                 reg_bp <= prepare_sp_save;
-                                reg_sp <= reg_sp - fetched_imm[15:0];
+                                reg_sp <= reg_sp - decoded.imm[15:0];
                             end
                         end
 
@@ -1167,7 +1060,7 @@ always_ff @(posedge clk) begin
                         OP_TRANS: begin
                             working = exec_stage == 0;
                             if (exec_stage == 0) begin
-                                read_memory(reg_bw + { 8'd0, reg_aw[7:0]}, override_segment(DS0), BYTE);
+                                read_memory(reg_bw + { 8'd0, reg_aw[7:0]}, decoded.segment, BYTE);
                             end else begin
                                 reg_aw[7:0] <= dp_din[7:0];
                             end
@@ -1179,7 +1072,7 @@ always_ff @(posedge clk) begin
                         end
 
                         OP_BRK: begin
-                            interrupt_vector <= fetched_imm[7:0];
+                            interrupt_vector <= decoded.imm[7:0];
                             exception = 1;
                         end
 
@@ -1200,7 +1093,7 @@ always_ff @(posedge clk) begin
                                 if (bcd_offset == reg_cw[7:1]) begin
                                     working = 0;
                                 end else begin
-                                    read_memory(reg_ix + {9'd0, bcd_offset}, override_segment(DS0), BYTE);
+                                    read_memory(reg_ix + {9'd0, bcd_offset}, decoded.segment, BYTE);
                                 end
                             end else if (exec_stage == 2) begin
                                 bcd_src <= dp_din[7:0] + { 7'd0, flags.CY };
@@ -1266,8 +1159,6 @@ always_ff @(posedge clk) begin
                     if (~working) begin
                         if (exception) begin
                             state <= INT_INITIATE;
-                        end else if (decoded.dest == OPERAND_NONE && decoded.opcode != OP_ALU) begin // check ALU for CMP and TEST
-                            state <= IDLE;
                         end else begin
                             state <= STORE_RESULT;
                         end
@@ -1275,168 +1166,196 @@ always_ff @(posedge clk) begin
                 end
             end // EXECUTE
 
-            POP_WAIT: begin
-                if (dp_ready) begin
-                    bit [15:0] list;
-                    int pop_idx = 0;
-                    list = pop_list;
-                    for (int i = 0; i < 16; i = i + 1) begin
-                        if (list[i]) pop_idx = i;
+            POP_WAIT: if (dp_ready & ce_1) begin
+                bit [15:0] list;
+                int pop_idx = 0;
+                bit skip_sp;
+                bit mem_write;
+
+                skip_sp = 0;
+                mem_write = 0;
+
+                list = pop_list;
+                for (int i = 0; i < 16; i = i + 1) begin
+                    if (list[i]) pop_idx = i;
+                end
+
+                case(pop_idx)
+                    0:  reg_aw <= dp_din;
+                    1:  reg_cw <= dp_din;
+                    2:  reg_dw <= dp_din;
+                    3:  reg_bw <= dp_din;
+                    4:  reg_sp <= dp_din;
+                    5:  begin
+                        reg_bp <= dp_din;
+                        skip_sp = 1;
                     end
-
-                    case(pop_idx)
-                        0:  reg_aw <= dp_din;
-                        1:  reg_cw <= dp_din;
-                        2:  reg_dw <= dp_din;
-                        3:  reg_bw <= dp_din;
-                        4:  reg_sp <= dp_din;
-                        5:  begin end
-                        6:  reg_bp <= dp_din;
-                        7:  reg_ix <= dp_din;
-                        8:  reg_iy <= dp_din;
-                        9:  reg_ds1 <= dp_din;
-                        10: begin
-                            flags.CY  <= dp_din[0];
-                            flags.P   <= dp_din[2];
-                            flags.AC  <= dp_din[4];
-                            flags.Z   <= dp_din[6];
-                            flags.S   <= dp_din[7];
-                            flags.BRK <= dp_din[8];
-                            flags.IE  <= dp_din[9];
-                            flags.DIR <= dp_din[10];
-                            flags.V   <= dp_din[11];
-                            flags.MD  <= dp_din[15];
-                        end
-                        11: begin
-                            reg_ps <= dp_din;
-                            new_pc <= 1;
-                        end
-                        12: reg_ss <= dp_din;
-                        13: reg_ds0 <= dp_din;
-                        14: begin
-                            reg_pc <= dp_din;
-                            new_pc <= 1;
-                        end
-                        15: begin
-                            if (decoded.mod == 2'b11) begin
-                                set_reg16(reg16_index_e'(decoded.rm), dp_din);
-                            end else begin
-                                write_memory(calculated_ea, override_segment(calculated_seg), WORD, dp_din);
-                            end
-                        end
-                    endcase
-
-                    list[pop_idx] = 0;
-                    pop_list <= list;
-
-                    if (list == 16'd0) begin
-                        if (decoded.opcode == OP_POP) begin
-                            state <= IDLE;
+                    6:  reg_bp <= dp_din;
+                    7:  reg_ix <= dp_din;
+                    8:  reg_iy <= dp_din;
+                    9:  reg_ds1 <= dp_din;
+                    10: begin
+                        flags.CY  <= dp_din[0];
+                        flags.P   <= dp_din[2];
+                        flags.AC  <= dp_din[4];
+                        flags.Z   <= dp_din[6];
+                        flags.S   <= dp_din[7];
+                        flags.BRK <= dp_din[8];
+                        flags.IE  <= dp_din[9];
+                        flags.DIR <= dp_din[10];
+                        flags.V   <= dp_din[11];
+                        flags.MD  <= dp_din[15];
+                    end
+                    11: begin
+                        reg_ps <= dp_din;
+                        stack_modified_ps <= 1;
+                    end
+                    12: reg_ss <= dp_din;
+                    13: reg_ds0 <= dp_din;
+                    14: begin
+                        new_pc <= dp_din;
+                        stack_modified_pc <= 1;
+                    end
+                    15: begin
+                        if (decoded.mod == 2'b11) begin
+                            set_reg16(reg16_index_e'(decoded.rm), dp_din);
                         end else begin
-                            state <= EXECUTE;
+                            write_memory(calculated_ea, decoded.segment, WORD, dp_din);
+                            mem_write = 1;
                         end
+                    end
+                endcase
+
+                list[pop_idx] = 0;
+                pop_list <= list;
+
+                if (skip_sp) reg_sp <= reg_sp + 16'd2;
+
+                if (list == 16'd0) begin
+                    if (decoded.opcode == OP_POP) begin
+                        state <= IDLE;
+                        start_decode <= 1;
                     end else begin
+                        state <= EXECUTE;
+                    end
+                end else begin
+                    if (mem_write) begin
                         state <= POP;
+                    end else begin
+                        if (skip_sp) begin
+                            read_memory(reg_sp + 16'd2, SS, WORD);
+                            reg_sp <= reg_sp + 16'd4;
+                        end else begin
+                            read_memory(reg_sp, SS, WORD);
+                            reg_sp <= reg_sp + 16'd2;
+                        end
+                        state <= POP_WAIT;
                     end
                 end
             end // POP_WAIT
 
             INT_PUSH,
-            PUSH: if (ce_2) begin
+            PUSH: if (dp_ready & ce_1) begin
                 bit [15:0] push_data;
                 bit [15:0] list;
-                if (dp_ready) begin
-                    int push_idx = 0;
-                    list = push_list;
-                    for (int i = 15; i >= 0; i = i - 1) begin
-                        if (list[i]) push_idx = i;
-                    end
+                int push_idx;
 
-                    reg_sp <= reg_sp - 16'd2;
-
-                    case(push_idx)
-                    0:  push_data = reg_aw;
-                    1:  push_data = reg_cw;
-                    2:  push_data = reg_dw;
-                    3:  push_data = reg_bw;
-                    4:  push_data = push_sp_save;
-                    5:  push_data = push_sp_save; // DISCARD
-                    6:  push_data = reg_bp;
-                    7:  push_data = reg_ix;
-                    8:  push_data = reg_iy;
-                    9:  push_data = reg_ds1;
-                    10: push_data = reg_psw;
-                    11: push_data = reg_ps;
-                    12: push_data = reg_ss;
-                    13: push_data = reg_ds0;
-                    14: push_data = reg_pc;
-                    15: push_data = get_operand(decoded.source0);
-                    endcase
-
-                    write_memory(reg_sp - 16'd2, SS, WORD, push_data);
-
-                    list[push_idx] = 0;
-                    push_list <= list;
-
-                    if (list == 16'd0) begin
-                        if (state == INT_PUSH) begin
-                            state <= INT_FETCH_VEC;
-                        end else if (decoded.opcode == OP_PUSH) begin
-                            state <= IDLE;
-                        end else begin
-                            state <= EXECUTE;
-                        end
-                    end 
+                push_idx = 0;
+                list = push_list;
+                for (int i = 15; i >= 0; i = i - 1) begin
+                    if (list[i]) push_idx = i;
                 end
+
+                reg_sp <= reg_sp - 16'd2;
+
+                case(push_idx)
+                0:  push_data = reg_aw;
+                1:  push_data = reg_cw;
+                2:  push_data = reg_dw;
+                3:  push_data = reg_bw;
+                4:  push_data = push_sp_save;
+                5:  push_data = push_sp_save; // DISCARD
+                6:  push_data = reg_bp;
+                7:  push_data = reg_ix;
+                8:  push_data = reg_iy;
+                9:  push_data = reg_ds1;
+                10: push_data = reg_psw;
+                11: push_data = reg_ps;
+                12: push_data = reg_ss;
+                13: push_data = reg_ds0;
+                14: push_data = decoded.end_pc;
+                15: push_data = get_operand(decoded.source0);
+                endcase
+
+                write_memory(reg_sp - 16'd2, SS, WORD, push_data);
+
+                list[push_idx] = 0;
+                push_list <= list;
+
+                if (list == 16'd0) begin
+                    if (state == INT_PUSH) begin
+                        state <= INT_FETCH_VEC;
+                    end else if (decoded.opcode == OP_PUSH) begin
+                        state <= IDLE;
+                        start_decode <= 1;
+                    end else begin
+                        state <= EXECUTE;
+                    end
+                end 
             end // PUSH
 
-            POP: if (ce_2) begin
-                if (dp_ready) begin
-                    read_memory(reg_sp, SS, WORD);
-                    reg_sp <= reg_sp + 16'd2;
+            POP: if (dp_ready & ce_1) begin
+                read_memory(reg_sp, SS, WORD);
+                reg_sp <= reg_sp + 16'd2;
 
-                    state <= POP_WAIT;
-                end
+                state <= POP_WAIT;
             end // POP
 
-            STORE_RESULT: if (ce_2) begin
-                result8 = use_alu_result ? alu_result[7:0] : op_result[7:0];
-                result16 = use_alu_result ? alu_result[15:0] : op_result;
-                result32 = use_alu_result ? alu_result : { 16'd0, op_result };
+            /*PRE_STORE_DELAY: if (ce_2 && ((cycles + 6'd1) >= op_cycles)) begin
+                exec_stage <= STORE_RESULT;
+            end*/
 
-                // TODO, do we need to wait for dp_ready here? should it be more focused on just the writing case?
-                if (dp_ready) begin
+            STORE_RESULT: if (dp_ready) begin
+
+                if (use_branch_result) begin
+                    set_pc <= 1;
+                    new_pc <= branch_new_pc;
+                    reg_ps <= branch_new_ps;
+                    state <= IDLE;
+                end else begin
+                    result32 = use_alu_result ? alu_result : { 16'd0, op_result };
+
                     case(decoded.dest)
                     OPERAND_ACC: begin
                         if (decoded.width == BYTE)
-                            reg_aw[7:0] <= result8;
+                            reg_aw[7:0] <= result32[7:0];
                         else
-                            reg_aw <= result16;
+                            reg_aw <= result32[15:0];
                     end
                     OPERAND_MODRM: begin
                         if (decoded.mod == 2'b11) begin
                             if (decoded.width == BYTE)
-                                set_reg8(reg8_index_e'(decoded.rm), result8);
+                                set_reg8(reg8_index_e'(decoded.rm), result32[7:0]);
                             else
-                                set_reg16(reg16_index_e'(decoded.rm), result16);
+                                set_reg16(reg16_index_e'(decoded.rm), result32[15:0]);
                         end else begin
-                            write_memory(calculated_ea, override_segment(calculated_seg), decoded.width, result16);
+                            write_memory(calculated_ea, decoded.segment, decoded.width, result32[15:0]);
                         end
                     end
                     OPERAND_SREG: begin
-                        set_sreg(sreg_index_e'(decoded.sreg), result16);
+                        set_sreg(sreg_index_e'(decoded.sreg), result32[15:0]);
                     end
                     OPERAND_REG_0: begin
                         if (decoded.width == BYTE)
-                            set_reg8(reg8_index_e'(decoded.reg0), result8);
+                            set_reg8(reg8_index_e'(decoded.reg0), result32[7:0]);
                         else
-                            set_reg16(reg16_index_e'(decoded.reg0), result16);
+                            set_reg16(reg16_index_e'(decoded.reg0), result32[15:0]);
                     end
                     OPERAND_REG_1: begin
                         if (decoded.width == BYTE)
-                            set_reg8(reg8_index_e'(decoded.reg1), result8);
+                            set_reg8(reg8_index_e'(decoded.reg1), result32[7:0]);
                         else
-                            set_reg16(reg16_index_e'(decoded.reg1), result16);
+                            set_reg16(reg16_index_e'(decoded.reg1), result32[15:0]);
                     end
                     OPERAND_PRODUCT: begin
                         if (decoded.width == WORD) reg_dw <= result32[31:16];
@@ -1445,8 +1364,13 @@ always_ff @(posedge clk) begin
                     default: begin end
                     endcase
 
-                    if (use_alu_result) flags <= alu_flags_result;
+                    if (use_alu_result) begin
+                        flags <= alu_flags_result;
+                        op_cycles <= op_cycles + alu_cycles;
+                    end
+
                     state <= IDLE;
+                    start_decode <= 1;
                 end
             end // STORE_RESULT
 

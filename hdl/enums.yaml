@@ -47,13 +47,8 @@ opcode_e:
     - OUT
     - BR_REL
     - BR_ABS
-    - CALL_REL
-    - CALL_NEAR
-    - CALL_FAR
-    - POP_VALUE
-    - SEG_PREFIX
-    - REP_PREFIX
-    - BUSLOCK_PREFIX
+    - RET
+    - RET_POP_VALUE
     - STM
     - LDM
     - MOVBK
@@ -172,3 +167,19 @@ cpu_state_e:
     - INT_FETCH_WAIT1
     - INT_FETCH_WAIT2
     - INT_PUSH
+
+decode_stage_e:
+  values:
+    - INVALID
+    - INIT
+    - WAIT_OPCODE
+    - WAIT_OPERANDS
+    - DECODED
+
+repeat_e:
+  values:
+    - REPEAT_NONE
+    - REPEAT_C
+    - REPEAT_NC
+    - REPEAT_Z
+    - REPEAT_NZ

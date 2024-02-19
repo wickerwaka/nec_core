@@ -65,21 +65,21 @@ def assign_src_dst(op_desc, assignments):
 
     if len(found) == 1:
         mem_type = list(found.keys())[0]
-        assignments.append( f"d.use_modrm = 1")
+        assignments.append( f"d.use_modrm <= 1")
 
         if mem_type == 'DMEM':
-            assignments.append( "d.rm = 3'b110" )
-            assignments.append( "d.mod = 2'b00" )
+            assignments.append( "d.rm <= 3'b110" )
+            assignments.append( "d.mod <= 2'b00" )
             mem_type = 'MODRM'
         
         for k in list(mapping.keys()):
             if is_mem_type(mapping[k]):
                 mapping[k] = mem_type
     else:
-        assignments.append( f"d.use_modrm = 0")
+        assignments.append( f"d.use_modrm <= 0")
 
     for k, v in mapping.items():
-        assignments.append( f"d.{k} = OPERAND_{v}" )
+        assignments.append( f"d.{k} <= OPERAND_{v}" )
     
     return assignments
 
@@ -93,45 +93,49 @@ def to_entry(k: str, op_desc: dict):
     opcode = op_desc.get('op')
     comment = op_desc.get('desc') or opcode
     if opcode:
-        assignments.append( f"d.opcode = OP_{opcode}" )
+        assignments.append( f"d.opcode <= OP_{opcode}" )
 
     alu_op = op_desc.get('alu')
     if alu_op:
-        assignments.append( f"d.alu_operation = ALU_OP_{alu_op}" )
+        assignments.append( f"d.alu_operation <= ALU_OP_{alu_op}" )
     
     sreg = op_desc.get('sreg')
     if sreg:
-        assignments.append( f"d.sreg = {sreg}" )
+        assignments.append( f"d.sreg <= {sreg}" )
 
     reg = op_desc.get('reg0')
     if reg:
-        assignments.append( f"d.reg0 = {reg}" )
+        assignments.append( f"d.reg0 <= {reg}" )
 
     reg = op_desc.get('reg1')
     if reg:
-        assignments.append( f"d.reg1 = {reg}" )
+        assignments.append( f"d.reg1 <= {reg}" )
 
     width = op_desc.get('width')
     if width:
-        assignments.append( f"d.width = {width}" )
+        assignments.append( f"d.width <= {width}" )
 
-    prefix = op_desc.get('prefix', False)
-    if prefix:
-        assignments.append( f"d.prefix = 1" )
-    
+    cycles = op_desc.get('cycles', 0)
+    if cycles:
+        assignments.append( f'd.cycles <= {cycles}' )
+
+    mem_cycles = op_desc.get('mem_cycles', 0)
+    if cycles:
+        assignments.append( f'd.mem_cycles <= {mem_cycles}')
+
     push = op_desc.get('push')
     if push:
         if not isinstance(push, list):
             push = [ push ]
         agg = ' | '.join( [ f"STACK_{x}" for x in push ] )
-        assignments.append( f"d.push = {agg}" )
+        assignments.append( f"d.push <= {agg}" )
 
     pop = op_desc.get('pop')
     if pop:
         if not isinstance(pop, list):
             pop = [ pop ]
         agg = ' | '.join( [ f"STACK_{x}" for x in pop ] )
-        assignments.append( f"d.pop = {agg}" )
+        assignments.append( f"d.pop <= {agg}" )
 
     assignments = assign_src_dst(op_desc, assignments)
 
@@ -150,12 +154,12 @@ def to_entry(k: str, op_desc: dict):
             tr = desc.get('transform', None)
             if tr:
                 source = tr(source)
-            assignments.append( f"d.{desc['signal']} = {source}" )
+            assignments.append( f"d.{desc['signal']} <= {source}" )
             k = k.replace(pid, 'x' * len(pid))
     
     
     pre_size = (len(k) + 7) // 8
-    assignments.append( f"d.pre_size = {pre_size}" )
+    assignments.append( f"op_size = {pre_size}" )
     assignments.append( f"valid_op = 1" )
 
     k = k + 'x' * (24 - len(k))

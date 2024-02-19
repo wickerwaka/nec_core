@@ -14,6 +14,8 @@ b00_ALU_00W_MD_GP0_MEM:
   src0: MODRM
   src1: REG_0
   dst: MODRM
+  cycles: 2
+  mem_cycles: 1
 
 b00_ALU_01W_MD_GP0_MEM:
   desc: ALU_OP reg, mem/reg
@@ -21,6 +23,8 @@ b00_ALU_01W_MD_GP0_MEM:
   src0: REG_0
   src1: MODRM
   dst: REG_0
+  cycles: 2
+  mem_cycles: 2
 
 b00_ALU_10W:
   desc: ALU_OP acc, imm
@@ -28,6 +32,7 @@ b00_ALU_10W:
   dst: ACC
   src0: ACC
   src1: IMM
+  cycles: 2
 
 b1000000W_MD_ALU_MEM:
   desc: ALU_OP mem/reg, imm
@@ -35,6 +40,8 @@ b1000000W_MD_ALU_MEM:
   dst: MODRM
   src0: MODRM
   src1: IMM
+  cycles: 2
+  mem_cycles: 1
 
 b1000001W_MD_ALU_MEM:
   desc: ALU_OP mem/reg, sext_imm
@@ -42,6 +49,7 @@ b1000001W_MD_ALU_MEM:
   dst: MODRM
   src0: MODRM
   src1: IMM_EXT
+  cycles: 2
 
 #
 # Rotate
@@ -51,12 +59,15 @@ b1101000W_MD_SFT_MEM:
   op: SHIFT_1
   dst: MODRM
   src: MODRM
+  cycles: 2
+  mem_cycles: 1
 
 b1101001W_MD_SFT_MEM:
   desc: SHIFT mem/reg, CL
   op: SHIFT_CL
   dst: MODRM
   src: MODRM
+  cycles: 2
 
 b1100000W_MD_SFT_MEM:
   desc: SHIFT mem/reg, imm
@@ -64,6 +75,7 @@ b1100000W_MD_SFT_MEM:
   dst: MODRM
   src0: MODRM
   src1: IMM8
+  cycles: 2
 
 #
 # CMP
@@ -74,6 +86,8 @@ b00_111_00W_MD_GP0_MEM:
   alu: CMP
   src0: MODRM
   src1: REG_0
+  cycles: 2
+  mem_cycles: 2
 
 b00_111_01W_MD_GP0_MEM:
   desc: CMP reg, mem/reg
@@ -81,6 +95,8 @@ b00_111_01W_MD_GP0_MEM:
   alu: CMP
   src0: REG_0
   src1: MODRM
+  cycles: 2
+  mem_cycles: 2
 
 b00_111_10W:
   desc: CMP acc, imm
@@ -88,6 +104,7 @@ b00_111_10W:
   alu: CMP
   src0: ACC
   src1: IMM
+  cycles: 2
 
 b1000000W_MD_111_MEM:
   desc: CMP mem/reg, imm
@@ -95,6 +112,8 @@ b1000000W_MD_111_MEM:
   alu: CMP
   src0: MODRM
   src1: IMM
+  cycles: 2
+  mem_cycles: 2
 
 b1000001W_MD_111_MEM:
   desc: CMP mem/reg, sext_imm
@@ -102,6 +121,8 @@ b1000001W_MD_111_MEM:
   alu: CMP
   src0: MODRM
   src1: IMM_EXT
+  cycles: 2
+  mem_cycles: 2
 
 
 #
@@ -114,6 +135,7 @@ b01001_GP0:
   dst: REG_0
   src: REG_0
   width: WORD
+  cycles: 2
 
 b1111111W_MD_001_MEM:
   desc: DEC mem/reg
@@ -121,6 +143,8 @@ b1111111W_MD_001_MEM:
   alu: DEC
   dst: MODRM
   src: MODRM
+  cycles: 2
+  mem_cycles: 1
 
 b01000_GP0:
   desc: INC reg16
@@ -129,6 +153,7 @@ b01000_GP0:
   dst: REG_0
   src: REG_0
   width: WORD
+  cycles: 2
 
 b1111111W_MD_000_MEM:
   desc: INC mem/reg
@@ -136,6 +161,8 @@ b1111111W_MD_000_MEM:
   alu: INC
   dst: MODRM
   src: MODRM
+  cycles: 2
+  mem_cycles: 1
 
 #
 # TEST
@@ -146,6 +173,8 @@ b10_000_10W_MD_GP0_MEM:
   alu: AND
   src0: MODRM
   src1: REG_0
+  cycles: 2
+  mem_cycles: 2
 
 b1010100W:
   desc: TEST acc, imm
@@ -153,6 +182,7 @@ b1010100W:
   alu: AND
   src0: ACC
   src1: IMM
+  cycles: 2
 
 b1111011W_MD_000_MEM:
   desc: TEST mem/reg, imm
@@ -160,6 +190,8 @@ b1111011W_MD_000_MEM:
   alu: AND
   src0: MODRM
   src1: IMM
+  cycles: 2
+  mem_cycles: 2
 
 
 
@@ -172,6 +204,8 @@ b1111011W_MD_010_MEM:
   alu: NOT
   dst: MODRM
   src0: MODRM
+  cycles: 2
+  mem_cycles: 1
 
 #
 # NEG
@@ -319,6 +353,7 @@ b1011W_GP0:
 
 b1100011W_MD_000_MEM:
   op: MOV
+  desc: MOV mem/reg, imm
   dst: MODRM
   src: IMM
 
@@ -335,12 +370,14 @@ b1010001W:
   src: ACC
 
 b10001110_MD_0_SR_MEM:
+  desc: MOV sreg, mem/reg
   op: MOV
   dst: SREG
   src: MODRM
   width: WORD
 
 b10001100_MD_0_SR_MEM:
+  desc: MOV mem/reg, sreg
   op: MOV
   dst: MODRM
   src: SREG
@@ -403,30 +440,37 @@ b1110_1001:
   op: BR_REL
   src: IMM
   width: WORD
+  cycles: 7
 
 b1110_1011:
   desc: BR short-label
   op: BR_REL
   src: IMM_EXT
   width: WORD
+  cycles: 7
 
 b1110_1010:
   desc: BR far-label
   op: BR_ABS
   src: IMM
   width: DWORD
+  cycles: 7
 
 b1111_1111_MD_100_MEM:
   desc: BR ptr16
   op: BR_ABS
   src: MODRM
   width: WORD
+  cycles: 7
+  mem_cycles: 2
+
 
 b1111_1111_MD_101_MEM:
   desc: BR memptr32
   op: BR_ABS
   src: MODRM
   width: DWORD
+  cycles: 9
 
 
 #
@@ -470,12 +514,13 @@ b1001_1010:
 #
 b1100_0011:
   desc: RET
+  op: RET
   pop:
     - PC
 
 b1100_1010:
   desc: RET pop-value
-  op: POP_VALUE
+  op: RET_POP_VALUE
   src: IMM
   width: WORD
   pop:
@@ -483,13 +528,14 @@ b1100_1010:
 
 b1100_1011:
   desc: RETF
+  op: RET
   pop:
     - PC
     - PS
 
 b1100_0010:
   desc: RETF pop-value
-  op: POP_VALUE
+  op: RET_POP_VALUE
   src: IMM
   width: WORD
   pop:
@@ -498,6 +544,7 @@ b1100_0010:
 
 b1100_1111:
   desc: RETI
+  op: RET
   pop:
     - PC
     - PS
@@ -674,8 +721,7 @@ b01100001:
     - CW
     - DW
     - BW
-    - SP_DISCARD
-    - BP
+    - BP_SKIP_SP
     - IX
     - IY
 
@@ -719,47 +765,6 @@ b1110_111W:
   src: REG_0
   reg0: DW
 
-
-#
-# Segment Prefix
-#
-b001_SR_110:
-  desc: SEG PREFIX
-  prefix: true
-  op: SEG_PREFIX
-
-
-#
-# Repeat Prefix
-#
-b11110011:
-  desc: REP/REPE/REPZ
-  prefix: true
-  op: REP_PREFIX
-
-b01100101:
-  desc: REPC
-  prefix: true
-  op: REP_PREFIX
-
-b01100100:
-  desc: REPNC
-  prefix: true
-  op: REP_PREFIX
-
-b11110010:
-  desc: REPNE/REPNZ
-  prefix: true
-  op: REP_PREFIX
-
-
-#
-# Buslock
-#
-b1111000:
-  desc: BUSLOCK
-  prefix: true
-  op: BUSLOCK_PREFIX
 
 #
 # String/Block operations

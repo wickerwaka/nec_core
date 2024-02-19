@@ -41,52 +41,47 @@
     <symbol name="OUT" value="001011" />
     <symbol name="BR_REL" value="001100" />
     <symbol name="BR_ABS" value="001101" />
-    <symbol name="CALL_REL" value="001110" />
-    <symbol name="CALL_NEAR" value="001111" />
-    <symbol name="CALL_FAR" value="010000" />
-    <symbol name="POP_VALUE" value="010001" />
-    <symbol name="SEG_PREFIX" value="010010" />
-    <symbol name="REP_PREFIX" value="010011" />
-    <symbol name="BUSLOCK_PREFIX" value="010100" />
-    <symbol name="STM" value="010101" />
-    <symbol name="LDM" value="010110" />
-    <symbol name="MOVBK" value="010111" />
-    <symbol name="CMPBK" value="011000" />
-    <symbol name="CMPM" value="011001" />
-    <symbol name="INM" value="011010" />
-    <symbol name="OUTM" value="011011" />
-    <symbol name="NOT1_CY" value="011100" />
-    <symbol name="CLR1_CY" value="011101" />
-    <symbol name="SET1_CY" value="011110" />
-    <symbol name="DI" value="011111" />
-    <symbol name="EI" value="100000" />
-    <symbol name="CLR1_DIR" value="100001" />
-    <symbol name="SET1_DIR" value="100010" />
-    <symbol name="HALT" value="100011" />
-    <symbol name="SHIFT" value="100100" />
-    <symbol name="SHIFT_1" value="100101" />
-    <symbol name="SHIFT_CL" value="100110" />
-    <symbol name="LDEA" value="100111" />
-    <symbol name="CVTDB" value="101000" />
-    <symbol name="CVTBD" value="101001" />
-    <symbol name="CVTBW" value="101010" />
-    <symbol name="CVTWL" value="101011" />
-    <symbol name="DIV" value="101100" />
-    <symbol name="DIVU" value="101101" />
-    <symbol name="PREPARE" value="101110" />
-    <symbol name="DISPOSE" value="101111" />
-    <symbol name="CHKIND" value="110000" />
-    <symbol name="TRANS" value="110001" />
-    <symbol name="BRK3" value="110010" />
-    <symbol name="BRK" value="110011" />
-    <symbol name="BRKV" value="110100" />
-    <symbol name="ADD4S" value="110101" />
-    <symbol name="SUB4S" value="110110" />
-    <symbol name="CMP4S" value="110111" />
-    <symbol name="ROR4" value="111000" />
-    <symbol name="ROL4" value="111001" />
-    <symbol name="PUSH" value="111010" />
-    <symbol name="POP" value="111011" />
+    <symbol name="RET" value="001110" />
+    <symbol name="RET_POP_VALUE" value="001111" />
+    <symbol name="STM" value="010000" />
+    <symbol name="LDM" value="010001" />
+    <symbol name="MOVBK" value="010010" />
+    <symbol name="CMPBK" value="010011" />
+    <symbol name="CMPM" value="010100" />
+    <symbol name="INM" value="010101" />
+    <symbol name="OUTM" value="010110" />
+    <symbol name="NOT1_CY" value="010111" />
+    <symbol name="CLR1_CY" value="011000" />
+    <symbol name="SET1_CY" value="011001" />
+    <symbol name="DI" value="011010" />
+    <symbol name="EI" value="011011" />
+    <symbol name="CLR1_DIR" value="011100" />
+    <symbol name="SET1_DIR" value="011101" />
+    <symbol name="HALT" value="011110" />
+    <symbol name="SHIFT" value="011111" />
+    <symbol name="SHIFT_1" value="100000" />
+    <symbol name="SHIFT_CL" value="100001" />
+    <symbol name="LDEA" value="100010" />
+    <symbol name="CVTDB" value="100011" />
+    <symbol name="CVTBD" value="100100" />
+    <symbol name="CVTBW" value="100101" />
+    <symbol name="CVTWL" value="100110" />
+    <symbol name="DIV" value="100111" />
+    <symbol name="DIVU" value="101000" />
+    <symbol name="PREPARE" value="101001" />
+    <symbol name="DISPOSE" value="101010" />
+    <symbol name="CHKIND" value="101011" />
+    <symbol name="TRANS" value="101100" />
+    <symbol name="BRK3" value="101101" />
+    <symbol name="BRK" value="101110" />
+    <symbol name="BRKV" value="101111" />
+    <symbol name="ADD4S" value="110000" />
+    <symbol name="SUB4S" value="110001" />
+    <symbol name="CMP4S" value="110010" />
+    <symbol name="ROR4" value="110011" />
+    <symbol name="ROL4" value="110100" />
+    <symbol name="PUSH" value="110101" />
+    <symbol name="POP" value="110110" />
   </table>
   <table name="alu_operation_e" width="6">
     <symbol name="ADD" value="000000" />
@@ -160,6 +155,20 @@
     <symbol name="INT_FETCH_WAIT1" value="1011" />
     <symbol name="INT_FETCH_WAIT2" value="1100" />
     <symbol name="INT_PUSH" value="1101" />
+  </table>
+  <table name="decode_stage_e" width="3">
+    <symbol name="INVALID" value="000" />
+    <symbol name="INIT" value="001" />
+    <symbol name="WAIT_OPCODE" value="010" />
+    <symbol name="WAIT_OPERANDS" value="011" />
+    <symbol name="DECODED" value="100" />
+  </table>
+  <table name="repeat_e" width="3">
+    <symbol name="REPEAT_NONE" value="000" />
+    <symbol name="REPEAT_C" value="001" />
+    <symbol name="REPEAT_NC" value="010" />
+    <symbol name="REPEAT_Z" value="011" />
+    <symbol name="REPEAT_NZ" value="100" />
   </table>
 </mnemonics>
 </session>

@@ -13,6 +13,8 @@ module alu(
     input wide,
     output [31:0] result,
 
+    output [5:0]  alu_cycles,
+
     input flags_t flags_in,
     output flags_t flags
 );
@@ -52,6 +54,8 @@ always_comb begin
     sh34 = 34'd0;
 
     flags = flags_in;
+
+    alu_cycles = 0;
 
     case(operation)
     ALU_OP_ADD, ALU_OP_ADDC, ALU_OP_INC: begin
@@ -237,9 +241,11 @@ always_comb begin
         if (wide) begin
             res = (ta << sz[3:0]) | (ta >> (5'd16 - sz[3:0]));
             flags.CY = temp17[16];
+            alu_cycles = { 2'd0, tb[3:0] };
         end else begin
             res[7:0] = (ta[7:0] << sz[2:0]) | (ta[7:0] >> (4'd8 - sz[2:0]));
             flags.CY = temp17[8];
+            alu_cycles = { 3'd0, tb[2:0] };
         end
     end
 
@@ -263,6 +269,7 @@ always_comb begin
             sh34 = (sh34 << sz) | (sh34 >> sz_inv);
             res = sh34[15:0];
             flags.CY = sh34[16];
+            alu_cycles = { 1'd0, tb[4:0] };
         end else begin
             sz = { 2'b00, tb[3:0] };
             sz_inv = 6'd18 - sz;
@@ -270,6 +277,7 @@ always_comb begin
             sh18 = (sh18 << sz) | (sh18 >> sz_inv);
             res[7:0] = sh18[7:0];
             flags.CY = sh18[8];
+            alu_cycles = { 2'd0, tb[3:0] };
         end
     end
 
@@ -291,8 +299,10 @@ always_comb begin
         flags.CY = temp17[0];
         if (wide) begin
             res = (ta >> sz[3:0]) | (ta << (5'd16 - sz[3:0]));
+            alu_cycles = { 2'd0, tb[3:0] };
         end else begin
             res[7:0] = (ta[7:0] >> sz[2:0]) | (ta[7:0] << (4'd8 - sz[2:0]));
+            alu_cycles = { 3'd0, tb[2:0] };
         end
     end
 
@@ -315,6 +325,7 @@ always_comb begin
             sh34 = (sh34 >> sz) | (sh34 << sz_inv);
             res = sh34[15:0];
             flags.CY = sh34[16];
+            alu_cycles = { 1'd0, tb[4:0] };
         end else begin
             sz = { 2'b00, tb[3:0] };
             sz_inv = 6'd18 - sz;
@@ -322,6 +333,7 @@ always_comb begin
             sh18 = (sh18 >> sz) | (sh18 << sz_inv);
             res[7:0] = sh18[7:0];
             flags.CY = sh18[8];
+            alu_cycles = { 2'd0, tb[3:0] };
         end
     end
 
