@@ -49,10 +49,10 @@ void write_mem(uint32_t addr, bool ube, uint16_t dout)
     }
 }
 
-v33_V33::state_e prev_state = v33_V33::IDLE;
+v33_types::cpu_state_e prev_state = v33_types::IDLE;
 void print_trace(const v33_V33 *cpu)
 {
-    if( cpu->state == v33_V33::IDLE && prev_state != v33_V33::IDLE && cpu->decoded.__PVT__prefix == 0)
+    if( cpu->state != v33_types::IDLE && prev_state == v33_types::IDLE)
     {
         printf("psw=%04X aw=%04X cw=%04X dw=%04X bw=%04X sp=%04X bp=%04X ix=%04X iy=%04X ds1=%04X ps=%04X ss=%04X ds0=%04X %05X\n",
             cpu->reg_psw,
@@ -68,10 +68,10 @@ void print_trace(const v33_V33 *cpu)
             cpu->reg_ps,
             cpu->reg_ss,
             cpu->reg_ds0,
-            (cpu->reg_ps << 4) + cpu->reg_pc
+            (cpu->reg_ps << 4) + cpu->decoded.__PVT__pc
         );
     }
-    prev_state = (v33_V33::state_e)cpu->state;
+    prev_state = (v33_types::cpu_state_e)cpu->state;
 }
 
 void tick(int count = 1)
