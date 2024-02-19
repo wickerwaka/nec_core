@@ -172,7 +172,7 @@ def to_entry(k: str, op_desc: dict):
     }
 
 
-input_name = 'docs/opcodes.yaml'
+input_name = 'hdl/opcodes.yaml'
 output_name = 'hdl/opcodes.svh'
 
 opcode_desc = yaml.safe_load(open(input_name, 'r'))
