@@ -26,7 +26,7 @@ always_comb begin
     flags_t fcalc;
     bit [15:0] res;
     bit [16:0] temp17;
-    bit [15:0] temp1;
+    bit [16:0] temp17_2;
     bit [8:0] temp9;
     bit [31:0] result32;
     bit use_result32;
@@ -45,9 +45,9 @@ always_comb begin
     use_result32 = 0;
     result32 = 32'd0;
     res = 16'd0;
-    temp1 = 16'd0;
-    temp9 = 9'd0;
     temp17 = 17'd0;
+    temp9 = 9'd0;
+    temp17_2 = 17'd0;
     sz = 6'd0;
     sz_inv = 6'd0;
     sh18 = 18'd0;
@@ -60,48 +60,48 @@ always_comb begin
     case(operation)
     ALU_OP_ADD, ALU_OP_ADDC, ALU_OP_INC: begin
         if (operation == ALU_OP_INC)
-            temp1 = 16'd1;
+            temp17 = 17'd1;
         else if (operation == ALU_OP_ADDC)
-            temp1 = tb + { 15'd0, flags_in.CY };
+            temp17 = { 1'b0, tb } + { 16'd0, flags_in.CY };
         else
-            temp1 = tb;
+            temp17 = { 1'b0, tb };
         
-        temp17 = { 1'b0, ta } + { 1'b0, temp1 };
+        temp17_2 = { 1'b0, ta } + temp17;
+        res = temp17_2[15:0];
 
         if (operation != ALU_OP_INC)
-            flags.CY = wide ? temp17[16] : temp17[8];
+            flags.CY = wide ? temp17_2[16] : temp17_2[8];
         
-        flags.AC = ( {1'b0, temp1[3:0]} + {1'b0, ta[3:0]} ) > 5'd15 ? 1 : 0;
-
-        res = temp17[15:0];
+        flags.AC = ( {1'b0, temp17[3:0]} + {1'b0, ta[3:0]} ) > 5'd15 ? 1 : 0;
 
         if (wide)
-            flags.V = (ta[15] ^ res[15]) & (temp1[15] ^ res[15]);
+            flags.V = (ta[15] ^ res[15]) & (temp17[15] ^ res[15]);
         else
-            flags.V = (ta[7] ^ res[7]) & (temp1[7] ^ res[7]);
+            flags.V = (ta[7] ^ res[7]) & (temp17[7] ^ res[7]);
 
         calc_parity = 1; calc_sign = 1; calc_zero = 1;
     end
 
     ALU_OP_SUB, ALU_OP_CMP, ALU_OP_DEC, ALU_OP_SUBC: begin
         if (operation == ALU_OP_DEC)
-            temp1 = 16'd1;
+            temp17 = 17'd1;
         else if (operation == ALU_OP_SUBC)
-            temp1 = tb + { 15'd0, flags_in.CY };
+            temp17 = {1'b0, tb} + { 16'd0, flags_in.CY };
         else
-            temp1 = tb;
+            temp17 = {1'b0, tb};
 
-        res = ta - temp1;
+        temp17_2 = ta - temp17;
+        res = temp17_2[15:0];
 
         if (operation != ALU_OP_DEC)
-            flags.CY = temp1 > ta ? 1 : 0;
+            flags.CY = temp17 > {1'b0, ta} ? 1 : 0;
 
-        flags.AC = temp1[3:0] > ta[3:0] ? 1 : 0;
+        flags.AC = temp17_2[3:0] > ta[3:0] ? 1 : 0;
 
         if (wide)
-            flags.V = (ta[15] ^ temp1[15]) & (ta[15] ^ res[15]);
+            flags.V = (ta[15] ^ temp17[15]) & (ta[15] ^ res[15]);
         else
-            flags.V = (ta[7] ^ temp1[7]) & (ta[7] ^ res[7]);
+            flags.V = (ta[7] ^ temp17[7]) & (ta[7] ^ res[7]);
         calc_parity = 1; calc_sign = 1; calc_zero = 1;
     end
 
