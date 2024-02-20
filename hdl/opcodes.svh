@@ -672,7 +672,7 @@ end
 	op_size = 1;
 	valid_op = 1;
 end
-24'b11001010xxxxxxxxxxxxxxxx: begin /* RET pop-value */
+24'b11000010xxxxxxxxxxxxxxxx: begin /* RET pop-value */
 	d.opcode <= OP_RET_POP_VALUE;
 	d.width <= WORD;
 	d.pop <= STACK_PC;
@@ -693,7 +693,7 @@ end
 	op_size = 1;
 	valid_op = 1;
 end
-24'b11000010xxxxxxxxxxxxxxxx: begin /* RETF pop-value */
+24'b11001010xxxxxxxxxxxxxxxx: begin /* RETF pop-value */
 	d.opcode <= OP_RET_POP_VALUE;
 	d.width <= WORD;
 	d.pop <= STACK_PC | STACK_PS;
