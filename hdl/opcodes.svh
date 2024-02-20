@@ -483,6 +483,7 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_ADJ4A;
 	d.reg0 <= AW;
+	d.width <= WORD;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_REG_0;
 	d.source0 <= OPERAND_REG_0;
@@ -494,6 +495,7 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_ADJ4S;
 	d.reg0 <= AW;
+	d.width <= WORD;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_REG_0;
 	d.source0 <= OPERAND_REG_0;
@@ -505,6 +507,7 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_ADJBA;
 	d.reg0 <= AW;
+	d.width <= WORD;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_REG_0;
 	d.source0 <= OPERAND_REG_0;
@@ -516,6 +519,7 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_ADJBS;
 	d.reg0 <= AW;
+	d.width <= WORD;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_REG_0;
 	d.source0 <= OPERAND_REG_0;

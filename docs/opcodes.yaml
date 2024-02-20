@@ -279,6 +279,7 @@ b00100111:
   dst: REG_0
   src: REG_0
   reg0: AW
+  width: WORD
 
 b00101111:
   desc: ADJ4S
@@ -287,6 +288,7 @@ b00101111:
   dst: REG_0
   src: REG_0
   reg0: AW
+  width: WORD
 
 b00110111:
   desc: ADJBA
@@ -295,6 +297,7 @@ b00110111:
   dst: REG_0
   src: REG_0
   reg0: AW
+  width: WORD
 
 b00111111:
   desc: ADJBS
@@ -303,6 +306,7 @@ b00111111:
   dst: REG_0
   src: REG_0
   reg0: AW
+  width: WORD
 
 b11010101_00001010:
   desc: CVTDB

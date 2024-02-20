@@ -60,7 +60,7 @@ wire [15:0] cur_pc  /*verilator public*/;
 
 reg [15:0] next_pc;
 
-reg halt; // TODO, do something with this
+reg halt /*verilator public*/; // TODO, do something with this
 
 flags_t flags;
 wire [15:0] reg_psw /*verilator public*/ = {
@@ -96,8 +96,8 @@ reg [15:0] dp_din_low; // for 32-bit reads
 wire [31:0] dp_din32 = { dp_din, dp_din_low };
 
 // Instruction prefetch
-reg [15:0] new_pc;
-reg set_pc;
+reg [15:0] new_pc /*verilator public*/;
+reg set_pc /*verilator public*/;
 
 wire [7:0] ipq[8];
 wire [3:0] ipq_len;
@@ -685,7 +685,7 @@ always_ff @(posedge clk) begin
                             4'b1100: cond = (flags.S ^ flags.V) & ~flags.Z; /* LT */
                             4'b1101: cond = ~(flags.S ^ flags.V) | flags.Z; /* GE */
                             4'b1110: cond = (flags.S ^ flags.V) | flags.Z; /* LE */
-                            4'b1111: cond = ~((flags.S ^ flags.V) & ~flags.Z); /* GT */
+                            4'b1111: cond = ~((flags.S ^ flags.V) | flags.Z); /* GT */
                             endcase
 
                             op_cycles <= cond ? 6 : 3;
@@ -1204,7 +1204,7 @@ always_ff @(posedge clk) begin
                         flags.IE  <= dp_din[9];
                         flags.DIR <= dp_din[10];
                         flags.V   <= dp_din[11];
-                        flags.MD  <= dp_din[15];
+                        // flags.MD  <= dp_din[15]; // TODO V33, no MD flag, V20/30 will need this
                     end
                     11: begin
                         reg_ps <= dp_din;
