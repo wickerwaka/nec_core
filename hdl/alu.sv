@@ -400,10 +400,10 @@ always_comb begin
     ALU_OP_SHRA: begin
         flags.V = 0;
         if (~wide) begin
-            temp17 = { {8{ta[7]}}, ta[7:0], 1'b0 } >>> tb[4:0];
+            temp17 = $signed({ {8{ta[7]}}, ta[7:0], flags_in.CY }) >>> tb[4:0];
             flags.CY = temp17[0];
         end else begin
-            temp17 = { ta, 1'b0 } >>> tb[4:0];
+            temp17 = $signed({ ta, flags_in.CY }) >>> tb[4:0];
             flags.CY = temp17[0];
         end
         res = temp17[16:1];
