@@ -181,3 +181,20 @@ typedef enum bit [2:0] {
     REPEAT_NZ   = 3'b100
 } repeat_e /* verilator public */;
 
+typedef enum bit [1:0] {
+    T_1    = 2'b00,
+    T_2    = 2'b01,
+    T_IDLE = 2'b10
+} bcu_t_state_e /* verilator public */;
+
+typedef enum bit [2:0] {
+    INT_ACK1  = 3'b000,
+    INT_ACK2  = 3'b001,
+    IO_READ   = 3'b010,
+    IO_WRITE  = 3'b011,
+    HALT_ACK  = 3'b100,
+    IPQ_FETCH = 3'b101,
+    MEM_READ  = 3'b110,
+    MEM_WRITE = 3'b111
+} bcu_cycle_type_e /* verilator public */;
+

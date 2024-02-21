@@ -170,5 +170,20 @@
     <symbol name="REPEAT_Z" value="011" />
     <symbol name="REPEAT_NZ" value="100" />
   </table>
+  <table name="bcu_t_state_e" width="2">
+    <symbol name="T_1" value="00" />
+    <symbol name="T_2" value="01" />
+    <symbol name="T_IDLE" value="10" />
+  </table>
+  <table name="bcu_cycle_type_e" width="3">
+    <symbol name="INT_ACK1" value="000" />
+    <symbol name="INT_ACK2" value="001" />
+    <symbol name="IO_READ" value="010" />
+    <symbol name="IO_WRITE" value="011" />
+    <symbol name="HALT_ACK" value="100" />
+    <symbol name="IPQ_FETCH" value="101" />
+    <symbol name="MEM_READ" value="110" />
+    <symbol name="MEM_WRITE" value="111" />
+  </table>
 </mnemonics>
 </session>

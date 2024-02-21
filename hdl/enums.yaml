@@ -183,3 +183,20 @@ repeat_e:
     - REPEAT_NC
     - REPEAT_Z
     - REPEAT_NZ
+
+bcu_t_state_e:
+  values:
+    - T_1
+    - T_2
+    - T_IDLE
+
+bcu_cycle_type_e:
+  values:
+    - INT_ACK1
+    - INT_ACK2
+    - IO_READ
+    - IO_WRITE
+    - HALT_ACK
+    - IPQ_FETCH
+    - MEM_READ
+    - MEM_WRITE

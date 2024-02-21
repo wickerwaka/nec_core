@@ -262,6 +262,7 @@ always_comb begin
         end
     end
 
+    // TODO: how does real hardware deal with shift values > 31 ?
     ALU_OP_ROLC: begin
         if (wide) begin
             sz = { 1'b0, tb[4:0] };
