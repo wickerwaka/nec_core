@@ -57,12 +57,12 @@ module bus_control_unit(
     // Data pointer read/write
     input       [15:0]  dp_addr,
     input       [15:0]  dp_dout,
-    output  reg [15:0]  dp_din,
+    output      [15:0]  dp_din,
     input sreg_index_e  dp_sreg,
     input               dp_write,
     input               dp_wide,
     input               dp_io,
-    input               dp_req, // edge triggered
+    input               dp_req,
     input               dp_zero_seg,
     output              dp_ready,
 
@@ -105,15 +105,17 @@ always_comb begin
     endcase
 end
 
+reg dp_busy;
+reg [15:0] dp_din_buf;
 reg [15:0] reg_pfp;
 reg discard_ipq_fetch = 0;
 assign ipq_len = pfp_set ? 4'd0 : reg_pfp[3:0] - ipq_head[3:0];
 
-assign dp_ready = (dp_ack == dp_req);
-reg dp_ack;
+assign dp_ready = ~dp_req & ~dp_busy;
 reg second_byte;
 int intack_idles;
 
+assign dp_din = dp_addr[0] ? { dp_din_buf[7:0], dp_din_buf[15:8] } : dp_din_buf;
 
 always_ff @(posedge clk) begin
     bit [3:0] new_ipq_used;
@@ -133,8 +135,8 @@ always_ff @(posedge clk) begin
         reg_pfp <= ipq_head;
         discard_ipq_fetch <= 0;
 
-        dp_ack <= 0;
-        dp_din <= 16'hffff;
+        dp_busy <= 0;
+        dp_din_buf <= 16'hffff;
 
         second_byte <= 0;
     end else if (ce_1 | ce_2) begin
@@ -147,6 +149,8 @@ always_ff @(posedge clk) begin
             new_ipq_used = 0;
             discard_ipq_fetch <= 1;
         end
+
+        if (dp_req) dp_busy <= 1;
 
         if (~intreq) intack <= 0;
 
@@ -189,7 +193,7 @@ always_ff @(posedge clk) begin
                     addr <= physical_addr(PS, cur_pfp);
                     n_ube <= 0; // always
                     discard_ipq_fetch <= 0;
-                end else if (dp_req != dp_ack) begin
+                end else if (dp_req | dp_busy) begin
                     t_state <= T_1;
                     if (dp_io) begin
                         addr <= {8'd0, second_byte ? (dp_addr + 16'd1) : dp_addr};
@@ -225,26 +229,26 @@ always_ff @(posedge clk) begin
                         end
                     end
                     MEM_READ, IO_READ: begin
-                        dp_ack <= dp_req;
+                        dp_busy <= 0;
                         if (dp_wide & ~dp_addr[0]) begin
-                            dp_din <= din;
+                            dp_din_buf <= din;
                         end else if (dp_wide & ~n_ube) begin
-                            dp_din[7:0] <= din[15:8];
+                            dp_din_buf[15:8] <= din[15:8];
                             second_byte <= 1;
-                            dp_ack <= dp_ack;
+                            dp_busy <= 1;
                         end else if (dp_wide) begin
-                            dp_din[15:8] <= din[7:0];
+                            dp_din_buf[7:0] <= din[7:0];
                         end else if (~n_ube) begin
-                            dp_din[7:0] <= din[15:8];
+                            dp_din_buf[15:8] <= din[15:8];
                         end else begin
-                            dp_din[7:0] <= din[7:0];
+                            dp_din_buf[7:0] <= din[7:0];
                         end
                     end
                     MEM_WRITE, IO_WRITE: begin
                         if (dp_wide & dp_addr[0] & ~n_ube) begin
                             second_byte <= 1;
                         end else begin
-                            dp_ack <= dp_req;
+                            dp_busy <= 0;
                         end
                     end
                     INT_ACK1,

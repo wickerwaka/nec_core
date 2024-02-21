@@ -197,7 +197,7 @@ task write_memory(input bit [15:0] addr, input sreg_index_e seg, input width_e w
     dp_zero_seg <= 0;
     dp_sreg <= seg;
     dp_wide <= width == BYTE ? 0 : 1;
-    dp_req <= ~dp_req;
+    dp_req <= 1;
 endtask
 
 task read_memory(input bit [15:0] addr, input sreg_index_e seg, input width_e width);
@@ -207,7 +207,7 @@ task read_memory(input bit [15:0] addr, input sreg_index_e seg, input width_e wi
     dp_sreg <= seg;
     dp_zero_seg <= 0;
     dp_wide <= width == BYTE ? 0 : 1;
-    dp_req <= ~dp_req;
+    dp_req <= 1;
 endtask
 
 task start_alu(input bit [15:0] ta, input bit [15:0] tb, input alu_operation_e op, width_e width);
@@ -448,6 +448,7 @@ always_ff @(posedge clk) begin
         div_start <= 0;
         start_decode <= 0;
         set_pc <= 0;
+        dp_req <= 0;
 
         if (ce_1 & dp_ready & ~&cycles) cycles <= cycles + 6'd1;
 
@@ -539,14 +540,14 @@ always_ff @(posedge clk) begin
                 dp_io <= 0;
                 dp_zero_seg <= 1;
                 dp_wide <= 1;
-                dp_req <= ~dp_req;
+                dp_req <= 1;
                 state <= INT_FETCH_WAIT1;
             end
 
             INT_FETCH_WAIT1: if (dp_ready & ce_1) begin
                 new_pc <= dp_din;
                 dp_addr <= { 6'd0, interrupt_vector[7:0], 2'b10 };
-                dp_req <= ~dp_req;
+                dp_req <= 1;
                 state <= INT_FETCH_WAIT2;
             end
 
@@ -763,7 +764,7 @@ always_ff @(posedge clk) begin
                                 end else begin
                                     dp_addr <= reg_dw;
                                 end
-                                dp_req <= ~dp_req;
+                                dp_req <= 1;
                                 working = 1;
                             end else begin
                                 if (decoded.width == BYTE)
@@ -783,7 +784,7 @@ always_ff @(posedge clk) begin
                             end else begin
                                 dp_addr <= reg_dw;
                             end
-                            dp_req <= ~dp_req;
+                            dp_req <= 1;
                         end
 
                         OP_STM: begin
