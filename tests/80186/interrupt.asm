@@ -37,7 +37,7 @@ rb 02000h-$
 mov byte[1],1
 pushf
 pop ax
-and ax, 07fffh
+and ax, 00fffh
 clc
 iret                    ; (4)
 
