@@ -425,6 +425,15 @@ always_ff @(posedge clk) begin
         set_pc <= 1;
         next_pc <= 16'd0;
 
+        reg_aw <= 16'd0;
+        reg_bw <= 16'd0;
+        reg_cw <= 16'd0;
+        reg_dw <= 16'd0;
+        reg_sp <= 16'd0;
+        reg_bp <= 16'd0;
+        reg_ix <= 16'd0;
+        reg_iy <= 16'd0;
+
         flags.V <= 0;
         flags.S <= 0;
         flags.Z <= 0;
