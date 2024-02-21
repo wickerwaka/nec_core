@@ -237,8 +237,8 @@ always_comb begin
     end 
 
     ALU_OP_ROL: begin
-        sz[4:0] = tb[4:0];
-        temp17 = { 1'b0, ta } << sz;
+        sz[3:0] = tb[3:0];
+        temp17 = { flags_in.CY, ta } << sz;
         if (wide) begin
             res = (ta << sz[3:0]) | (ta >> (5'd16 - sz[3:0]));
             flags.CY = temp17[16];
@@ -295,8 +295,8 @@ always_comb begin
     end
 
     ALU_OP_ROR: begin
-        sz[4:0] = tb[4:0];
-        temp17 = { ta, 1'b0 } >> sz;
+        sz[3:0] = tb[3:0];
+        temp17 = { ta, flags_in.CY } >> sz;
         flags.CY = temp17[0];
         if (wide) begin
             res = (ta >> sz[3:0]) | (ta << (5'd16 - sz[3:0]));
