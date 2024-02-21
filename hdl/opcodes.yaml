@@ -308,13 +308,15 @@ b00111111:
   reg0: AW
   width: WORD
 
-b11010101_00001010:
+b11010101:
   desc: CVTDB
   op: CVTDB
+  src: IMM8 # unused
 
-b11010100_00001010:
+b11010100:
   desc: CVTBD
   op: CVTBD
+  src: IMM8 #unused
 
 b10011000:
   desc: CVTBW
@@ -522,7 +524,7 @@ b1100_0011:
   pop:
     - PC
 
-b1100_1010:
+b1100_0010:
   desc: RET pop-value
   op: RET_POP_VALUE
   src: IMM
@@ -537,7 +539,7 @@ b1100_1011:
     - PC
     - PS
 
-b1100_0010:
+b1100_1010:
   desc: RETF pop-value
   op: RET_POP_VALUE
   src: IMM

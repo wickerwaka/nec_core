@@ -134,13 +134,14 @@ always_comb begin
     end
 
     ALU_OP_NEG: begin
-        res = 16'd0 - ta;
-        flags.CY = ta > 'd0 ? 1 : 0;
-        flags.AC = ta[3:0] > 'd0 ? 1 : 0;   
-
-        flags.V = 0;
-        if (wide && ta == 16'h8000) flags.V = 1;
-        if (~wide && ta[7:0] == 8'h80) flags.V = 1;
+        res = (~ta) + 16'd1;
+        flags.CY = ta != 16'd0 ? 1 : 0;
+        
+        // TODO - MAME doesn't update these flags, but documentation says it should
+        //flags.AC = ta[3:0] > 4'd0 ? 1 : 0;   
+        //flags.V = 0;
+        //if (wide && ta == 16'h8000) flags.V = 1;
+        //if (~wide && ta[7:0] == 8'h80) flags.V = 1;
         calc_parity = 1; calc_sign = 1; calc_zero = 1;
     end
 
@@ -210,8 +211,8 @@ always_comb begin
 
     ALU_OP_ADJBA: begin
         if (flags_in.AC || ta[3:0] > 4'h9) begin
-            res = ta + 16'h0106;
-            flags.AC = 1;
+                        res = ta + 16'h0106;
+                        flags.AC = 1;
             flags.CY = 1;
         end else begin
             res = ta;
@@ -440,16 +441,17 @@ always_comb begin
         flags.CY = 0;
         flags.V = 0;
 
+        use_result32 = 1;
+
         if (wide) begin
-            use_result32 = 1;
             result32 = $signed(ta) * $signed(tb);
-            if ({16{result32[15]}} != result32[31:16]) begin
+            if (16'd0 != result32[31:16]) begin
                 flags.CY = 1;
                 flags.V = 1;
             end
         end else begin
-            res = $signed(ta[7:0]) * $signed(tb[7:0]);
-            if ({8{res[15]}} != res[15:8]) begin
+            result32[15:0] = $signed(ta[7:0]) * $signed(tb[7:0]);
+            if (8'd0 != result32[15:8]) begin
                 flags.CY = 1;
                 flags.V = 1;
             end

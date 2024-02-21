@@ -126,24 +126,6 @@ end
 	op_size = 3;
 	valid_op = 1;
 end
-24'b1101010100001010xxxxxxxx: begin /* CVTDB */
-	d.opcode <= OP_CVTDB;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b1101010000001010xxxxxxxx: begin /* CVTBD */
-	d.opcode <= OP_CVTBD;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 2;
-	valid_op = 1;
-end
 24'b0000111100100000xxxxxxxx: begin /* ADD4S */
 	d.opcode <= OP_ADD4S;
 	d.use_modrm <= 0;
@@ -523,6 +505,24 @@ end
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_REG_0;
 	d.source0 <= OPERAND_REG_0;
+	d.source1 <= OPERAND_NONE;
+	op_size = 1;
+	valid_op = 1;
+end
+24'b11010101xxxxxxxxxxxxxxxx: begin /* CVTDB */
+	d.opcode <= OP_CVTDB;
+	d.use_modrm <= 0;
+	d.dest <= OPERAND_NONE;
+	d.source0 <= OPERAND_IMM8;
+	d.source1 <= OPERAND_NONE;
+	op_size = 1;
+	valid_op = 1;
+end
+24'b11010100xxxxxxxxxxxxxxxx: begin /* CVTBD */
+	d.opcode <= OP_CVTBD;
+	d.use_modrm <= 0;
+	d.dest <= OPERAND_NONE;
+	d.source0 <= OPERAND_IMM8;
 	d.source1 <= OPERAND_NONE;
 	op_size = 1;
 	valid_op = 1;
