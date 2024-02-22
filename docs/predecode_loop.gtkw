@@ -1,0 +1,47 @@
+[*]
+[*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
+[*] Tue Feb 20 14:55:50 2024
+[*]
+[dumpfile] "predecode_loop.vcd"
+[dumpfile_mtime] "Sun Feb 18 17:11:08 2024"
+[dumpfile_size] 23473
+[savefile] "/Users/akawaka/Source/nec_core/docs/predecode_loop.gtkw"
+[timestart] 17304
+[size] 1712 311
+[pos] -2 -1
+*-10.500000 20088 800 4152 7218 10451 13662 16866 20088 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+[markername] AA
+[markername] BB
+[markername] CC
+[markername] DD
+[markername] EE
+[markername] FF
+[markername] GG
+[sst_width] 253
+[signals_width] 79
+[sst_expanded] 1
+[sst_vpaned_height] 58
+@28
+libsigrok4DSL./BCYST
+libsigrok4DSL./DSTB
+@c00023
+#{libsigrok4DSL.A[7:0]} libsigrok4DSL.A7 libsigrok4DSL.A6 libsigrok4DSL.A5 libsigrok4DSL.A4 libsigrok4DSL.A3 libsigrok4DSL.A2 libsigrok4DSL.A1 libsigrok4DSL.A0
+@29
+libsigrok4DSL.A0
+libsigrok4DSL.A1
+libsigrok4DSL.A2
+libsigrok4DSL.A3
+libsigrok4DSL.A4
+libsigrok4DSL.A5
+libsigrok4DSL.A6
+libsigrok4DSL.A7
+@1401201
+-group_end
+@28
+libsigrok4DSL.BUSST0
+libsigrok4DSL.BUSST1
+libsigrok4DSL.CLK
+libsigrok4DSL.M/IO
+libsigrok4DSL.R/W
+[pattern_trace] 1
+[pattern_trace] 0
