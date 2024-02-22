@@ -1,6 +1,8 @@
 24'b0000111100101010xx000xxx: begin /* ROR4 reg8/mem8 */
 	d.opcode <= OP_ROR4;
 	d.width <= BYTE;
+	d.cycles <= 13;
+	d.mem_cycles <= 15;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -13,6 +15,8 @@ end
 24'b0000111100101000xx000xxx: begin /* ROL4 reg8/mem8 */
 	d.opcode <= OP_ROL4;
 	d.width <= BYTE;
+	d.cycles <= 13;
+	d.mem_cycles <= 15;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -25,6 +29,8 @@ end
 24'b000011110001000xxx000xxx: begin /* TEST1 reg, CL */
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_TEST1;
+	d.cycles <= 4;
+	d.mem_cycles <= 6;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_MODRM;
@@ -38,6 +44,8 @@ end
 24'b000011110001100xxx000xxx: begin /* TEST1 reg, imm */
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_TEST1;
+	d.cycles <= 4;
+	d.mem_cycles <= 6;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_MODRM;
@@ -51,6 +59,8 @@ end
 24'b000011110001001xxx000xxx: begin /* CLR1 reg, CL */
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_CLR1;
+	d.cycles <= 4;
+	d.mem_cycles <= 5;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -64,6 +74,8 @@ end
 24'b000011110001101xxx000xxx: begin /* CLR1 reg, imm */
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_CLR1;
+	d.cycles <= 4;
+	d.mem_cycles <= 5;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -77,6 +89,8 @@ end
 24'b000011110001010xxx000xxx: begin /* SET1 reg, CL */
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_SET1;
+	d.cycles <= 4;
+	d.mem_cycles <= 5;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -90,6 +104,8 @@ end
 24'b000011110001110xxx000xxx: begin /* SET1 reg, imm */
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_SET1;
+	d.cycles <= 4;
+	d.mem_cycles <= 5;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -103,6 +119,8 @@ end
 24'b000011110001011xxx000xxx: begin /* NOT1 reg, CL */
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_NOT1;
+	d.cycles <= 4;
+	d.mem_cycles <= 5;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -116,6 +134,8 @@ end
 24'b000011110001111xxx000xxx: begin /* NOT1 reg, imm */
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_NOT1;
+	d.cycles <= 4;
+	d.mem_cycles <= 5;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -153,11 +173,127 @@ end
 	op_size = 2;
 	valid_op = 1;
 end
+24'b11110110xx100xxxxxxxxxxx: begin /* MULU mem/reg */
+	d.opcode <= OP_ALU;
+	d.alu_operation <= ALU_OP_MULU;
+	d.width <= BYTE;
+	d.cycles <= 8;
+	d.mem_cycles <= 10;
+	d.use_modrm <= 1;
+	d.dest <= OPERAND_PRODUCT;
+	d.source0 <= OPERAND_ACC;
+	d.source1 <= OPERAND_MODRM;
+	d.mod <= q[15:14];
+	d.rm <= q[10:8];
+	op_size = 2;
+	valid_op = 1;
+end
+24'b11110110xx101xxxxxxxxxxx: begin /* MUL mem/reg */
+	d.opcode <= OP_ALU;
+	d.alu_operation <= ALU_OP_MUL;
+	d.width <= BYTE;
+	d.cycles <= 8;
+	d.mem_cycles <= 10;
+	d.use_modrm <= 1;
+	d.dest <= OPERAND_PRODUCT;
+	d.source0 <= OPERAND_ACC;
+	d.source1 <= OPERAND_MODRM;
+	d.mod <= q[15:14];
+	d.rm <= q[10:8];
+	op_size = 2;
+	valid_op = 1;
+end
+24'b11110111xx100xxxxxxxxxxx: begin /* MULU mem/reg */
+	d.opcode <= OP_ALU;
+	d.alu_operation <= ALU_OP_MULU;
+	d.width <= WORD;
+	d.cycles <= 12;
+	d.mem_cycles <= 14;
+	d.use_modrm <= 1;
+	d.dest <= OPERAND_PRODUCT;
+	d.source0 <= OPERAND_ACC;
+	d.source1 <= OPERAND_MODRM;
+	d.mod <= q[15:14];
+	d.rm <= q[10:8];
+	op_size = 2;
+	valid_op = 1;
+end
+24'b11110111xx101xxxxxxxxxxx: begin /* MUL mem/reg */
+	d.opcode <= OP_ALU;
+	d.alu_operation <= ALU_OP_MUL;
+	d.width <= WORD;
+	d.cycles <= 12;
+	d.mem_cycles <= 14;
+	d.use_modrm <= 1;
+	d.dest <= OPERAND_PRODUCT;
+	d.source0 <= OPERAND_ACC;
+	d.source1 <= OPERAND_MODRM;
+	d.mod <= q[15:14];
+	d.rm <= q[10:8];
+	op_size = 2;
+	valid_op = 1;
+end
+24'b11110110xx110xxxxxxxxxxx: begin /* DIVU mem/reg */
+	d.opcode <= OP_DIVU;
+	d.width <= BYTE;
+	d.cycles <= 11;
+	d.mem_cycles <= 14;
+	d.use_modrm <= 1;
+	d.dest <= OPERAND_NONE;
+	d.source0 <= OPERAND_MODRM;
+	d.source1 <= OPERAND_NONE;
+	d.mod <= q[15:14];
+	d.rm <= q[10:8];
+	op_size = 2;
+	valid_op = 1;
+end
+24'b11110110xx111xxxxxxxxxxx: begin /* DIV mem/reg */
+	d.opcode <= OP_DIV;
+	d.width <= BYTE;
+	d.cycles <= 17;
+	d.mem_cycles <= 18;
+	d.use_modrm <= 1;
+	d.dest <= OPERAND_NONE;
+	d.source0 <= OPERAND_MODRM;
+	d.source1 <= OPERAND_NONE;
+	d.mod <= q[15:14];
+	d.rm <= q[10:8];
+	op_size = 2;
+	valid_op = 1;
+end
+24'b11110111xx110xxxxxxxxxxx: begin /* DIVU mem/reg */
+	d.opcode <= OP_DIVU;
+	d.width <= WORD;
+	d.cycles <= 19;
+	d.mem_cycles <= 21;
+	d.use_modrm <= 1;
+	d.dest <= OPERAND_NONE;
+	d.source0 <= OPERAND_MODRM;
+	d.source1 <= OPERAND_NONE;
+	d.mod <= q[15:14];
+	d.rm <= q[10:8];
+	op_size = 2;
+	valid_op = 1;
+end
+24'b11110111xx111xxxxxxxxxxx: begin /* DIV mem/reg */
+	d.opcode <= OP_DIV;
+	d.width <= WORD;
+	d.cycles <= 24;
+	d.mem_cycles <= 26;
+	d.use_modrm <= 1;
+	d.dest <= OPERAND_NONE;
+	d.source0 <= OPERAND_MODRM;
+	d.source1 <= OPERAND_NONE;
+	d.mod <= q[15:14];
+	d.rm <= q[10:8];
+	op_size = 2;
+	valid_op = 1;
+end
 24'b11111111xx100xxxxxxxxxxx: begin /* BR ptr16 */
 	d.opcode <= OP_BR_ABS;
 	d.width <= WORD;
 	d.cycles <= 7;
-	d.mem_cycles <= 2;
+	d.mem_cycles <= 9;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_MODRM;
@@ -171,7 +307,7 @@ end
 	d.opcode <= OP_BR_ABS;
 	d.width <= DWORD;
 	d.cycles <= 9;
-	d.mem_cycles <= 0;
+	d.mem_cycles <= 9;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_MODRM;
@@ -184,6 +320,8 @@ end
 24'b11111111xx010xxxxxxxxxxx: begin /* CALL ptr16 */
 	d.opcode <= OP_BR_ABS;
 	d.width <= WORD;
+	d.cycles <= 7;
+	d.mem_cycles <= 7;
 	d.push <= STACK_PC;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_NONE;
@@ -197,6 +335,8 @@ end
 24'b11111111xx011xxxxxxxxxxx: begin /* CALL memptr32 */
 	d.opcode <= OP_BR_ABS;
 	d.width <= DWORD;
+	d.cycles <= 7;
+	d.mem_cycles <= 7;
 	d.push <= STACK_PC | STACK_PS;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_NONE;
@@ -210,6 +350,8 @@ end
 24'b11111111xx110xxxxxxxxxxx: begin /* PUSH reg16/mem16 */
 	d.opcode <= OP_PUSH;
 	d.width <= WORD;
+	d.cycles <= 1;
+	d.mem_cycles <= 1;
 	d.push <= STACK_OPERAND;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_NONE;
@@ -223,6 +365,8 @@ end
 24'b10001111xx000xxxxxxxxxxx: begin /* POP reg16/mem16 */
 	d.opcode <= OP_POP;
 	d.width <= WORD;
+	d.cycles <= 1;
+	d.mem_cycles <= 1;
 	d.pop <= STACK_OPERAND;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
@@ -237,7 +381,7 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_CMP;
 	d.cycles <= 2;
-	d.mem_cycles <= 2;
+	d.mem_cycles <= 4;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_MODRM;
@@ -252,7 +396,7 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_CMP;
 	d.cycles <= 2;
-	d.mem_cycles <= 2;
+	d.mem_cycles <= 4;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_MODRM;
@@ -267,7 +411,7 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_DEC;
 	d.cycles <= 2;
-	d.mem_cycles <= 1;
+	d.mem_cycles <= 3;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -282,7 +426,7 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_INC;
 	d.cycles <= 2;
-	d.mem_cycles <= 1;
+	d.mem_cycles <= 3;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -297,7 +441,7 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_AND;
 	d.cycles <= 2;
-	d.mem_cycles <= 2;
+	d.mem_cycles <= 4;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_MODRM;
@@ -312,7 +456,7 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_NOT;
 	d.cycles <= 2;
-	d.mem_cycles <= 1;
+	d.mem_cycles <= 3;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -326,6 +470,8 @@ end
 24'b1111011xxx011xxxxxxxxxxx: begin /* NEG mem/reg */
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_NEG;
+	d.cycles <= 2;
+	d.mem_cycles <= 3;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -336,58 +482,10 @@ end
 	op_size = 2;
 	valid_op = 1;
 end
-24'b1111011xxx100xxxxxxxxxxx: begin /* MULU mem/reg */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_MULU;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_PRODUCT;
-	d.source0 <= OPERAND_ACC;
-	d.source1 <= OPERAND_MODRM;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b1111011xxx101xxxxxxxxxxx: begin /* MUL mem/reg */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_MUL;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_PRODUCT;
-	d.source0 <= OPERAND_ACC;
-	d.source1 <= OPERAND_MODRM;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b1111011xxx110xxxxxxxxxxx: begin /* DIVU mem/reg */
-	d.opcode <= OP_DIVU;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b1111011xxx111xxxxxxxxxxx: begin /* DIV mem/reg */
-	d.opcode <= OP_DIV;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 2;
-	valid_op = 1;
-end
 24'b1100011xxx000xxxxxxxxxxx: begin /* MOV mem/reg, imm */
 	d.opcode <= OP_MOV;
+	d.cycles <= 2;
+	d.mem_cycles <= 3;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_IMM;
@@ -401,6 +499,8 @@ end
 24'b10001110xx0xxxxxxxxxxxxx: begin /* MOV sreg, mem/reg */
 	d.opcode <= OP_MOV;
 	d.width <= WORD;
+	d.cycles <= 2;
+	d.mem_cycles <= 3;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_SREG;
 	d.source0 <= OPERAND_MODRM;
@@ -414,6 +514,8 @@ end
 24'b10001100xx0xxxxxxxxxxxxx: begin /* MOV mem/reg, sreg */
 	d.opcode <= OP_MOV;
 	d.width <= WORD;
+	d.cycles <= 2;
+	d.mem_cycles <= 1;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_SREG;
@@ -426,6 +528,8 @@ end
 end
 24'b10010000xxxxxxxxxxxxxxxx: begin /* NOP */
 	d.opcode <= OP_NOP;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_NONE;
@@ -437,6 +541,8 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_MUL;
 	d.width <= WORD;
+	d.cycles <= 12;
+	d.mem_cycles <= 14;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_REG_0;
 	d.source0 <= OPERAND_MODRM;
@@ -451,6 +557,8 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_MUL;
 	d.width <= WORD;
+	d.cycles <= 12;
+	d.mem_cycles <= 14;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_REG_0;
 	d.source0 <= OPERAND_MODRM;
@@ -466,6 +574,8 @@ end
 	d.alu_operation <= ALU_OP_ADJ4A;
 	d.reg0 <= AW;
 	d.width <= WORD;
+	d.cycles <= 2;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_REG_0;
 	d.source0 <= OPERAND_REG_0;
@@ -478,6 +588,8 @@ end
 	d.alu_operation <= ALU_OP_ADJ4S;
 	d.reg0 <= AW;
 	d.width <= WORD;
+	d.cycles <= 2;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_REG_0;
 	d.source0 <= OPERAND_REG_0;
@@ -490,6 +602,8 @@ end
 	d.alu_operation <= ALU_OP_ADJBA;
 	d.reg0 <= AW;
 	d.width <= WORD;
+	d.cycles <= 4;
+	d.mem_cycles <= 4;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_REG_0;
 	d.source0 <= OPERAND_REG_0;
@@ -502,6 +616,8 @@ end
 	d.alu_operation <= ALU_OP_ADJBS;
 	d.reg0 <= AW;
 	d.width <= WORD;
+	d.cycles <= 4;
+	d.mem_cycles <= 4;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_REG_0;
 	d.source0 <= OPERAND_REG_0;
@@ -511,6 +627,8 @@ end
 end
 24'b11010101xxxxxxxxxxxxxxxx: begin /* CVTDB */
 	d.opcode <= OP_CVTDB;
+	d.cycles <= 8;
+	d.mem_cycles <= 8;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_IMM8;
@@ -520,6 +638,8 @@ end
 end
 24'b11010100xxxxxxxxxxxxxxxx: begin /* CVTBD */
 	d.opcode <= OP_CVTBD;
+	d.cycles <= 12;
+	d.mem_cycles <= 12;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_IMM8;
@@ -529,6 +649,8 @@ end
 end
 24'b10011000xxxxxxxxxxxxxxxx: begin /* CVTBW */
 	d.opcode <= OP_CVTBW;
+	d.cycles <= 2;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_NONE;
@@ -538,6 +660,8 @@ end
 end
 24'b10011001xxxxxxxxxxxxxxxx: begin /* CVTWL */
 	d.opcode <= OP_CVTWL;
+	d.cycles <= 2;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_NONE;
@@ -548,6 +672,8 @@ end
 24'b10001101xxxxxxxxxxxxxxxx: begin /* LDEA reg16, mem16 */
 	d.opcode <= OP_LDEA;
 	d.width <= WORD;
+	d.cycles <= 2;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_REG_0;
 	d.source0 <= OPERAND_MODRM;
@@ -562,6 +688,8 @@ end
 	d.opcode <= OP_MOV_SEG;
 	d.sreg <= DS0;
 	d.width <= DWORD;
+	d.cycles <= 6;
+	d.mem_cycles <= 6;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_MODRM;
@@ -576,6 +704,8 @@ end
 	d.opcode <= OP_MOV_SEG;
 	d.sreg <= DS1;
 	d.width <= DWORD;
+	d.cycles <= 6;
+	d.mem_cycles <= 6;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_MODRM;
@@ -586,8 +716,10 @@ end
 	op_size = 2;
 	valid_op = 1;
 end
-24'b10011111xxxxxxxxxxxxxxxx: begin /* MOV_AH_PSW */
+24'b10011111xxxxxxxxxxxxxxxx: begin /* MOV AH, PSW */
 	d.opcode <= OP_MOV_AH_PSW;
+	d.cycles <= 2;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_NONE;
@@ -595,8 +727,10 @@ end
 	op_size = 1;
 	valid_op = 1;
 end
-24'b10011110xxxxxxxxxxxxxxxx: begin /* MOV_PSW_AH */
+24'b10011110xxxxxxxxxxxxxxxx: begin /* MOV AH, PSW */
 	d.opcode <= OP_MOV_PSW_AH;
+	d.cycles <= 2;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_NONE;
@@ -608,7 +742,7 @@ end
 	d.opcode <= OP_BR_REL;
 	d.width <= WORD;
 	d.cycles <= 7;
-	d.mem_cycles <= 0;
+	d.mem_cycles <= 7;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_IMM;
@@ -620,7 +754,7 @@ end
 	d.opcode <= OP_BR_REL;
 	d.width <= WORD;
 	d.cycles <= 7;
-	d.mem_cycles <= 0;
+	d.mem_cycles <= 7;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_IMM_EXT;
@@ -632,7 +766,7 @@ end
 	d.opcode <= OP_BR_ABS;
 	d.width <= DWORD;
 	d.cycles <= 7;
-	d.mem_cycles <= 0;
+	d.mem_cycles <= 7;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_IMM;
@@ -643,6 +777,8 @@ end
 24'b11101000xxxxxxxxxxxxxxxx: begin /* CALL near */
 	d.opcode <= OP_BR_REL;
 	d.width <= WORD;
+	d.cycles <= 5;
+	d.mem_cycles <= 5;
 	d.push <= STACK_PC;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -654,6 +790,8 @@ end
 24'b10011010xxxxxxxxxxxxxxxx: begin /* CALL far-proc */
 	d.opcode <= OP_BR_ABS;
 	d.width <= DWORD;
+	d.cycles <= 5;
+	d.mem_cycles <= 5;
 	d.push <= STACK_PC | STACK_PS;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -664,6 +802,8 @@ end
 end
 24'b11000011xxxxxxxxxxxxxxxx: begin /* RET */
 	d.opcode <= OP_RET;
+	d.cycles <= 8;
+	d.mem_cycles <= 8;
 	d.pop <= STACK_PC;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -675,6 +815,8 @@ end
 24'b11000010xxxxxxxxxxxxxxxx: begin /* RET pop-value */
 	d.opcode <= OP_RET_POP_VALUE;
 	d.width <= WORD;
+	d.cycles <= 8;
+	d.mem_cycles <= 8;
 	d.pop <= STACK_PC;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -685,6 +827,8 @@ end
 end
 24'b11001011xxxxxxxxxxxxxxxx: begin /* RETF */
 	d.opcode <= OP_RET;
+	d.cycles <= 8;
+	d.mem_cycles <= 8;
 	d.pop <= STACK_PC | STACK_PS;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -696,6 +840,8 @@ end
 24'b11001010xxxxxxxxxxxxxxxx: begin /* RETF pop-value */
 	d.opcode <= OP_RET_POP_VALUE;
 	d.width <= WORD;
+	d.cycles <= 8;
+	d.mem_cycles <= 8;
 	d.pop <= STACK_PC | STACK_PS;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -706,6 +852,8 @@ end
 end
 24'b11001111xxxxxxxxxxxxxxxx: begin /* RETI */
 	d.opcode <= OP_RET;
+	d.cycles <= 7;
+	d.mem_cycles <= 7;
 	d.pop <= STACK_PC | STACK_PS | STACK_PSW;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -716,6 +864,8 @@ end
 end
 24'b01010000xxxxxxxxxxxxxxxx: begin /* PUSH AW */
 	d.opcode <= OP_PUSH;
+	d.cycles <= 1;
+	d.mem_cycles <= 1;
 	d.push <= STACK_AW;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -726,6 +876,8 @@ end
 end
 24'b01010001xxxxxxxxxxxxxxxx: begin /* PUSH CW */
 	d.opcode <= OP_PUSH;
+	d.cycles <= 1;
+	d.mem_cycles <= 1;
 	d.push <= STACK_CW;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -736,6 +888,8 @@ end
 end
 24'b01010010xxxxxxxxxxxxxxxx: begin /* PUSH DW */
 	d.opcode <= OP_PUSH;
+	d.cycles <= 1;
+	d.mem_cycles <= 1;
 	d.push <= STACK_DW;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -746,6 +900,8 @@ end
 end
 24'b01010011xxxxxxxxxxxxxxxx: begin /* PUSH BW */
 	d.opcode <= OP_PUSH;
+	d.cycles <= 1;
+	d.mem_cycles <= 1;
 	d.push <= STACK_BW;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -756,6 +912,8 @@ end
 end
 24'b01010100xxxxxxxxxxxxxxxx: begin /* PUSH SP */
 	d.opcode <= OP_PUSH;
+	d.cycles <= 1;
+	d.mem_cycles <= 1;
 	d.push <= STACK_SP;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -766,6 +924,8 @@ end
 end
 24'b01010101xxxxxxxxxxxxxxxx: begin /* PUSH BP */
 	d.opcode <= OP_PUSH;
+	d.cycles <= 1;
+	d.mem_cycles <= 1;
 	d.push <= STACK_BP;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -776,6 +936,8 @@ end
 end
 24'b01010110xxxxxxxxxxxxxxxx: begin /* PUSH IX */
 	d.opcode <= OP_PUSH;
+	d.cycles <= 1;
+	d.mem_cycles <= 1;
 	d.push <= STACK_IX;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -786,6 +948,8 @@ end
 end
 24'b01010111xxxxxxxxxxxxxxxx: begin /* PUSH IY */
 	d.opcode <= OP_PUSH;
+	d.cycles <= 1;
+	d.mem_cycles <= 1;
 	d.push <= STACK_IY;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -796,6 +960,8 @@ end
 end
 24'b00000110xxxxxxxxxxxxxxxx: begin /* PUSH DS1 */
 	d.opcode <= OP_PUSH;
+	d.cycles <= 1;
+	d.mem_cycles <= 1;
 	d.push <= STACK_DS1;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -806,6 +972,8 @@ end
 end
 24'b00001110xxxxxxxxxxxxxxxx: begin /* PUSH PS */
 	d.opcode <= OP_PUSH;
+	d.cycles <= 1;
+	d.mem_cycles <= 1;
 	d.push <= STACK_PS;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -816,6 +984,8 @@ end
 end
 24'b00010110xxxxxxxxxxxxxxxx: begin /* PUSH SS */
 	d.opcode <= OP_PUSH;
+	d.cycles <= 1;
+	d.mem_cycles <= 1;
 	d.push <= STACK_SS;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -826,6 +996,8 @@ end
 end
 24'b00011110xxxxxxxxxxxxxxxx: begin /* PUSH DS0 */
 	d.opcode <= OP_PUSH;
+	d.cycles <= 1;
+	d.mem_cycles <= 1;
 	d.push <= STACK_DS0;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -836,6 +1008,8 @@ end
 end
 24'b10011100xxxxxxxxxxxxxxxx: begin /* PUSH PSW */
 	d.opcode <= OP_PUSH;
+	d.cycles <= 1;
+	d.mem_cycles <= 1;
 	d.push <= STACK_PSW;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -846,6 +1020,8 @@ end
 end
 24'b01100000xxxxxxxxxxxxxxxx: begin /* PUSH R */
 	d.opcode <= OP_PUSH;
+	d.cycles <= 4;
+	d.mem_cycles <= 4;
 	d.push <= STACK_AW | STACK_CW | STACK_DW | STACK_BW | STACK_SP | STACK_BP | STACK_IX | STACK_IY;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -857,6 +1033,8 @@ end
 24'b01101010xxxxxxxxxxxxxxxx: begin /* PUSH imm8 */
 	d.opcode <= OP_PUSH;
 	d.width <= BYTE;
+	d.cycles <= 1;
+	d.mem_cycles <= 1;
 	d.push <= STACK_OPERAND;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -868,6 +1046,8 @@ end
 24'b01101000xxxxxxxxxxxxxxxx: begin /* PUSH imm16 */
 	d.opcode <= OP_PUSH;
 	d.width <= WORD;
+	d.cycles <= 1;
+	d.mem_cycles <= 1;
 	d.push <= STACK_OPERAND;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -878,6 +1058,8 @@ end
 end
 24'b01011000xxxxxxxxxxxxxxxx: begin /* POP AW */
 	d.opcode <= OP_POP;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
 	d.pop <= STACK_AW;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -888,6 +1070,8 @@ end
 end
 24'b01011001xxxxxxxxxxxxxxxx: begin /* POP CW */
 	d.opcode <= OP_POP;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
 	d.pop <= STACK_CW;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -898,6 +1082,8 @@ end
 end
 24'b01011010xxxxxxxxxxxxxxxx: begin /* POP DW */
 	d.opcode <= OP_POP;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
 	d.pop <= STACK_DW;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -908,6 +1094,8 @@ end
 end
 24'b01011011xxxxxxxxxxxxxxxx: begin /* POP BW */
 	d.opcode <= OP_POP;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
 	d.pop <= STACK_BW;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -918,6 +1106,8 @@ end
 end
 24'b01011100xxxxxxxxxxxxxxxx: begin /* POP SP */
 	d.opcode <= OP_POP;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
 	d.pop <= STACK_SP;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -928,6 +1118,8 @@ end
 end
 24'b01011101xxxxxxxxxxxxxxxx: begin /* POP BP */
 	d.opcode <= OP_POP;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
 	d.pop <= STACK_BP;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -938,6 +1130,8 @@ end
 end
 24'b01011110xxxxxxxxxxxxxxxx: begin /* POP IX */
 	d.opcode <= OP_POP;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
 	d.pop <= STACK_IX;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -948,6 +1142,8 @@ end
 end
 24'b01011111xxxxxxxxxxxxxxxx: begin /* POP IY */
 	d.opcode <= OP_POP;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
 	d.pop <= STACK_IY;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -958,6 +1154,8 @@ end
 end
 24'b00000111xxxxxxxxxxxxxxxx: begin /* POP DS1 */
 	d.opcode <= OP_POP;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
 	d.pop <= STACK_DS1;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -968,6 +1166,8 @@ end
 end
 24'b00010111xxxxxxxxxxxxxxxx: begin /* POP SS */
 	d.opcode <= OP_POP;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
 	d.pop <= STACK_SS;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -978,6 +1178,8 @@ end
 end
 24'b00011111xxxxxxxxxxxxxxxx: begin /* POP DS0 */
 	d.opcode <= OP_POP;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
 	d.pop <= STACK_DS0;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -988,6 +1190,8 @@ end
 end
 24'b10011101xxxxxxxxxxxxxxxx: begin /* POP PSW */
 	d.opcode <= OP_POP;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
 	d.pop <= STACK_PSW;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -998,6 +1202,8 @@ end
 end
 24'b01100001xxxxxxxxxxxxxxxx: begin /* POP R */
 	d.opcode <= OP_POP;
+	d.cycles <= 8;
+	d.mem_cycles <= 8;
 	d.pop <= STACK_AW | STACK_CW | STACK_DW | STACK_BW | STACK_BP_SKIP_SP | STACK_IX | STACK_IY;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
@@ -1008,6 +1214,8 @@ end
 end
 24'b11001000xxxxxxxxxxxxxxxx: begin /* PREPARE imm16, imm8 */
 	d.opcode <= OP_PREPARE;
+	d.cycles <= 13;
+	d.mem_cycles <= 13;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_NONE;
@@ -1017,6 +1225,8 @@ end
 end
 24'b11001001xxxxxxxxxxxxxxxx: begin /* DISPOSE */
 	d.opcode <= OP_DISPOSE;
+	d.cycles <= 4;
+	d.mem_cycles <= 4;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_NONE;
@@ -1035,6 +1245,8 @@ end
 end
 24'b11110101xxxxxxxxxxxxxxxx: begin /* NOT1 CY */
 	d.opcode <= OP_NOT1_CY;
+	d.cycles <= 2;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_NONE;
@@ -1044,6 +1256,8 @@ end
 end
 24'b11111000xxxxxxxxxxxxxxxx: begin /* CLR1 CY */
 	d.opcode <= OP_CLR1_CY;
+	d.cycles <= 2;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_NONE;
@@ -1053,6 +1267,8 @@ end
 end
 24'b11111001xxxxxxxxxxxxxxxx: begin /* SET1 CY */
 	d.opcode <= OP_SET1_CY;
+	d.cycles <= 2;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_NONE;
@@ -1062,6 +1278,8 @@ end
 end
 24'b11111010xxxxxxxxxxxxxxxx: begin /* DI */
 	d.opcode <= OP_DI;
+	d.cycles <= 2;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_NONE;
@@ -1071,6 +1289,8 @@ end
 end
 24'b11111011xxxxxxxxxxxxxxxx: begin /* EI */
 	d.opcode <= OP_EI;
+	d.cycles <= 2;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_NONE;
@@ -1080,6 +1300,8 @@ end
 end
 24'b11111100xxxxxxxxxxxxxxxx: begin /* CLR1 DIR */
 	d.opcode <= OP_CLR1_DIR;
+	d.cycles <= 2;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_NONE;
@@ -1089,6 +1311,8 @@ end
 end
 24'b11111101xxxxxxxxxxxxxxxx: begin /* SET1 DIR */
 	d.opcode <= OP_SET1_DIR;
+	d.cycles <= 2;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_NONE;
@@ -1107,15 +1331,6 @@ end
 	d.rm <= q[10:8];
 	d.reg0 <= q[13:11];
 	op_size = 2;
-	valid_op = 1;
-end
-24'b11010111xxxxxxxxxxxxxxxx: begin /* TRANS */
-	d.opcode <= OP_TRANS;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
 	valid_op = 1;
 end
 24'b11001100xxxxxxxxxxxxxxxx: begin /* BRK 3 */
@@ -1146,10 +1361,21 @@ end
 	op_size = 1;
 	valid_op = 1;
 end
+24'b11010111xxxxxxxxxxxxxxxx: begin /* TRANS */
+	d.opcode <= OP_TRANS;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
+	d.use_modrm <= 0;
+	d.dest <= OPERAND_NONE;
+	d.source0 <= OPERAND_NONE;
+	d.source1 <= OPERAND_NONE;
+	op_size = 1;
+	valid_op = 1;
+end
 24'b1000000xxxxxxxxxxxxxxxxx: begin /* ALU_OP mem/reg, imm */
 	d.opcode <= OP_ALU;
 	d.cycles <= 2;
-	d.mem_cycles <= 1;
+	d.mem_cycles <= 3;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -1164,7 +1390,7 @@ end
 24'b1000001xxxxxxxxxxxxxxxxx: begin /* ALU_OP mem/reg, sext_imm */
 	d.opcode <= OP_ALU;
 	d.cycles <= 2;
-	d.mem_cycles <= 0;
+	d.mem_cycles <= 3;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -1178,8 +1404,8 @@ end
 end
 24'b1101000xxxxxxxxxxxxxxxxx: begin /* SHIFT mem/reg, 1 */
 	d.opcode <= OP_SHIFT_1;
-	d.cycles <= 2;
-	d.mem_cycles <= 1;
+	d.cycles <= 1;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -1194,7 +1420,7 @@ end
 24'b1101001xxxxxxxxxxxxxxxxx: begin /* SHIFT mem/reg, CL */
 	d.opcode <= OP_SHIFT_CL;
 	d.cycles <= 2;
-	d.mem_cycles <= 0;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -1209,7 +1435,7 @@ end
 24'b1100000xxxxxxxxxxxxxxxxx: begin /* SHIFT mem/reg, imm */
 	d.opcode <= OP_SHIFT;
 	d.cycles <= 2;
-	d.mem_cycles <= 0;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -1225,7 +1451,7 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_CMP;
 	d.cycles <= 2;
-	d.mem_cycles <= 2;
+	d.mem_cycles <= 4;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_MODRM;
@@ -1241,7 +1467,7 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_CMP;
 	d.cycles <= 2;
-	d.mem_cycles <= 2;
+	d.mem_cycles <= 4;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_REG_0;
@@ -1257,7 +1483,7 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_CMP;
 	d.cycles <= 2;
-	d.mem_cycles <= 0;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_ACC;
@@ -1270,7 +1496,7 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_AND;
 	d.cycles <= 2;
-	d.mem_cycles <= 2;
+	d.mem_cycles <= 4;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_MODRM;
@@ -1286,7 +1512,7 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_AND;
 	d.cycles <= 2;
-	d.mem_cycles <= 0;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_ACC;
@@ -1297,6 +1523,8 @@ end
 end
 24'b1000100xxxxxxxxxxxxxxxxx: begin /* MOV mem/reg, reg */
 	d.opcode <= OP_MOV;
+	d.cycles <= 2;
+	d.mem_cycles <= 3;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_REG_0;
@@ -1310,6 +1538,8 @@ end
 end
 24'b1000101xxxxxxxxxxxxxxxxx: begin /* MOV reg, mem/reg */
 	d.opcode <= OP_MOV;
+	d.cycles <= 2;
+	d.mem_cycles <= 3;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_REG_0;
 	d.source0 <= OPERAND_MODRM;
@@ -1323,6 +1553,8 @@ end
 end
 24'b1010000xxxxxxxxxxxxxxxxx: begin /* MOV ACC, dmem */
 	d.opcode <= OP_MOV;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
 	d.use_modrm <= 1;
 	d.rm <= 3'b110;
 	d.mod <= 2'b00;
@@ -1335,6 +1567,8 @@ end
 end
 24'b1010001xxxxxxxxxxxxxxxxx: begin /* MOV dmem, ACC */
 	d.opcode <= OP_MOV;
+	d.cycles <= 1;
+	d.mem_cycles <= 1;
 	d.use_modrm <= 1;
 	d.rm <= 3'b110;
 	d.mod <= 2'b00;
@@ -1347,6 +1581,8 @@ end
 end
 24'b1000011xxxxxxxxxxxxxxxxx: begin /* XCH mem/reg, reg */
 	d.opcode <= OP_XCH;
+	d.cycles <= 3;
+	d.mem_cycles <= 4;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -1360,6 +1596,8 @@ end
 end
 24'b1110010xxxxxxxxxxxxxxxxx: begin /* IN acc, imm8 */
 	d.opcode <= OP_IN;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_IMM8;
@@ -1371,6 +1609,8 @@ end
 24'b1110110xxxxxxxxxxxxxxxxx: begin /* IN acc, DW */
 	d.opcode <= OP_IN;
 	d.reg0 <= DW;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_REG_0;
@@ -1381,6 +1621,8 @@ end
 end
 24'b1110011xxxxxxxxxxxxxxxxx: begin /* OUT imm8, acc */
 	d.opcode <= OP_OUT;
+	d.cycles <= 1;
+	d.mem_cycles <= 1;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_IMM8;
@@ -1392,6 +1634,8 @@ end
 24'b1110111xxxxxxxxxxxxxxxxx: begin /* OUT DW, acc */
 	d.opcode <= OP_OUT;
 	d.reg0 <= DW;
+	d.cycles <= 1;
+	d.mem_cycles <= 1;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_REG_0;
@@ -1455,7 +1699,7 @@ end
 	d.alu_operation <= ALU_OP_DEC;
 	d.width <= WORD;
 	d.cycles <= 2;
-	d.mem_cycles <= 0;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_REG_0;
 	d.source0 <= OPERAND_REG_0;
@@ -1469,7 +1713,7 @@ end
 	d.alu_operation <= ALU_OP_INC;
 	d.width <= WORD;
 	d.cycles <= 2;
-	d.mem_cycles <= 0;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_REG_0;
 	d.source0 <= OPERAND_REG_0;
@@ -1482,6 +1726,8 @@ end
 	d.opcode <= OP_XCH;
 	d.reg1 <= AW;
 	d.width <= WORD;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_REG_1;
 	d.source0 <= OPERAND_REG_1;
@@ -1493,7 +1739,7 @@ end
 24'b00xxx00xxxxxxxxxxxxxxxxx: begin /* ALU_OP mem/reg, reg */
 	d.opcode <= OP_ALU;
 	d.cycles <= 2;
-	d.mem_cycles <= 1;
+	d.mem_cycles <= 3;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -1509,7 +1755,7 @@ end
 24'b00xxx01xxxxxxxxxxxxxxxxx: begin /* ALU_OP reg, mem/reg */
 	d.opcode <= OP_ALU;
 	d.cycles <= 2;
-	d.mem_cycles <= 2;
+	d.mem_cycles <= 4;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_REG_0;
 	d.source0 <= OPERAND_REG_0;
@@ -1525,7 +1771,7 @@ end
 24'b00xxx10xxxxxxxxxxxxxxxxx: begin /* ALU_OP acc, imm */
 	d.opcode <= OP_ALU;
 	d.cycles <= 2;
-	d.mem_cycles <= 0;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_ACC;
 	d.source0 <= OPERAND_ACC;
@@ -1537,6 +1783,8 @@ end
 end
 24'b1011xxxxxxxxxxxxxxxxxxxx: begin /* MOV reg, imm */
 	d.opcode <= OP_MOV;
+	d.cycles <= 2;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_REG_0;
 	d.source0 <= OPERAND_IMM;

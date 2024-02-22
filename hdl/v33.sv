@@ -483,7 +483,7 @@ always_ff @(posedge clk) begin
 
                         op_cycles <= next_decode.cycles;
                         if (next_decode.mem_read | next_decode.mem_write) begin
-                            op_cycles <= next_decode.cycles + next_decode.mem_cycles;
+                            op_cycles <= next_decode.mem_cycles;
                         end
 
                         addr = calc_ea(next_decode.rm, next_decode.mod, next_decode.disp);

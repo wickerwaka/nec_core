@@ -119,8 +119,8 @@ def to_entry(k: str, op_desc: dict):
     if cycles:
         assignments.append( f'd.cycles <= {cycles}' )
 
-    mem_cycles = op_desc.get('mem_cycles', 0)
-    if cycles:
+    mem_cycles = op_desc.get('mem_cycles', cycles)
+    if mem_cycles:
         assignments.append( f'd.mem_cycles <= {mem_cycles}')
 
     push = op_desc.get('push')
