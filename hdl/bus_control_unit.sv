@@ -181,7 +181,7 @@ always_ff @(posedge clk) begin
                     cycle_type <= IPQ_FETCH;
                     intack <= 1;
                 end
-            end if (dp_busy) begin // Second byte of an unaligned access
+            end else if (dp_busy) begin // Second byte of an unaligned access
                 t_state <= T_1;
                 n_bcyst <= 0;
                 addr <= addr + 24'd1; // TODO: should only the lower 16-bits be impacted?

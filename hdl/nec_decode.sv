@@ -141,8 +141,11 @@ always_ff @(posedge clk) begin
                     imm_size = 3'd0;
                     d.mem_read <= 0;
                     d.mem_write <= 0;
+                    d.defer_read <= 0;
 
                     if (~segment_override & d.use_modrm) d.segment <= calc_seg(d.rm, d.mod);
+
+                    d.defer_read <= (d.push && d.opcode != OP_PUSH) || (d.pop && d.opcode != OP_POP);
 
                     if (d.use_modrm & d.mod != 2'b11) begin
                         disp_size = calc_disp_size(d.rm, d.mod);

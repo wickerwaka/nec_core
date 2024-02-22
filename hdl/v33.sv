@@ -58,8 +58,6 @@ reg [15:0] reg_iy  /*verilator public*/;
 
 wire [15:0] cur_pc  /*verilator public*/;
 
-reg [15:0] next_pc;
-
 reg halt /*verilator public*/; // TODO, do something with this
 
 flags_t flags;
@@ -96,7 +94,7 @@ reg [15:0] dp_din_low; // for 32-bit reads
 wire [31:0] dp_din32 = { dp_din, dp_din_low };
 
 // Instruction prefetch
-reg [15:0] new_pc /*verilator public*/;
+reg [15:0] next_pc /*verilator public*/;
 reg set_pc /*verilator public*/;
 
 wire [7:0] ipq[8];
@@ -183,7 +181,7 @@ task set_sreg(input sreg_index_e r, input bit[15:0] val);
     SS: reg_ss <= val;
     PS: begin
         reg_ps <= val;
-        new_pc <= decoded.end_pc;
+        next_pc <= decoded.end_pc;
         set_pc <= 1;
     end
     endcase
@@ -307,7 +305,7 @@ bus_control_unit BCU(
     .reg_ps, .reg_ss, .reg_ds0, .reg_ds1,
 
     .pfp_set(set_pc),
-    .ipq, .ipq_head(set_pc ? new_pc : cur_pc), .ipq_len,
+    .ipq, .ipq_head(set_pc ? next_pc : cur_pc), .ipq_len,
 
     .dp_addr, .dp_dout, .dp_din, .dp_sreg,
     .dp_write, .dp_wide, .dp_io, .dp_req,
@@ -328,7 +326,7 @@ nec_decode nec_decode(
     .clk, .ce(ce_1 | ce_2),
     .ipq_len,
     .ipq,
-    .new_pc, .set_pc,
+    .new_pc(next_pc), .set_pc,
     .pc(cur_pc),
     .start(start_decode),
     .valid(next_decode_valid),
@@ -421,9 +419,8 @@ always_ff @(posedge clk) begin
         reg_ss <= 16'd0;
         reg_ds0 <= 16'd0;
         reg_ds1 <= 16'd0;
-        new_pc <= 16'd0;
-        set_pc <= 1;
         next_pc <= 16'd0;
+        set_pc <= 1;
 
         reg_aw <= 16'd0;
         reg_bw <= 16'd0;
@@ -482,6 +479,7 @@ always_ff @(posedge clk) begin
                         pop_list <= next_decode.pop;
 
                         decoded <= next_decode;
+                        next_pc <= next_decode.end_pc;
 
                         op_cycles <= next_decode.cycles;
                         if (next_decode.mem_read | next_decode.mem_write) begin
@@ -491,7 +489,7 @@ always_ff @(posedge clk) begin
                         addr = calc_ea(next_decode.rm, next_decode.mod, next_decode.disp);
                         calculated_ea <= addr;
 
-                        if (next_decode.mem_read) begin
+                        if (next_decode.mem_read & ~next_decode.defer_read) begin
                             read_memory(addr, next_decode.segment, next_decode.width);
                             if (next_decode.width == DWORD) begin
                                 state <= FETCH_OPERANDS2;
@@ -515,11 +513,11 @@ always_ff @(posedge clk) begin
                 end
             end // IDLE
 
-            FETCH_OPERANDS2: if (ce_1) begin
-                if (dp_ready) begin
-                    dp_din_low <= dp_din;
-
-                    read_memory(calculated_ea + 16'd2, decoded.segment, WORD);
+            FETCH_OPERANDS: if (ce_1 & dp_ready) begin
+                read_memory(calculated_ea, decoded.segment, decoded.width);
+                if (next_decode.width == DWORD) begin
+                    state <= FETCH_OPERANDS2;
+                end else begin
                     if (push_list != 16'd0)
                         state <= PUSH;
                     else if (pop_list != 16'd0)
@@ -527,6 +525,18 @@ always_ff @(posedge clk) begin
                     else
                         state <= EXECUTE;
                 end
+            end
+
+            FETCH_OPERANDS2: if (ce_1 & dp_ready) begin
+                dp_din_low <= dp_din;
+
+                read_memory(calculated_ea + 16'd2, decoded.segment, WORD);
+                if (push_list != 16'd0)
+                    state <= PUSH;
+                else if (pop_list != 16'd0)
+                    state <= POP;
+                else
+                    state <= EXECUTE;
             end // FETCH_OPERANDS2
 
             INT_ACK_WAIT: if (ce_1) begin
@@ -554,7 +564,7 @@ always_ff @(posedge clk) begin
             end
 
             INT_FETCH_WAIT1: if (dp_ready & ce_1) begin
-                new_pc <= dp_din;
+                next_pc <= dp_din;
                 dp_addr <= { 6'd0, interrupt_vector[7:0], 2'b10 };
                 dp_req <= 1;
                 state <= INT_FETCH_WAIT2;
@@ -1223,7 +1233,7 @@ always_ff @(posedge clk) begin
                     12: reg_ss <= dp_din;
                     13: reg_ds0 <= dp_din;
                     14: begin
-                        new_pc <= dp_din;
+                        next_pc <= dp_din;
                         stack_modified_pc <= 1;
                     end
                     15: begin
@@ -1246,7 +1256,11 @@ always_ff @(posedge clk) begin
                         state <= IDLE;
                         start_decode <= 1;
                     end else begin
-                        state <= EXECUTE;
+                        if (decoded.mem_read & decoded.defer_read) begin
+                            state <= FETCH_OPERANDS;
+                        end else begin
+                            state <= EXECUTE;
+                        end
                     end
                 end else begin
                     if (mem_write) begin
@@ -1293,7 +1307,7 @@ always_ff @(posedge clk) begin
                 11: push_data = reg_ps;
                 12: push_data = reg_ss;
                 13: push_data = reg_ds0;
-                14: push_data = decoded.end_pc;
+                14: push_data = next_pc;
                 15: push_data = get_operand(decoded.source0);
                 endcase
 
@@ -1309,7 +1323,11 @@ always_ff @(posedge clk) begin
                         state <= IDLE;
                         start_decode <= 1;
                     end else begin
-                        state <= EXECUTE;
+                        if (decoded.mem_read & decoded.defer_read) begin
+                            state <= FETCH_OPERANDS;
+                        end else begin
+                            state <= EXECUTE;
+                        end
                     end
                 end 
             end // PUSH
@@ -1329,7 +1347,7 @@ always_ff @(posedge clk) begin
 
                 if (use_branch_result) begin
                     set_pc <= 1;
-                    new_pc <= branch_new_pc;
+                    next_pc <= branch_new_pc;
                     reg_ps <= branch_new_ps;
                     state <= IDLE;
                 end else begin

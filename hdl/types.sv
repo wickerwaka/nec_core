@@ -30,6 +30,7 @@ package types;
 
         bit mem_read;
         bit mem_write;
+        bit defer_read;
 
         bit [15:0] disp;
         bit [31:0] imm;
