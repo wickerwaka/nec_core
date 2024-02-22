@@ -71,6 +71,10 @@ void tick(int count = 1)
             {
                 top->din = read_mem(top->addr, (~top->n_ube) & 1);
             }
+            else
+            {
+                top->din = 0xffff;
+            }
 
             if (!top->r_w && top->m_io)
             {
@@ -118,9 +122,8 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    fread(ram, 1, 64 * 1024, fp);
+    fread(&ram[0xf0000], 1, 64 * 1024, fp);
     fclose(fp);
-    memcpy(&ram[0xf0000], ram, 64 * 1024);
 
     contextp = new VerilatedContext;
     top = new v33{contextp};
@@ -128,7 +131,7 @@ int main(int argc, char **argv)
     Verilated::traceEverOn(true);
     tfp = new VerilatedVcdC;
     top->trace(tfp, 99);
-    tfp->open("v33.vcd");
+    tfp->open("test_186.vcd");
 
     top->ce_1 = 0;
     top->ce_2 = 1;
@@ -136,11 +139,20 @@ int main(int argc, char **argv)
     top->reset = 1;
     tick(10);
     top->reset = 0;
+    tick(1);
+
+    for( int i = 0; i < 2; i++ )
+    {
+        top->rootp->V33->reg_ps = 0xf000;
+        top->rootp->V33->new_pc = 0xfff0;
+        top->rootp->V33->set_pc = 1;
+    }
+    
+    top->rootp->V33->set_pc = 1;
 
     while(true)
     {
         tick(1);
-        if (!top->r_w && !top->m_io && top->addr == 0xdead) break;
         if (top->rootp->V33->halt) break;
     }
 

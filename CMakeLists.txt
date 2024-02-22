@@ -19,3 +19,12 @@ verilate(v33
     INCLUDE_DIRS hdl
     TOP_MODULE V33
     PREFIX v33)
+
+add_executable(test_186 src/test_186.cpp)
+verilate(test_186
+    TRACE
+    SOURCES hdl/types.sv hdl/bus_control_unit.sv hdl/nec_divider.sv hdl/v33.sv hdl/nec_decode.sv hdl/alu.sv
+    INCLUDE_DIRS hdl
+    TOP_MODULE V33
+    PREFIX v33)
+    
