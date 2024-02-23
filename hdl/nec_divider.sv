@@ -55,7 +55,7 @@ always_ff @(posedge clk) begin
             end else begin
                 busy <= 1;
                 dbz <= 0;
-                if (wide) begin
+                if (1) begin
                     b1 <= b[32] ? -b[31:0] : b[31:0];
                     {acc, quo} <= {{32{1'b0}}, (a[32] ? -a[31:0] : a[31:0]), 1'd0};  // initialize calculation
                 end else begin
@@ -64,7 +64,7 @@ always_ff @(posedge clk) begin
                 end
             end
         end else if (busy) begin
-            if (i == (wide ? 31 : 15)) begin  // we're done
+            if (i == (wide ? 31 : 31)) begin  // we're done
                 busy <= 0;
                 done <= 1;
                 if (wide)
