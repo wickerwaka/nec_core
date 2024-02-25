@@ -144,7 +144,7 @@ int main(int argc, char **argv)
     for( int i = 0; i < 2; i++ )
     {
         top->rootp->V33->reg_ps = 0xf000;
-        top->rootp->V33->new_pc = 0xfff0;
+        top->rootp->V33->next_pc = 0xfff0;
         top->rootp->V33->set_pc = 1;
     }
     
