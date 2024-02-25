@@ -365,7 +365,8 @@ hlt
 rb 01000h-$
 push ax
 push di
-mov ax,word[bp]
+; mov ax,word[bp] 
+xor ax, ax ; Do not increment PC on 8086/V30 
 mov si,sp
 add si,4
 mov si,word[si]
