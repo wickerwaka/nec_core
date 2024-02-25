@@ -55,7 +55,7 @@ always_ff @(posedge clk) begin
             end else begin
                 busy <= 1;
                 dbz <= 0;
-                if (1) begin
+                if (wide) begin
                     b1 <= b[32] ? -b[31:0] : b[31:0];
                     {acc, quo} <= {{32{1'b0}}, (a[32] ? -a[31:0] : a[31:0]), 1'd0};  // initialize calculation
                 end else begin
@@ -67,16 +67,18 @@ always_ff @(posedge clk) begin
             if (i == (wide ? 31 : 31)) begin  // we're done
                 busy <= 0;
                 done <= 1;
-                if (wide)
+                if (wide) begin
                     overflow <= |quo_next[31:16];
-                else
+                    if (a[32]) rem <= -(acc_next[16:1]);
+                    else rem <= acc_next[16:1];
+                end else begin
                     overflow <= |quo_next[31:8];
+                    if (a[32]) rem <= -(acc_next[32:17]);
+                    else rem <= acc_next[32:17];
+                end
 
                 quot <= quo_next[15:0];
-                rem <= acc_next[16:1];  // undo final shift
-
                 if (a[32] ^ b[32]) quot <= -(quo_next[15:0]);
-                if (a[32]) rem <= -(acc_next[16:1]);
 
             end else begin  // next iteration
                 i <= i + 1;
