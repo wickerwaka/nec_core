@@ -1,0 +1,26 @@
+psw=F002 aw=0000 cw=0000 dw=0000 bw=0000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0000: mov     aw,1000h
+psw=F002 aw=1000 cw=0000 dw=0000 bw=0000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0003: mov     ss,aw
+psw=F002 aw=1000 cw=0000 dw=0000 bw=0000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F0005: mov     sp,1000h
+psw=F002 aw=1000 cw=0000 dw=0000 bw=0000 sp=1000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F0008: mov     cw,0FEFFh
+psw=F002 aw=1000 cw=FEFF dw=0000 bw=0000 sp=1000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F000B: push    cw
+psw=F002 aw=1000 cw=FEFF dw=0000 bw=0000 sp=0FFE bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F000C: pop     psw
+psw=FED7 aw=1000 cw=FEFF dw=0000 bw=0000 sp=1000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F000D: clr1    cy
+psw=FED6 aw=1000 cw=FEFF dw=0000 bw=0000 sp=1000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F000E: clr1    dir
+psw=FAD6 aw=1000 cw=FEFF dw=0000 bw=0000 sp=1000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F000F: di      
+psw=F8D6 aw=1000 cw=FEFF dw=0000 bw=0000 sp=1000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F0010: nop     
+psw=F8D6 aw=1000 cw=FEFF dw=0000 bw=0000 sp=1000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F0011: push    psw
+psw=F8D6 aw=1000 cw=FEFF dw=0000 bw=0000 sp=0FFE bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F0012: pop     aw
+psw=F8D6 aw=F8D6 cw=FEFF dw=0000 bw=0000 sp=1000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F0013: mov     dw,1h
+psw=F8D6 aw=F8D6 cw=FEFF dw=0001 bw=0000 sp=1000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F0016: push    dw
+psw=F8D6 aw=F8D6 cw=FEFF dw=0001 bw=0000 sp=0FFE bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F0017: pop     psw
+psw=F003 aw=F8D6 cw=FEFF dw=0001 bw=0000 sp=1000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F0018: not1    cy
+psw=F002 aw=F8D6 cw=FEFF dw=0001 bw=0000 sp=1000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F0019: set1    cy
+psw=F003 aw=F8D6 cw=FEFF dw=0001 bw=0000 sp=1000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F001A: set1    dir
+psw=F403 aw=F8D6 cw=FEFF dw=0001 bw=0000 sp=1000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F001B: ei      
+psw=F603 aw=F8D6 cw=FEFF dw=0001 bw=0000 sp=1000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F001C: push    psw
+psw=F603 aw=F8D6 cw=FEFF dw=0001 bw=0000 sp=0FFE bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F001D: pop     bw
+psw=F603 aw=F8D6 cw=FEFF dw=0001 bw=F603 sp=1000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F001E: mov     cw,0h
+psw=F603 aw=F8D6 cw=0000 dw=0001 bw=F603 sp=1000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F0021: mov     ds0,cw
+psw=F603 aw=F8D6 cw=0000 dw=0001 bw=F603 sp=1000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F0023: mov     [0h],aw
+psw=F603 aw=F8D6 cw=0000 dw=0001 bw=F603 sp=1000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F0026: mov     [2h],bw
+psw=F603 aw=F8D6 cw=0000 dw=0001 bw=F603 sp=1000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=1000 ds0=0000 F002A: halt    

@@ -171,9 +171,9 @@ cpu_state_e:
 decode_stage_e:
   values:
     - INVALID
-    - INIT
-    - WAIT_OPCODE
-    - WAIT_OPERANDS
+    - OPCODE_FIRST
+    - OPCODE
+    - IMMEDIATES
     - DECODED
 
 repeat_e:

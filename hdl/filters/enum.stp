@@ -158,9 +158,9 @@
   </table>
   <table name="decode_stage_e" width="3">
     <symbol name="INVALID" value="000" />
-    <symbol name="INIT" value="001" />
-    <symbol name="WAIT_OPCODE" value="010" />
-    <symbol name="WAIT_OPERANDS" value="011" />
+    <symbol name="OPCODE_FIRST" value="001" />
+    <symbol name="OPCODE" value="010" />
+    <symbol name="IMMEDIATES" value="011" />
     <symbol name="DECODED" value="100" />
   </table>
   <table name="repeat_e" width="3">

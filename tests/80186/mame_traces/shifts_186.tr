@@ -1,0 +1,122 @@
+psw=F002 aw=0000 cw=0000 dw=0000 bw=0000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0000: mov     aw,6EC5h
+psw=F002 aw=6EC5 cw=0000 dw=0000 bw=0000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0003: mov     bw,0B1A8h
+psw=F002 aw=6EC5 cw=0000 dw=0000 bw=B1A8 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0006: mov     word ptr [0h],5338h
+psw=F002 aw=6EC5 cw=0000 dw=0000 bw=B1A8 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F000C: mov     word ptr [2h],31FEh
+psw=F002 aw=6EC5 cw=0000 dw=0000 bw=B1A8 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0012: mov     sp,80h
+psw=F002 aw=6EC5 cw=0000 dw=0000 bw=B1A8 sp=0080 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0015: shl     aw,1
+psw=F882 aw=DD8A cw=0000 dw=0000 bw=B1A8 sp=0080 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0017: push    psw
+psw=F882 aw=DD8A cw=0000 dw=0000 bw=B1A8 sp=007E bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0018: mov     [20h],aw
+psw=F882 aw=DD8A cw=0000 dw=0000 bw=B1A8 sp=007E bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F001B: shl     word ptr [0h],1
+psw=F882 aw=DD8A cw=0000 dw=0000 bw=B1A8 sp=007E bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F001F: push    psw
+psw=F882 aw=DD8A cw=0000 dw=0000 bw=B1A8 sp=007C bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0020: mov     cw,100h
+psw=F882 aw=DD8A cw=0100 dw=0000 bw=B1A8 sp=007C bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0023: shl     bw,cl
+psw=F882 aw=DD8A cw=0100 dw=0000 bw=B1A8 sp=007C bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0025: push    psw
+psw=F882 aw=DD8A cw=0100 dw=0000 bw=B1A8 sp=007A bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0026: mov     [22h],bw
+psw=F882 aw=DD8A cw=0100 dw=0000 bw=B1A8 sp=007A bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F002A: mov     cw,0FFFFh
+psw=F882 aw=DD8A cw=FFFF dw=0000 bw=B1A8 sp=007A bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F002D: mov     dw,bw
+psw=F882 aw=DD8A cw=FFFF dw=B1A8 bw=B1A8 sp=007A bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F002F: shl     dw,cl
+psw=F846 aw=DD8A cw=FFFF dw=0000 bw=B1A8 sp=007A bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0031: push    psw
+psw=F846 aw=DD8A cw=FFFF dw=0000 bw=B1A8 sp=0078 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0032: mov     [24h],dw
+psw=F846 aw=DD8A cw=FFFF dw=0000 bw=B1A8 sp=0078 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0036: mov     cl,8h
+psw=F846 aw=DD8A cw=FF08 dw=0000 bw=B1A8 sp=0078 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0038: shl     bw,cl
+psw=F887 aw=DD8A cw=FF08 dw=0000 bw=A800 sp=0078 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F003A: push    psw
+psw=F887 aw=DD8A cw=FF08 dw=0000 bw=A800 sp=0076 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F003B: mov     [26h],bw
+psw=F887 aw=DD8A cw=FF08 dw=0000 bw=A800 sp=0076 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F003F: mov     cl,4h
+psw=F887 aw=DD8A cw=FF04 dw=0000 bw=A800 sp=0076 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0041: shl     byte ptr [2h],cl
+psw=F883 aw=DD8A cw=FF04 dw=0000 bw=A800 sp=0076 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0045: push    psw
+psw=F883 aw=DD8A cw=FF04 dw=0000 bw=A800 sp=0074 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0046: mov     dw,956Fh
+psw=F883 aw=DD8A cw=FF04 dw=956F bw=A800 sp=0074 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0049: mov     aw,4293h
+psw=F883 aw=4293 cw=FF04 dw=956F bw=A800 sp=0074 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F004C: mov     word ptr [4h],33C0h
+psw=F883 aw=4293 cw=FF04 dw=956F bw=A800 sp=0074 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0052: mov     word ptr [6h],64FFh
+psw=F883 aw=4293 cw=FF04 dw=956F bw=A800 sp=0074 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0058: shl     ah,1
+psw=F886 aw=8493 cw=FF04 dw=956F bw=A800 sp=0074 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F005A: push    psw
+psw=F886 aw=8493 cw=FF04 dw=956F bw=A800 sp=0072 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F005B: mov     [28h],aw
+psw=F886 aw=8493 cw=FF04 dw=956F bw=A800 sp=0072 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F005E: shl     byte ptr [5h],1
+psw=F006 aw=8493 cw=FF04 dw=956F bw=A800 sp=0072 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0062: push    psw
+psw=F006 aw=8493 cw=FF04 dw=956F bw=A800 sp=0070 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0063: mov     cl,7h
+psw=F006 aw=8493 cw=FF07 dw=956F bw=A800 sp=0070 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0065: shl     dl,cl
+psw=F083 aw=8493 cw=FF07 dw=9580 bw=A800 sp=0070 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0067: push    psw
+psw=F083 aw=8493 cw=FF07 dw=9580 bw=A800 sp=006E bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0068: mov     [2Ah],dw
+psw=F083 aw=8493 cw=FF07 dw=9580 bw=A800 sp=006E bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F006C: shl     byte ptr [6h],cl
+psw=F083 aw=8493 cw=FF07 dw=9580 bw=A800 sp=006E bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0070: push    psw
+psw=F083 aw=8493 cw=FF07 dw=9580 bw=A800 sp=006C bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0071: mov     aw,0FB72h
+psw=F083 aw=FB72 cw=FF07 dw=9580 bw=A800 sp=006C bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0074: mov     bw,0DFB9h
+psw=F083 aw=FB72 cw=FF07 dw=9580 bw=DFB9 sp=006C bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0077: mov     word ptr [8h],1EBBh
+psw=F083 aw=FB72 cw=FF07 dw=9580 bw=DFB9 sp=006C bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F007D: mov     word ptr [0Ah],742Fh
+psw=F083 aw=FB72 cw=FF07 dw=9580 bw=DFB9 sp=006C bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0083: shra    aw,1
+psw=F082 aw=FDB9 cw=FF07 dw=9580 bw=DFB9 sp=006C bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0085: push    psw
+psw=F082 aw=FDB9 cw=FF07 dw=9580 bw=DFB9 sp=006A bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0086: mov     [2Ch],aw
+psw=F082 aw=FDB9 cw=FF07 dw=9580 bw=DFB9 sp=006A bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0089: shra    word ptr [8h],1
+psw=F003 aw=FDB9 cw=FF07 dw=9580 bw=DFB9 sp=006A bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F008D: push    psw
+psw=F003 aw=FDB9 cw=FF07 dw=9580 bw=DFB9 sp=0068 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F008E: mov     cw,100h
+psw=F003 aw=FDB9 cw=0100 dw=9580 bw=DFB9 sp=0068 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0091: shra    bw,cl
+psw=F003 aw=FDB9 cw=0100 dw=9580 bw=DFB9 sp=0068 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0093: push    psw
+psw=F003 aw=FDB9 cw=0100 dw=9580 bw=DFB9 sp=0066 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0094: mov     [2Eh],bw
+psw=F003 aw=FDB9 cw=0100 dw=9580 bw=DFB9 sp=0066 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0098: mov     cw,0FFFFh
+psw=F003 aw=FDB9 cw=FFFF dw=9580 bw=DFB9 sp=0066 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F009B: mov     dw,bw
+psw=F003 aw=FDB9 cw=FFFF dw=DFB9 bw=DFB9 sp=0066 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F009D: shra    dw,cl
+psw=F087 aw=FDB9 cw=FFFF dw=FFFF bw=DFB9 sp=0066 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F009F: push    psw
+psw=F087 aw=FDB9 cw=FFFF dw=FFFF bw=DFB9 sp=0064 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00A0: mov     [30h],dw
+psw=F087 aw=FDB9 cw=FFFF dw=FFFF bw=DFB9 sp=0064 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00A4: mov     cl,5h
+psw=F087 aw=FDB9 cw=FF05 dw=FFFF bw=DFB9 sp=0064 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00A6: shra    bw,cl
+psw=F083 aw=FDB9 cw=FF05 dw=FFFF bw=FEFD sp=0064 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00A8: push    psw
+psw=F083 aw=FDB9 cw=FF05 dw=FFFF bw=FEFD sp=0062 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00A9: mov     [32h],bw
+psw=F083 aw=FDB9 cw=FF05 dw=FFFF bw=FEFD sp=0062 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00AD: mov     cl,4h
+psw=F083 aw=FDB9 cw=FF04 dw=FFFF bw=FEFD sp=0062 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00AF: shra    byte ptr [0Ah],cl
+psw=F003 aw=FDB9 cw=FF04 dw=FFFF bw=FEFD sp=0062 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00B3: push    psw
+psw=F003 aw=FDB9 cw=FF04 dw=FFFF bw=FEFD sp=0060 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00B4: mov     dw,93B8h
+psw=F003 aw=FDB9 cw=FF04 dw=93B8 bw=FEFD sp=0060 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00B7: mov     aw,6688h
+psw=F003 aw=6688 cw=FF04 dw=93B8 bw=FEFD sp=0060 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00BA: mov     word ptr [0Ch],0CAD4h
+psw=F003 aw=6688 cw=FF04 dw=93B8 bw=FEFD sp=0060 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00C0: mov     word ptr [0Eh],6EC9h
+psw=F003 aw=6688 cw=FF04 dw=93B8 bw=FEFD sp=0060 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00C6: shra    ah,1
+psw=F006 aw=3388 cw=FF04 dw=93B8 bw=FEFD sp=0060 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00C8: push    psw
+psw=F006 aw=3388 cw=FF04 dw=93B8 bw=FEFD sp=005E bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00C9: mov     [34h],aw
+psw=F006 aw=3388 cw=FF04 dw=93B8 bw=FEFD sp=005E bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00CC: shra    byte ptr [0Dh],1
+psw=F082 aw=3388 cw=FF04 dw=93B8 bw=FEFD sp=005E bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00D0: push    psw
+psw=F082 aw=3388 cw=FF04 dw=93B8 bw=FEFD sp=005C bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00D1: mov     cl,7h
+psw=F082 aw=3388 cw=FF07 dw=93B8 bw=FEFD sp=005C bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00D3: shra    dl,cl
+psw=F086 aw=3388 cw=FF07 dw=93FF bw=FEFD sp=005C bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00D5: push    psw
+psw=F086 aw=3388 cw=FF07 dw=93FF bw=FEFD sp=005A bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00D6: mov     [36h],dw
+psw=F086 aw=3388 cw=FF07 dw=93FF bw=FEFD sp=005A bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00DA: shra    byte ptr [0Eh],cl
+psw=F087 aw=3388 cw=FF07 dw=93FF bw=FEFD sp=005A bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00DE: push    psw
+psw=F087 aw=3388 cw=FF07 dw=93FF bw=FEFD sp=0058 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00DF: mov     aw,7BA1h
+psw=F087 aw=7BA1 cw=FF07 dw=93FF bw=FEFD sp=0058 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00E2: mov     bw,54E8h
+psw=F087 aw=7BA1 cw=FF07 dw=93FF bw=54E8 sp=0058 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00E5: mov     word ptr [10h],0BAAAh
+psw=F087 aw=7BA1 cw=FF07 dw=93FF bw=54E8 sp=0058 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00EB: mov     word ptr [12h],3431h
+psw=F087 aw=7BA1 cw=FF07 dw=93FF bw=54E8 sp=0058 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00F1: shr     aw,1
+psw=F003 aw=3DD0 cw=FF07 dw=93FF bw=54E8 sp=0058 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00F3: push    psw
+psw=F003 aw=3DD0 cw=FF07 dw=93FF bw=54E8 sp=0056 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00F4: mov     [38h],aw
+psw=F003 aw=3DD0 cw=FF07 dw=93FF bw=54E8 sp=0056 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00F7: shr     word ptr [10h],1
+psw=F806 aw=3DD0 cw=FF07 dw=93FF bw=54E8 sp=0056 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00FB: push    psw
+psw=F806 aw=3DD0 cw=FF07 dw=93FF bw=54E8 sp=0054 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00FC: mov     cw,100h
+psw=F806 aw=3DD0 cw=0100 dw=93FF bw=54E8 sp=0054 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F00FF: shr     bw,cl
+psw=F806 aw=3DD0 cw=0100 dw=93FF bw=54E8 sp=0054 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0101: push    psw
+psw=F806 aw=3DD0 cw=0100 dw=93FF bw=54E8 sp=0052 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0102: mov     [3Ah],bw
+psw=F806 aw=3DD0 cw=0100 dw=93FF bw=54E8 sp=0052 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0106: mov     cw,0FFFFh
+psw=F806 aw=3DD0 cw=FFFF dw=93FF bw=54E8 sp=0052 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0109: mov     dw,bw
+psw=F806 aw=3DD0 cw=FFFF dw=54E8 bw=54E8 sp=0052 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F010B: shr     dw,cl
+psw=F846 aw=3DD0 cw=FFFF dw=0000 bw=54E8 sp=0052 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F010D: push    psw
+psw=F846 aw=3DD0 cw=FFFF dw=0000 bw=54E8 sp=0050 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F010E: mov     [3Ch],dw
+psw=F846 aw=3DD0 cw=FFFF dw=0000 bw=54E8 sp=0050 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0112: mov     cl,4h
+psw=F846 aw=3DD0 cw=FF04 dw=0000 bw=54E8 sp=0050 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0114: shr     bw,cl
+psw=F807 aw=3DD0 cw=FF04 dw=0000 bw=054E sp=0050 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0116: push    psw
+psw=F807 aw=3DD0 cw=FF04 dw=0000 bw=054E sp=004E bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0117: mov     [3Eh],bw
+psw=F807 aw=3DD0 cw=FF04 dw=0000 bw=054E sp=004E bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F011B: mov     cl,4h
+psw=F807 aw=3DD0 cw=FF04 dw=0000 bw=054E sp=004E bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F011D: shr     byte ptr [12h],cl
+psw=F806 aw=3DD0 cw=FF04 dw=0000 bw=054E sp=004E bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0121: push    psw
+psw=F806 aw=3DD0 cw=FF04 dw=0000 bw=054E sp=004C bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0122: mov     dw,410h
+psw=F806 aw=3DD0 cw=FF04 dw=0410 bw=054E sp=004C bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0125: mov     aw,1628h
+psw=F806 aw=1628 cw=FF04 dw=0410 bw=054E sp=004C bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0128: mov     word ptr [14h],3B26h
+psw=F806 aw=1628 cw=FF04 dw=0410 bw=054E sp=004C bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F012E: mov     word ptr [16h],8D0Dh
+psw=F806 aw=1628 cw=FF04 dw=0410 bw=054E sp=004C bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0134: shr     ah,1
+psw=F002 aw=0B28 cw=FF04 dw=0410 bw=054E sp=004C bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0136: push    psw
+psw=F002 aw=0B28 cw=FF04 dw=0410 bw=054E sp=004A bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0137: mov     [40h],aw
+psw=F002 aw=0B28 cw=FF04 dw=0410 bw=054E sp=004A bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F013A: shr     byte ptr [15h],1
+psw=F007 aw=0B28 cw=FF04 dw=0410 bw=054E sp=004A bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F013E: push    psw
+psw=F007 aw=0B28 cw=FF04 dw=0410 bw=054E sp=0048 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F013F: mov     cl,7h
+psw=F007 aw=0B28 cw=FF07 dw=0410 bw=054E sp=0048 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0141: shr     dl,cl
+psw=F046 aw=0B28 cw=FF07 dw=0400 bw=054E sp=0048 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0143: push    psw
+psw=F046 aw=0B28 cw=FF07 dw=0400 bw=054E sp=0046 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0144: mov     [42h],dw
+psw=F046 aw=0B28 cw=FF07 dw=0400 bw=054E sp=0046 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0148: shr     byte ptr [16h],cl
+psw=F046 aw=0B28 cw=FF07 dw=0400 bw=054E sp=0046 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F014C: push    psw
+psw=F046 aw=0B28 cw=FF07 dw=0400 bw=054E sp=0044 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F014D: halt    

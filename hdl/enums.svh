@@ -166,11 +166,11 @@ typedef enum bit [3:0] {
 } cpu_state_e /* verilator public */;
 
 typedef enum bit [2:0] {
-    INVALID       = 3'b000,
-    INIT          = 3'b001,
-    WAIT_OPCODE   = 3'b010,
-    WAIT_OPERANDS = 3'b011,
-    DECODED       = 3'b100
+    INVALID      = 3'b000,
+    OPCODE_FIRST = 3'b001,
+    OPCODE       = 3'b010,
+    IMMEDIATES   = 3'b011,
+    DECODED      = 3'b100
 } decode_stage_e /* verilator public */;
 
 typedef enum bit [2:0] {

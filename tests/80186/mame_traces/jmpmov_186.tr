@@ -1,0 +1,39 @@
+psw=F002 aw=0000 cw=0000 dw=0000 bw=0000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0000: br      0F000Eh
+psw=F002 aw=0000 cw=0000 dw=0000 bw=0000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F000E: mov     bw,0F000h
+psw=F002 aw=0000 cw=0000 dw=0000 bw=F000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=0000 F0011: mov     ds0,bw
+psw=F002 aw=0000 cw=0000 dw=0000 bw=F000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=F000 F0013: mov     aw,[0FFF2h]
+psw=F002 aw=1290 cw=0000 dw=0000 bw=F000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=F000 F0016: br      aw
+psw=F002 aw=1290 cw=0000 dw=0000 bw=F000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=F000 ss=0000 ds0=F000 F1290: br      0E342h:0EBE0h
+psw=F002 aw=1290 cw=0000 dw=0000 bw=F000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=E342 ss=0000 ds0=F000 F2000: mov     bw,1000h
+psw=F002 aw=1290 cw=0000 dw=0000 bw=1000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=E342 ss=0000 ds0=F000 F2003: mov     ds0,bw
+psw=F002 aw=1290 cw=0000 dw=0000 bw=1000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=E342 ss=0000 ds0=1000 F2005: mov     ah,0FBh
+psw=F002 aw=FB90 cw=0000 dw=0000 bw=1000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=E342 ss=0000 ds0=1000 F2007: mov     al,0E1h
+psw=F002 aw=FBE1 cw=0000 dw=0000 bw=1000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=E342 ss=0000 ds0=1000 F2009: mov     [2501h],aw
+psw=F002 aw=FBE1 cw=0000 dw=0000 bw=1000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=E342 ss=0000 ds0=1000 F200C: mov     word ptr [2600h],1001h
+psw=F002 aw=FBE1 cw=0000 dw=0000 bw=1000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=E342 ss=0000 ds0=1000 F2012: mov     ss,[2600h]
+psw=F002 aw=FBE1 cw=0000 dw=0000 bw=1000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=E342 ss=1001 ds0=1000 F2016: mov     [2601h],ss
+psw=F002 aw=FBE1 cw=0000 dw=0000 bw=1000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=E342 ss=1001 ds0=1000 F201A: mov     dl,[2601h]
+psw=F002 aw=FBE1 cw=0000 dw=0001 bw=1000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=E342 ss=1001 ds0=1000 F201E: mov     dh,0h
+psw=F002 aw=FBE1 cw=0000 dw=0001 bw=1000 sp=0000 bp=0000 ix=0000 iy=0000 ds1=0000 ps=E342 ss=1001 ds0=1000 F2020: mov     iy,dw
+psw=F002 aw=FBE1 cw=0000 dw=0001 bw=1000 sp=0000 bp=0000 ix=0000 iy=0001 ds1=0000 ps=E342 ss=1001 ds0=1000 F2022: mov     bp,2506h
+psw=F002 aw=FBE1 cw=0000 dw=0001 bw=1000 sp=0000 bp=2506 ix=0000 iy=0001 ds1=0000 ps=E342 ss=1001 ds0=1000 F2025: br      word ptr [bp+iy-16h]
+psw=F002 aw=FBE1 cw=0000 dw=0001 bw=1000 sp=0000 bp=2506 ix=0000 iy=0001 ds1=0000 ps=E342 ss=1001 ds0=1000 F3001: mov     dw,0F100h
+psw=F002 aw=FBE1 cw=0000 dw=F100 bw=1000 sp=0000 bp=2506 ix=0000 iy=0001 ds1=0000 ps=E342 ss=1001 ds0=1000 F3004: mov     aw,2536h
+psw=F002 aw=2536 cw=0000 dw=F100 bw=1000 sp=0000 bp=2506 ix=0000 iy=0001 ds1=0000 ps=E342 ss=1001 ds0=1000 F3007: out     dw,aw
+psw=F002 aw=2536 cw=0000 dw=F100 bw=1000 sp=0000 bp=2506 ix=0000 iy=0001 ds1=0000 ps=E342 ss=1001 ds0=1000 F3008: mov     aw,4001h
+psw=F002 aw=4001 cw=0000 dw=F100 bw=1000 sp=0000 bp=2506 ix=0000 iy=0001 ds1=0000 ps=E342 ss=1001 ds0=1000 F300C: mov     bw,2501h
+psw=F002 aw=4001 cw=0000 dw=F100 bw=2501 sp=0000 bp=2506 ix=0000 iy=0001 ds1=0000 ps=E342 ss=1001 ds0=1000 F300F: mov     [bw],aw
+psw=F002 aw=4001 cw=0000 dw=F100 bw=2501 sp=0000 bp=2506 ix=0000 iy=0001 ds1=0000 ps=E342 ss=1001 ds0=1000 F3011: mov     iy,2h
+psw=F002 aw=4001 cw=0000 dw=F100 bw=2501 sp=0000 bp=2506 ix=0000 iy=0002 ds1=0000 ps=E342 ss=1001 ds0=1000 F3014: mov     byte ptr [bw+iy],0h
+psw=F002 aw=4001 cw=0000 dw=F100 bw=2501 sp=0000 bp=2506 ix=0000 iy=0002 ds1=0000 ps=E342 ss=1001 ds0=1000 F3017: mov     ch,4h
+psw=F002 aw=4001 cw=0400 dw=F100 bw=2501 sp=0000 bp=2506 ix=0000 iy=0002 ds1=0000 ps=E342 ss=1001 ds0=1000 F3019: mov     cl,ch
+psw=F002 aw=4001 cw=0404 dw=F100 bw=2501 sp=0000 bp=2506 ix=0000 iy=0002 ds1=0000 ps=E342 ss=1001 ds0=1000 F301B: mov     ch,0h
+psw=F002 aw=4001 cw=0004 dw=F100 bw=2501 sp=0000 bp=2506 ix=0000 iy=0002 ds1=0000 ps=E342 ss=1001 ds0=1000 F301D: mov     ix,cw
+psw=F002 aw=4001 cw=0004 dw=F100 bw=2501 sp=0000 bp=2506 ix=0004 iy=0002 ds1=0000 ps=E342 ss=1001 ds0=1000 F301F: mov     byte ptr [bw+ix-1h],0F0h
+psw=F002 aw=4001 cw=0004 dw=F100 bw=2501 sp=0000 bp=2506 ix=0004 iy=0002 ds1=0000 ps=E342 ss=1001 ds0=1000 F3023: mov     ix,3h
+psw=F002 aw=4001 cw=0004 dw=F100 bw=2501 sp=0000 bp=2506 ix=0003 iy=0002 ds1=0000 ps=E342 ss=1001 ds0=1000 F3026: br      far ptr [bp+ix-18h]
+psw=F002 aw=4001 cw=0004 dw=F100 bw=2501 sp=0000 bp=2506 ix=0003 iy=0002 ds1=0000 ps=F000 ss=1001 ds0=1000 F4001: mov     aw,[bw+ix-3h]
+psw=F002 aw=4001 cw=0004 dw=F100 bw=2501 sp=0000 bp=2506 ix=0003 iy=0002 ds1=0000 ps=F000 ss=1001 ds0=1000 F4004: mov     dw,0h
+psw=F002 aw=4001 cw=0004 dw=0000 bw=2501 sp=0000 bp=2506 ix=0003 iy=0002 ds1=0000 ps=F000 ss=1001 ds0=1000 F4007: mov     ds0,dw
+psw=F002 aw=4001 cw=0004 dw=0000 bw=2501 sp=0000 bp=2506 ix=0003 iy=0002 ds1=0000 ps=F000 ss=1001 ds0=0000 F4009: mov     [0h],aw
+psw=F002 aw=4001 cw=0004 dw=0000 bw=2501 sp=0000 bp=2506 ix=0003 iy=0002 ds1=0000 ps=F000 ss=1001 ds0=0000 F400C: halt    

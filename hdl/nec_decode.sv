@@ -89,21 +89,22 @@ always_ff @(posedge clk) begin
     if (ce) begin
         if (set_pc) begin
             pc <= new_pc;
-            stage <= INIT;
+            stage <= OPCODE_FIRST;
         end else if (start) begin
-            stage <= INIT;
+            stage <= OPCODE_FIRST;
         end else begin
             case(stage)
-                INIT: begin
-                    segment_override <= 0;
-                    d.segment <= DS0;
-                    d.buslock <= 0;
-                    d.rep <= REPEAT_NONE;
-                    d.pc <= pc;
-                    stage <= WAIT_OPCODE;
-                end
+                OPCODE_FIRST,
+                OPCODE: if (ipq_len > 0) begin
+                    if (stage == OPCODE_FIRST) begin
+                        segment_override <= 0;
+                        d.segment <= DS0;
+                        d.buslock <= 0;
+                        d.rep <= REPEAT_NONE;
+                        d.pc <= pc;
+                        stage <= OPCODE;
+                    end
 
-                WAIT_OPCODE: if (ipq_len > 0) begin
                     d.opcode <= OP_INVALID;
                     d.alu_operation <= ALU_OP_NONE;
                     d.push <= 16'd0;
@@ -131,12 +132,12 @@ always_ff @(posedge clk) begin
                     endcase
                     
                     if (valid_op && (ipq_len >= {1'd0, op_size})) begin
-                        stage <= WAIT_OPERANDS;
+                        stage <= IMMEDIATES;
                         pc <= pc + {13'd0, op_size};
                     end
                 end
 
-                WAIT_OPERANDS: begin
+                IMMEDIATES: begin
                     disp_size = 3'd0;
                     imm_size = 3'd0;
                     d.mem_read <= 0;
@@ -171,7 +172,7 @@ always_ff @(posedge clk) begin
                         pc <= pc + { 13'd0, disp_size + imm_size };
                         stage <= DECODED;
                     end
-                end // WAIT_OPERANDS
+                end
 
                 default: begin
                 end
