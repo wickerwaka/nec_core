@@ -36,7 +36,10 @@ module V33(
 
     output      [23:0]  addr,
     output      [15:0]  dout,
-    input       [15:0]  din
+    input       [15:0]  din,
+
+    // Non-hardware
+    input               turbo
 );
 
 // Register file
@@ -469,7 +472,7 @@ always_ff @(posedge clk) begin
 
                 exec_stage <= 4'd0;
 
-                if (cycles >= op_cycles) begin
+                if (cycles >= op_cycles || turbo) begin
                     op_cycles <= 6'd0;
                     cycles <= 6'd1;
 
@@ -739,6 +742,8 @@ always_ff @(posedge clk) begin
                             default: begin
                             end
                             endcase
+
+                            op_cycles <= cond ? 6 : 3;
 
                             if (cond) begin
                                 branch_new_pc <= decoded.end_pc + get_operand(decoded.source0);
