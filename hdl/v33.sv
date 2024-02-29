@@ -472,7 +472,7 @@ always_ff @(posedge clk) begin
 
                 exec_stage <= 4'd0;
 
-                if (cycles >= op_cycles || turbo) begin
+                if (1) begin
                     op_cycles <= 6'd0;
                     cycles <= 6'd1;
 
@@ -1345,63 +1345,63 @@ always_ff @(posedge clk) begin
                 state <= POP_WAIT;
             end // POP
 
-            /*PRE_STORE_DELAY: if (ce_2 && ((cycles + 6'd1) >= op_cycles)) begin
-                exec_stage <= STORE_RESULT;
-            end*/
 
-            STORE_RESULT: if (dp_ready) begin
+            STORE_RESULT: begin
+                if (ce_1 & ~&cycles) cycles <= cycles + 6'd1;
+ 
+                if (ce_2 && dp_ready && cycles >= op_cycles) begin
 
-                if (use_branch_result) begin
-                    set_pc <= 1;
-                    next_pc <= branch_new_pc;
-                    reg_ps <= branch_new_ps;
-                    state <= IDLE;
-                end else begin
-                    result32 = use_alu_result ? alu_result : { 16'd0, op_result };
+                    if (use_branch_result) begin
+                        set_pc <= 1;
+                        next_pc <= branch_new_pc;
+                        reg_ps <= branch_new_ps;
+                        state <= IDLE;
+                    end else begin
+                        result32 = use_alu_result ? alu_result : { 16'd0, op_result };
 
-                    case(decoded.dest)
-                    OPERAND_ACC: begin
-                        if (decoded.width == BYTE)
-                            reg_aw[7:0] <= result32[7:0];
-                        else
-                            reg_aw <= result32[15:0];
-                    end
-                    OPERAND_MODRM: begin
-                        if (decoded.mod == 2'b11) begin
+                        case(decoded.dest)
+                        OPERAND_ACC: begin
                             if (decoded.width == BYTE)
-                                set_reg8(reg8_index_e'(decoded.rm), result32[7:0]);
+                                reg_aw[7:0] <= result32[7:0];
                             else
-                                set_reg16(reg16_index_e'(decoded.rm), result32[15:0]);
-                        end else begin
-                            write_memory(calculated_ea, decoded.segment, decoded.width, result32[15:0]);
+                                reg_aw <= result32[15:0];
                         end
-                    end
-                    OPERAND_SREG: begin
-                        set_sreg(sreg_index_e'(decoded.sreg), result32[15:0]);
-                    end
-                    OPERAND_REG_0: begin
-                        if (decoded.width == BYTE)
-                            set_reg8(reg8_index_e'(decoded.reg0), result32[7:0]);
-                        else
-                            set_reg16(reg16_index_e'(decoded.reg0), result32[15:0]);
-                    end
-                    OPERAND_REG_1: begin
-                        if (decoded.width == BYTE)
-                            set_reg8(reg8_index_e'(decoded.reg1), result32[7:0]);
-                        else
-                            set_reg16(reg16_index_e'(decoded.reg1), result32[15:0]);
-                    end
-                    OPERAND_PRODUCT: begin
-                        if (decoded.width == WORD) reg_dw <= result32[31:16];
-                        reg_aw <= result32[15:0];
-                    end
-                    default: begin end
-                    endcase
+                        OPERAND_MODRM: begin
+                            if (decoded.mod == 2'b11) begin
+                                if (decoded.width == BYTE)
+                                    set_reg8(reg8_index_e'(decoded.rm), result32[7:0]);
+                                else
+                                    set_reg16(reg16_index_e'(decoded.rm), result32[15:0]);
+                            end else begin
+                                write_memory(calculated_ea, decoded.segment, decoded.width, result32[15:0]);
+                            end
+                        end
+                        OPERAND_SREG: begin
+                            set_sreg(sreg_index_e'(decoded.sreg), result32[15:0]);
+                        end
+                        OPERAND_REG_0: begin
+                            if (decoded.width == BYTE)
+                                set_reg8(reg8_index_e'(decoded.reg0), result32[7:0]);
+                            else
+                                set_reg16(reg16_index_e'(decoded.reg0), result32[15:0]);
+                        end
+                        OPERAND_REG_1: begin
+                            if (decoded.width == BYTE)
+                                set_reg8(reg8_index_e'(decoded.reg1), result32[7:0]);
+                            else
+                                set_reg16(reg16_index_e'(decoded.reg1), result32[15:0]);
+                        end
+                        OPERAND_PRODUCT: begin
+                            if (decoded.width == WORD) reg_dw <= result32[31:16];
+                            reg_aw <= result32[15:0];
+                        end
+                        default: begin end
+                        endcase
 
-                    if (use_alu_result) begin
-                        flags <= alu_flags_result;
-                        op_cycles <= op_cycles + alu_cycles;
-                    end
+                        if (use_alu_result) begin
+                            flags <= alu_flags_result;
+                            op_cycles <= op_cycles + alu_cycles;
+                        end
 
                     state <= IDLE;
                 end
