@@ -13,7 +13,7 @@ module nec_decode(
     input [15:0] new_pc,
     input        set_pc,
 
-    input        start,
+    input        consume,
 
     input [3:0] ipq_len,
     input [7:0] ipq[8],
@@ -21,11 +21,14 @@ module nec_decode(
     output logic busy,
     output logic valid,
 
+    input read_decode,
     output nec_decode_t decoded
 );
 
+reg [3:0] pc_ofs;
+
 function bit [7:0] ipq_byte(bit [2:0] ofs);
-    return ipq[pc[2:0] + ofs[2:0]];
+    return ipq[pc[2:0] + ofs[2:0] + pc_ofs[2:0]];
 endfunction
 
 wire [23:0] q = { ipq_byte(0), ipq_byte(1), ipq_byte(2) };
@@ -34,8 +37,8 @@ decode_stage_e stage;
 reg segment_override;
 nec_decode_t d;
 
-assign busy = (start | set_pc) || ( stage != INVALID && stage != DECODED );
-assign valid = (stage == DECODED) && ~(start | set_pc);
+assign busy = (read_decode | set_pc) || ( stage != INVALID && stage != DECODED );
+assign valid = (stage == DECODED) && ~(read_decode | set_pc);
 assign decoded = d;
 
 function bit [2:0] calc_imm_size(width_e width, operand_e s0, operand_e s1);
@@ -85,17 +88,23 @@ always_ff @(posedge clk) begin
     bit valid_op;
     bit [2:0] op_size;
     bit [2:0] imm_size, disp_size;
+    bit [3:0] pc_increment;
+    bit [3:0] avail;
+
+    pc_increment = 4'd0;
+    avail = ipq_len - pc_ofs;
 
     if (ce) begin
         if (set_pc) begin
             pc <= new_pc;
+            pc_ofs <= 4'd0;
             stage <= OPCODE_FIRST;
-        end else if (start) begin
+        end else if (read_decode) begin
             stage <= OPCODE_FIRST;
         end else begin
             case(stage)
                 OPCODE_FIRST,
-                OPCODE: if (ipq_len > 0) begin
+                OPCODE: if (avail > 0) begin
                     if (stage == OPCODE_FIRST) begin
                         segment_override <= 0;
                         d.segment <= DS0;
@@ -114,15 +123,15 @@ always_ff @(posedge clk) begin
 
                     valid_op = 0;
                     case(q[23:16])
-                        8'b00100110: begin segment_override <= 1; d.segment <= DS1; pc <= pc + 16'd1; end
-                        8'b00101110: begin segment_override <= 1; d.segment <= PS; pc <= pc + 16'd1; end
-                        8'b00110110: begin segment_override <= 1; d.segment <= SS; pc <= pc + 16'd1; end
-                        8'b00111110: begin segment_override <= 1; d.segment <= DS0; pc <= pc + 16'd1; end
-                        8'b11110000: begin d.buslock <= 1; pc <= pc + 16'd1; end
-                        8'b11110011: begin d.rep <= REPEAT_Z; pc <= pc + 16'd1; end
-                        8'b01100101: begin d.rep <= REPEAT_C; pc <= pc + 16'd1; end
-                        8'b01100100: begin d.rep <= REPEAT_NC; pc <= pc + 16'd1; end
-                        8'b11110010: begin d.rep <= REPEAT_NZ; pc <= pc + 16'd1; end
+                        8'b00100110: begin segment_override <= 1; d.segment <= DS1; pc_increment = 4'd1; end
+                        8'b00101110: begin segment_override <= 1; d.segment <= PS;  pc_increment = 4'd1; end
+                        8'b00110110: begin segment_override <= 1; d.segment <= SS;  pc_increment = 4'd1; end
+                        8'b00111110: begin segment_override <= 1; d.segment <= DS0; pc_increment = 4'd1; end
+                        8'b11110000: begin d.buslock <= 1;                          pc_increment = 4'd1; end
+                        8'b11110011: begin d.rep <= REPEAT_Z;                       pc_increment = 4'd1; end
+                        8'b01100101: begin d.rep <= REPEAT_C;                       pc_increment = 4'd1; end
+                        8'b01100100: begin d.rep <= REPEAT_NC;                      pc_increment = 4'd1; end
+                        8'b11110010: begin d.rep <= REPEAT_NZ;                      pc_increment = 4'd1; end
 
                         default: begin
                             casex(q)
@@ -131,9 +140,9 @@ always_ff @(posedge clk) begin
                         end
                     endcase
                     
-                    if (valid_op && (ipq_len >= {1'd0, op_size})) begin
+                    if (valid_op && (avail >= {1'd0, op_size})) begin
                         stage <= IMMEDIATES;
-                        pc <= pc + {13'd0, op_size};
+                        pc_increment = {1'd0, op_size};
                     end
                 end
 
@@ -162,14 +171,14 @@ always_ff @(posedge clk) begin
                         imm_size = calc_imm_size(d.width, d.source0, d.source1);
                     end
 
-                    if (ipq_len >= (disp_size + imm_size)) begin
+                    if (avail >= (disp_size + imm_size)) begin
                         d.imm[7:0] <= ipq_byte(disp_size);
                         d.imm[15:8] <= ipq_byte(disp_size + 3'd1);
                         d.imm[23:16] <= ipq_byte(disp_size + 3'd2);
                         d.imm[31:24] <= ipq_byte(disp_size + 3'd3);
                         d.disp <= { ipq_byte(3'd1), ipq_byte(3'd0) };
-                        d.end_pc <= pc + { 13'd0, disp_size + imm_size };
-                        pc <= pc + { 13'd0, disp_size + imm_size };
+                        d.end_pc <= pc + { 12'd0, pc_ofs } + { 13'd0, disp_size + imm_size };
+                        pc_increment = disp_size + imm_size;
                         stage <= DECODED;
                     end
                 end
@@ -177,6 +186,15 @@ always_ff @(posedge clk) begin
                 default: begin
                 end
             endcase
+        end
+
+        if (~set_pc) begin
+            if (consume) begin
+                pc <= pc + { 12'd0, pc_ofs } + { 12'd0, pc_increment };
+                pc_ofs <= 4'd0;
+            end else begin
+                pc_ofs <= pc_ofs + pc_increment;
+            end
         end
     end
 end

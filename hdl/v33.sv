@@ -318,9 +318,10 @@ bus_control_unit BCU(
     .implementation_fault()
 );
 
-reg start_decode;
+reg read_decode;
 wire next_decode_valid;
 wire decode_busy;
+wire decode_consume = state == IDLE || state == STORE_RESULT;
 
 nec_decode nec_decode(
     .clk, .ce(ce_1 | ce_2),
@@ -328,7 +329,8 @@ nec_decode nec_decode(
     .ipq,
     .new_pc(next_pc), .set_pc,
     .pc(cur_pc),
-    .start(start_decode),
+    .read_decode(read_decode),
+    .consume(decode_consume),
     .valid(next_decode_valid),
     .busy(decode_busy),
     .decoded(next_decode)
@@ -452,7 +454,7 @@ always_ff @(posedge clk) begin
         halt <= 0;
     end else if (ce_1 | ce_2) begin
         div_start <= 0;
-        start_decode <= 0;
+        read_decode <= 0;
         set_pc <= 0;
         dp_req <= 0;
 
@@ -478,6 +480,7 @@ always_ff @(posedge clk) begin
                         push_list <= next_decode.push;
                         pop_list <= next_decode.pop;
 
+                        read_decode <= 1;
                         decoded <= next_decode;
                         next_pc <= next_decode.end_pc;
 
@@ -1254,7 +1257,6 @@ always_ff @(posedge clk) begin
                 if (list == 16'd0) begin
                     if (decoded.opcode == OP_POP) begin
                         state <= IDLE;
-                        start_decode <= 1;
                     end else begin
                         if (decoded.mem_read & decoded.defer_read) begin
                             state <= FETCH_OPERANDS;
@@ -1321,7 +1323,6 @@ always_ff @(posedge clk) begin
                         state <= INT_FETCH_VEC;
                     end else if (decoded.opcode == OP_PUSH) begin
                         state <= IDLE;
-                        start_decode <= 1;
                     end else begin
                         if (decoded.mem_read & decoded.defer_read) begin
                             state <= FETCH_OPERANDS;
@@ -1398,7 +1399,6 @@ always_ff @(posedge clk) begin
                     end
 
                     state <= IDLE;
-                    start_decode <= 1;
                 end
             end // STORE_RESULT
 
