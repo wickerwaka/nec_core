@@ -411,7 +411,7 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_DEC;
 	d.cycles <= 2;
-	d.mem_cycles <= 3;
+	d.mem_cycles <= 5;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -426,7 +426,7 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_INC;
 	d.cycles <= 2;
-	d.mem_cycles <= 3;
+	d.mem_cycles <= 5;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -456,7 +456,7 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_NOT;
 	d.cycles <= 2;
-	d.mem_cycles <= 3;
+	d.mem_cycles <= 5;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -471,7 +471,7 @@ end
 	d.opcode <= OP_ALU;
 	d.alu_operation <= ALU_OP_NEG;
 	d.cycles <= 2;
-	d.mem_cycles <= 3;
+	d.mem_cycles <= 5;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -500,7 +500,7 @@ end
 	d.opcode <= OP_MOV;
 	d.width <= WORD;
 	d.cycles <= 2;
-	d.mem_cycles <= 3;
+	d.mem_cycles <= 4;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_SREG;
 	d.source0 <= OPERAND_MODRM;
@@ -515,7 +515,7 @@ end
 	d.opcode <= OP_MOV;
 	d.width <= WORD;
 	d.cycles <= 2;
-	d.mem_cycles <= 1;
+	d.mem_cycles <= 3;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_SREG;
@@ -1375,7 +1375,7 @@ end
 24'b1000000xxxxxxxxxxxxxxxxx: begin /* ALU_OP mem/reg, imm */
 	d.opcode <= OP_ALU;
 	d.cycles <= 2;
-	d.mem_cycles <= 3;
+	d.mem_cycles <= 5;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -1390,7 +1390,7 @@ end
 24'b1000001xxxxxxxxxxxxxxxxx: begin /* ALU_OP mem/reg, sext_imm */
 	d.opcode <= OP_ALU;
 	d.cycles <= 2;
-	d.mem_cycles <= 3;
+	d.mem_cycles <= 5;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -1419,8 +1419,8 @@ end
 end
 24'b1101001xxxxxxxxxxxxxxxxx: begin /* SHIFT mem/reg, CL */
 	d.opcode <= OP_SHIFT_CL;
-	d.cycles <= 2;
-	d.mem_cycles <= 2;
+	d.cycles <= 4;
+	d.mem_cycles <= 4;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -1434,8 +1434,8 @@ end
 end
 24'b1100000xxxxxxxxxxxxxxxxx: begin /* SHIFT mem/reg, imm */
 	d.opcode <= OP_SHIFT;
-	d.cycles <= 2;
-	d.mem_cycles <= 2;
+	d.cycles <= 4;
+	d.mem_cycles <= 4;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -1521,7 +1521,7 @@ end
 	op_size = 1;
 	valid_op = 1;
 end
-24'b1000100xxxxxxxxxxxxxxxxx: begin /* MOV mem/reg, reg */
+24'b1000100xxxxxxxxxxxxxxxxx: begin /* MOV mem, reg */
 	d.opcode <= OP_MOV;
 	d.cycles <= 2;
 	d.mem_cycles <= 3;
@@ -1536,10 +1536,10 @@ end
 	op_size = 2;
 	valid_op = 1;
 end
-24'b1000101xxxxxxxxxxxxxxxxx: begin /* MOV reg, mem/reg */
+24'b1000101xxxxxxxxxxxxxxxxx: begin /* MOV reg, mem */
 	d.opcode <= OP_MOV;
 	d.cycles <= 2;
-	d.mem_cycles <= 3;
+	d.mem_cycles <= 4;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_REG_0;
 	d.source0 <= OPERAND_MODRM;
@@ -1582,7 +1582,7 @@ end
 24'b1000011xxxxxxxxxxxxxxxxx: begin /* XCH mem/reg, reg */
 	d.opcode <= OP_XCH;
 	d.cycles <= 3;
-	d.mem_cycles <= 4;
+	d.mem_cycles <= 6;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -1739,7 +1739,7 @@ end
 24'b00xxx00xxxxxxxxxxxxxxxxx: begin /* ALU_OP mem/reg, reg */
 	d.opcode <= OP_ALU;
 	d.cycles <= 2;
-	d.mem_cycles <= 3;
+	d.mem_cycles <= 5;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;
@@ -1755,7 +1755,7 @@ end
 24'b00xxx01xxxxxxxxxxxxxxxxx: begin /* ALU_OP reg, mem/reg */
 	d.opcode <= OP_ALU;
 	d.cycles <= 2;
-	d.mem_cycles <= 4;
+	d.mem_cycles <= 5;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_REG_0;
 	d.source0 <= OPERAND_REG_0;

@@ -16,7 +16,7 @@ b00_ALU_00W_MD_GP0_MEM:
   src1: REG_0
   dst: MODRM
   cycles: 2
-  mem_cycles: 3
+  mem_cycles: 5
 
 b00_ALU_01W_MD_GP0_MEM:
   desc: ALU_OP reg, mem/reg
@@ -25,7 +25,7 @@ b00_ALU_01W_MD_GP0_MEM:
   src1: MODRM
   dst: REG_0
   cycles: 2
-  mem_cycles: 4
+  mem_cycles: 5
 
 b00_ALU_10W:
   desc: ALU_OP acc, imm
@@ -42,7 +42,7 @@ b1000000W_MD_ALU_MEM:
   src0: MODRM
   src1: IMM
   cycles: 2
-  mem_cycles: 3
+  mem_cycles: 5
 
 b1000001W_MD_ALU_MEM:
   desc: ALU_OP mem/reg, sext_imm
@@ -51,7 +51,7 @@ b1000001W_MD_ALU_MEM:
   src0: MODRM
   src1: IMM_EXT
   cycles: 2
-  mem_cycles: 3
+  mem_cycles: 5
 
 #
 # Rotate
@@ -69,8 +69,8 @@ b1101001W_MD_SFT_MEM:
   op: SHIFT_CL
   dst: MODRM
   src: MODRM
-  cycles: 2
-  mem_cycles: 2
+  cycles: 4
+  mem_cycles: 4
 
 b1100000W_MD_SFT_MEM:
   desc: SHIFT mem/reg, imm
@@ -78,8 +78,8 @@ b1100000W_MD_SFT_MEM:
   dst: MODRM
   src0: MODRM
   src1: IMM8
-  cycles: 2
-  mem_cycles: 2
+  cycles: 4
+  mem_cycles: 4
 
 #
 # CMP
@@ -148,7 +148,7 @@ b1111111W_MD_001_MEM:
   dst: MODRM
   src: MODRM
   cycles: 2
-  mem_cycles: 3
+  mem_cycles: 5
 
 b01000_GP0:
   desc: INC reg16
@@ -166,7 +166,7 @@ b1111111W_MD_000_MEM:
   dst: MODRM
   src: MODRM
   cycles: 2
-  mem_cycles: 3
+  mem_cycles: 5
 
 #
 # TEST
@@ -209,7 +209,7 @@ b1111011W_MD_010_MEM:
   dst: MODRM
   src0: MODRM
   cycles: 2
-  mem_cycles: 3
+  mem_cycles: 5
 
 #
 # NEG
@@ -221,7 +221,7 @@ b1111011W_MD_011_MEM:
   dst: MODRM
   src0: MODRM
   cycles: 2
-  mem_cycles: 3
+  mem_cycles: 5
 
 
 #
@@ -409,21 +409,20 @@ b10001101_MD_GP0_MEM:
 # MOV
 #
 b1000100W_MD_GP0_MEM:
-  desc: MOV mem/reg, reg
+  desc: MOV mem, reg
   op: MOV
   dst: MODRM
   src: REG_0
   cycles: 2
   mem_cycles: 3
 
-
 b1000101W_MD_GP0_MEM:
-  desc: MOV reg, mem/reg
+  desc: MOV reg, mem
   op: MOV
   dst: REG_0
   src: MODRM
   cycles: 2
-  mem_cycles: 3
+  mem_cycles: 4
 
 b1011W_GP0:
   desc: MOV reg, imm
@@ -461,7 +460,7 @@ b10001110_MD_0_SR_MEM:
   src: MODRM
   width: WORD
   cycles: 2
-  mem_cycles: 3
+  mem_cycles: 4
 
 b10001100_MD_0_SR_MEM:
   desc: MOV mem/reg, sreg
@@ -470,7 +469,7 @@ b10001100_MD_0_SR_MEM:
   src: SREG
   width: WORD
   cycles: 2
-  mem_cycles: 1
+  mem_cycles: 3
 
 b11000101_MD_GP0_MEM:
   op: MOV_SEG
@@ -502,7 +501,7 @@ b1000011W_MD_GP0_MEM:
   dst: MODRM
   src: MODRM
   cycles: 3
-  mem_cycles: 4
+  mem_cycles: 6
 
 b10010_GP0:
   op: XCH

@@ -324,7 +324,7 @@ bus_control_unit BCU(
 reg read_decode;
 wire next_decode_valid;
 wire decode_busy;
-wire decode_consume = state == IDLE || state == STORE_RESULT;
+wire decode_consume = state == IDLE;
 
 nec_decode nec_decode(
     .clk, .ce(ce_1 | ce_2),
@@ -714,7 +714,7 @@ always_ff @(posedge clk) begin
                             4'b1111: cond = ~((flags.S ^ flags.V) | flags.Z); /* GT */
                             endcase
 
-                            op_cycles <= cond ? 6 : 3;
+                            op_cycles <= cond ? 2 : 3;
 
                             if (cond) begin
                                 branch_new_pc <= decoded.end_pc + get_operand(decoded.source0);
@@ -743,7 +743,7 @@ always_ff @(posedge clk) begin
                             end
                             endcase
 
-                            op_cycles <= cond ? 6 : 3;
+                            op_cycles <= cond ? 2 : 3;
 
                             if (cond) begin
                                 branch_new_pc <= decoded.end_pc + get_operand(decoded.source0);
@@ -1347,9 +1347,9 @@ always_ff @(posedge clk) begin
 
 
             STORE_RESULT: begin
-                if (ce_1 & ~&cycles) cycles <= cycles + 6'd1;
+                //if (ce_1 & ~&cycles) cycles <= cycles + 6'd1;
  
-                if (ce_2 && dp_ready && cycles >= op_cycles) begin
+                if (ce_2 && dp_ready && cycles >= (use_alu_result ? op_cycles + alu_cycles : op_cycles)) begin
 
                     if (use_branch_result) begin
                         set_pc <= 1;
@@ -1403,7 +1403,8 @@ always_ff @(posedge clk) begin
                             op_cycles <= op_cycles + alu_cycles;
                         end
 
-                    state <= IDLE;
+                        state <= IDLE;
+                    end
                 end
             end // STORE_RESULT
 
