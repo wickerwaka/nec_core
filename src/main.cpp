@@ -8,31 +8,44 @@ VerilatedContext *contextp;
 v33 *top;
 VerilatedVcdC *tfp;
 
-constexpr size_t RAM_SIZE = 1024 * 1024;
+constexpr size_t ROM_SIZE = 512 * 1024;
+constexpr size_t RAM_SIZE = 64 * 1024;
 
 uint8_t ram[RAM_SIZE];
+uint8_t rom[ROM_SIZE];
 
 uint16_t read_mem(uint32_t addr, bool ube)
 {
-    uint32_t aligned_addr = (addr & ~1) % RAM_SIZE;
-    return ram[aligned_addr] | (ram[aligned_addr + 1] << 8);
+    if( ( addr & 0xf0000 ) == 0xe0000 )
+    {
+        uint32_t aligned_addr = (addr & ~1) % RAM_SIZE;
+        return ram[aligned_addr] | (ram[aligned_addr + 1] << 8);
+    }
+    else
+    {
+        uint32_t aligned_addr = (addr & ~1) % ROM_SIZE;
+        return rom[aligned_addr] | (rom[aligned_addr + 1] << 8);
+    }
 }
 
 void write_mem(uint32_t addr, bool ube, uint16_t dout)
 {
-    addr = addr % RAM_SIZE;
-    if ((addr & 1) && ube)
+    if( ( addr & 0xf0000 ) == 0xe0000 )
     {
-        ram[addr] = dout >> 8;
-    }
-    else if (((addr & 1) == 0) && !ube)
-    {
-        ram[addr] = dout & 0xff;
-    }
-    else
-    {
-        ram[addr] = dout & 0xff;
-        ram[addr + 1] = dout >> 8;
+        addr = addr % RAM_SIZE;
+        if ((addr & 1) && ube)
+        {
+            ram[addr] = dout >> 8;
+        }
+        else if (((addr & 1) == 0) && !ube)
+        {
+            ram[addr] = dout & 0xff;
+        }
+        else
+        {
+            ram[addr] = dout & 0xff;
+            ram[addr + 1] = dout >> 8;
+        }
     }
 }
 
@@ -118,9 +131,8 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    fread(ram, 1, 64 * 1024, fp);
+    fread(rom, 1, ROM_SIZE, fp);
     fclose(fp);
-    memcpy(&ram[0xf0000], ram, 64 * 1024);
 
     contextp = new VerilatedContext;
     top = new v33{contextp};
@@ -141,7 +153,6 @@ int main(int argc, char **argv)
     {
         tick(1);
         if (!top->r_w && !top->m_io && top->addr == 0xdead) break;
-        if (top->rootp->V33->halt) break;
     }
 
     top->final();
