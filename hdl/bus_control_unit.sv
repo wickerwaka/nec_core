@@ -50,6 +50,7 @@ module bus_control_unit(
     // instruction queue
     // inputs only read on ce1
     input               pfp_set,
+    input               block_prefetch,
     input       [15:0]  ipq_head,
     output  reg [7:0]   ipq[8],
     output      [3:0]   ipq_len,
@@ -194,13 +195,6 @@ always_ff @(posedge clk) begin
                 t_state <= T_1;
                 intack_idles <= 0;
                 n_ube <= 1;
-            end else if (new_ipq_used < 7) begin
-                t_state <= T_1;
-                n_bcyst <= 0;
-                cycle_type <= IPQ_FETCH;
-                addr <= physical_addr(PS, cur_pfp);
-                n_ube <= 0; // always
-                discard_ipq_fetch <= 0;
             end else if (dp_req | dp_req2) begin
                 dp_req2 <= 0;
                 t_state <= T_1;
@@ -220,6 +214,13 @@ always_ff @(posedge clk) begin
                 n_ube <= (~dp_wide & ~dp_addr[0]);
                 dp_final_cycle <= ~dp_wide | ~dp_addr[0];
                 dp_busy <= 1;
+            end else if (new_ipq_used < 7 && ~block_prefetch) begin
+                t_state <= T_1;
+                n_bcyst <= 0;
+                cycle_type <= IPQ_FETCH;
+                addr <= physical_addr(PS, cur_pfp);
+                n_ube <= 0; // always
+                discard_ipq_fetch <= 0;
             end
         end else if (ce_2 && t_state == T_1) begin
             t_state <= T_2;

@@ -189,11 +189,10 @@ always_ff @(posedge clk) begin
         end
 
         if (~set_pc) begin
+            pc_ofs <= pc_ofs + pc_increment;
             if (consume) begin
-                pc <= pc + { 12'd0, pc_ofs } + { 12'd0, pc_increment };
-                pc_ofs <= 4'd0;
-            end else begin
-                pc_ofs <= pc_ofs + pc_increment;
+                pc <= pc + { 12'd0, pc_ofs };
+                pc_ofs <= pc_increment;
             end
         end
     end

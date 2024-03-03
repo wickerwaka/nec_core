@@ -218,46 +218,46 @@ task start_alu(input bit [15:0] ta, input bit [15:0] tb, input alu_operation_e o
     alu_wide <= width == WORD ? 1 : 0;
 endtask
 
-function bit [15:0] get_operand(operand_e operand);
-    if (decoded.width == BYTE) begin
+function bit [15:0] get_operand(nec_decode_t dec, operand_e operand);
+    if (dec.width == BYTE) begin
         case(operand)
         OPERAND_ACC: return { 8'd0, reg_aw[7:0] };
-        OPERAND_IMM: return { 8'd0, decoded.imm[7:0] };
-        OPERAND_IMM8: return { 8'd0, decoded.imm[7:0] };
-        OPERAND_IMM_EXT: return { {8{decoded.imm[7]}}, decoded.imm[7:0] };
+        OPERAND_IMM: return { 8'd0, dec.imm[7:0] };
+        OPERAND_IMM8: return { 8'd0, dec.imm[7:0] };
+        OPERAND_IMM_EXT: return { {8{dec.imm[7]}}, dec.imm[7:0] };
         OPERAND_MODRM: begin
-            if (decoded.mod == 2'b11)
-                return { 8'd0, get_reg8(reg8_index_e'(decoded.rm)) };
+            if (dec.mod == 2'b11)
+                return { 8'd0, get_reg8(reg8_index_e'(dec.rm)) };
             else
                 return { 8'd0, dp_din[7:0] };
         end
-        OPERAND_REG_0: return { 8'd0, get_reg8(reg8_index_e'(decoded.reg0)) };
-        OPERAND_REG_1: return { 8'd0, get_reg8(reg8_index_e'(decoded.reg1)) };
+        OPERAND_REG_0: return { 8'd0, get_reg8(reg8_index_e'(dec.reg0)) };
+        OPERAND_REG_1: return { 8'd0, get_reg8(reg8_index_e'(dec.reg1)) };
         OPERAND_CL: return { 8'd0, reg_cw[7:0] };
         default: return 16'hffff;
         endcase
-    end else if (decoded.width == WORD) begin
+    end else if (dec.width == WORD) begin
         case(operand)
         OPERAND_ACC: return reg_aw;
-        OPERAND_IMM: return decoded.imm[15:0];
-        OPERAND_IMM8: return { 8'd0, decoded.imm[7:0] };
-        OPERAND_IMM_EXT: return { {8{decoded.imm[7]}}, decoded.imm[7:0] };
+        OPERAND_IMM: return dec.imm[15:0];
+        OPERAND_IMM8: return { 8'd0, dec.imm[7:0] };
+        OPERAND_IMM_EXT: return { {8{dec.imm[7]}}, dec.imm[7:0] };
         OPERAND_MODRM: begin
-            if (decoded.mod == 2'b11)
-                return get_reg16(reg16_index_e'(decoded.rm));
+            if (dec.mod == 2'b11)
+                return get_reg16(reg16_index_e'(dec.rm));
             else
                 return dp_din;
         end
         OPERAND_SREG: begin
-            case(decoded.sreg)
+            case(dec.sreg)
             DS0: return reg_ds0;
             DS1: return reg_ds1;
             SS: return reg_ss;
             PS: return reg_ps;
             endcase
         end
-        OPERAND_REG_0: return get_reg16(reg16_index_e'(decoded.reg0));
-        OPERAND_REG_1: return get_reg16(reg16_index_e'(decoded.reg1));
+        OPERAND_REG_0: return get_reg16(reg16_index_e'(dec.reg0));
+        OPERAND_REG_1: return get_reg16(reg16_index_e'(dec.reg1));
         OPERAND_CL: return { 8'd0, reg_cw[7:0] };
         default: return 16'hffff;
         endcase
@@ -296,6 +296,7 @@ reg [7:0] interrupt_vector;
 wire bcu_intreq;
 wire bcu_intack;
 wire [7:0] bcu_intvec;
+reg block_prefetch;
 
 bus_control_unit BCU(
     .clk, .ce_1, .ce_2,
@@ -307,7 +308,7 @@ bus_control_unit BCU(
 
     .reg_ps, .reg_ss, .reg_ds0, .reg_ds1,
 
-    .pfp_set(set_pc),
+    .pfp_set(set_pc), .block_prefetch(0),
     .ipq, .ipq_head(set_pc ? next_pc : cur_pc), .ipq_len,
 
     .dp_addr, .dp_dout, .dp_din, .dp_sreg,
@@ -324,7 +325,7 @@ bus_control_unit BCU(
 reg read_decode;
 wire next_decode_valid;
 wire decode_busy;
-wire decode_consume = state == IDLE;
+reg decode_consume;
 
 nec_decode nec_decode(
     .clk, .ce(ce_1 | ce_2),
@@ -333,7 +334,7 @@ nec_decode nec_decode(
     .new_pc(next_pc), .set_pc,
     .pc(cur_pc),
     .read_decode(read_decode),
-    .consume(decode_consume),
+    .consume(1), // decode_consume),
     .valid(next_decode_valid),
     .busy(decode_busy),
     .decoded(next_decode)
@@ -426,6 +427,8 @@ always_ff @(posedge clk) begin
         reg_ds1 <= 16'd0;
         next_pc <= 16'd0;
         set_pc <= 1;
+        decode_consume <= 0;
+        block_prefetch <= 0;
 
         reg_aw <= 16'd0;
         reg_bw <= 16'd0;
@@ -460,6 +463,7 @@ always_ff @(posedge clk) begin
         read_decode <= 0;
         set_pc <= 0;
         dp_req <= 0;
+        decode_consume <= 0;
 
         if (ce_1 & dp_ready & ~&cycles) cycles <= cycles + 6'd1;
 
@@ -469,6 +473,7 @@ always_ff @(posedge clk) begin
                 use_branch_result <= 0;
                 stack_modified_pc <= 0;
                 stack_modified_ps <= 0;
+                block_prefetch <= 0;
 
                 exec_stage <= 4'd0;
 
@@ -495,6 +500,12 @@ always_ff @(posedge clk) begin
                         addr = calc_ea(next_decode.rm, next_decode.mod, next_decode.disp);
                         calculated_ea <= addr;
 
+                        op_result <= get_operand(next_decode, next_decode.source0);
+                        block_prefetch <= (next_decode.opcode == OP_B_COND ||
+                                            next_decode.opcode == OP_B_CW_COND ||
+                                            next_decode.opcode == OP_BR_ABS ||
+                                            next_decode.opcode == OP_BR_REL);
+
                         if (next_decode.mem_read & ~next_decode.defer_read) begin
                             read_memory(addr, next_decode.segment, next_decode.width);
                             if (next_decode.width == DWORD) begin
@@ -512,9 +523,13 @@ always_ff @(posedge clk) begin
                                 state <= PUSH;
                             else if (next_decode.pop != 16'd0)
                                 state <= POP;
+                            else if (next_decode.opcode == OP_MOV && ~next_decode.mem_read)
+                                state <= STORE_RESULT;
                             else
                                 state <= EXECUTE;
                         end
+                    end else begin
+                        decode_consume <= 1;
                     end
                 end
             end // IDLE
@@ -587,6 +602,7 @@ always_ff @(posedge clk) begin
                 bit exception;
 
                 if (dp_ready & ce_1) begin
+                    decode_consume <= 1;
                     working = 0;
                     exception = 0;
                 
@@ -639,7 +655,7 @@ always_ff @(posedge clk) begin
                         end
 
                         OP_MOV: begin
-                            op_result <= get_operand(decoded.source0);
+                            op_result <= get_operand(decoded, decoded.source0);
                         end
 
                         OP_MOV_SEG: begin
@@ -665,8 +681,8 @@ always_ff @(posedge clk) begin
 
                         OP_XCH: begin
                             bit [15:0] dest;
-                            dest = get_operand(decoded.dest);
-                            op_result <= get_operand(OPERAND_REG_0);
+                            dest = get_operand(decoded, decoded.dest);
+                            op_result <= get_operand(decoded, OPERAND_REG_0);
                             if (decoded.width == BYTE)
                                 set_reg8(reg8_index_e'(decoded.reg0), dest[7:0]);
                             else
@@ -674,22 +690,22 @@ always_ff @(posedge clk) begin
                         end
 
                         OP_ALU: begin
-                            start_alu(get_operand(decoded.source0), get_operand(decoded.source1), decoded.alu_operation, decoded.width);
+                            start_alu(get_operand(decoded, decoded.source0), get_operand(decoded, decoded.source1), decoded.alu_operation, decoded.width);
                             use_alu_result <= 1;
                         end
 
                         OP_SHIFT_1: begin
-                            start_alu(get_operand(decoded.source0), 16'd0, shift1_alu_op(decoded.shift), decoded.width);
+                            start_alu(get_operand(decoded, decoded.source0), 16'd0, shift1_alu_op(decoded.shift), decoded.width);
                             use_alu_result <= 1;
                         end
 
                         OP_SHIFT_CL: begin
-                            start_alu(get_operand(decoded.source0), {8'd0, reg_cw[7:0]}, shift_alu_op(decoded.shift), decoded.width);
+                            start_alu(get_operand(decoded, decoded.source0), {8'd0, reg_cw[7:0]}, shift_alu_op(decoded.shift), decoded.width);
                             use_alu_result <= 1;
                         end
 
                         OP_SHIFT: begin
-                            start_alu(get_operand(decoded.source0), get_operand(decoded.source1), shift_alu_op(decoded.shift), decoded.width);
+                            start_alu(get_operand(decoded, decoded.source0), get_operand(decoded, decoded.source1), shift_alu_op(decoded.shift), decoded.width);
                             use_alu_result <= 1;
                         end
 
@@ -717,7 +733,7 @@ always_ff @(posedge clk) begin
                             op_cycles <= cond ? 2 : 3;
 
                             if (cond) begin
-                                branch_new_pc <= decoded.end_pc + get_operand(decoded.source0);
+                                branch_new_pc <= decoded.end_pc + get_operand(decoded, decoded.source0);
                                 branch_new_ps <= reg_ps;
                                 use_branch_result <= 1;
                             end
@@ -746,14 +762,14 @@ always_ff @(posedge clk) begin
                             op_cycles <= cond ? 2 : 3;
 
                             if (cond) begin
-                                branch_new_pc <= decoded.end_pc + get_operand(decoded.source0);
+                                branch_new_pc <= decoded.end_pc + get_operand(decoded, decoded.source0);
                                 branch_new_ps <= reg_ps;
                                 use_branch_result <= 1;
                             end
                         end
 
                         OP_BR_REL: begin
-                            branch_new_pc <= decoded.end_pc + get_operand(decoded.source0);
+                            branch_new_pc <= decoded.end_pc + get_operand(decoded, decoded.source0);
                             branch_new_ps <= reg_ps;
                             use_branch_result <= 1;
                         end
@@ -763,7 +779,7 @@ always_ff @(posedge clk) begin
                                 branch_new_pc <= decoded.imm[15:0];
                                 branch_new_ps <= decoded.imm[31:16];
                             end else if (decoded.width == WORD) begin
-                                branch_new_pc <= get_operand(decoded.source0);
+                                branch_new_pc <= get_operand(decoded, decoded.source0);
                                 branch_new_ps <= reg_ps;
                             end else if (decoded.source0 == OPERAND_MODRM && decoded.width == DWORD) begin
                                 branch_new_pc <= dp_din32[15:0];
@@ -777,7 +793,7 @@ always_ff @(posedge clk) begin
                         end
 
                         OP_RET_POP_VALUE: begin
-                            reg_sp <= reg_sp + get_operand(decoded.source0);
+                            reg_sp <= reg_sp + get_operand(decoded, decoded.source0);
                             set_pc <= 1;
                         end
 
@@ -987,7 +1003,7 @@ always_ff @(posedge clk) begin
                         OP_DIV,
                         OP_DIVU: begin
                             bit [15:0] operand;
-                            operand = get_operand(OPERAND_MODRM);
+                            operand = get_operand(decoded, OPERAND_MODRM);
 
                             if (exec_stage == 0) begin
                                 div_start <= 1;
@@ -1168,13 +1184,13 @@ always_ff @(posedge clk) begin
                         end
 
                         OP_ROL4: begin
-                            temp = get_operand(decoded.source0);
+                            temp = get_operand(decoded, decoded.source0);
                             reg_aw[3:0] <= temp[7:4];
                             op_result <= { 8'd0, temp[3:0], reg_aw[3:0] };
                         end
 
                         OP_ROR4: begin
-                            temp = get_operand(decoded.source0);
+                            temp = get_operand(decoded, decoded.source0);
                             reg_aw[3:0] <= temp[3:0];
                             op_result <= { 8'd0, reg_aw[3:0], temp[7:4] };
                         end
@@ -1315,7 +1331,7 @@ always_ff @(posedge clk) begin
                 12: push_data = reg_ss;
                 13: push_data = reg_ds0;
                 14: push_data = next_pc;
-                15: push_data = get_operand(decoded.source0);
+                15: push_data = get_operand(decoded, decoded.source0);
                 endcase
 
                 write_memory(reg_sp - 16'd2, SS, WORD, push_data);
@@ -1347,10 +1363,11 @@ always_ff @(posedge clk) begin
 
 
             STORE_RESULT: begin
+                if (ce_2 && dp_ready) decode_consume <= 1;
                 //if (ce_1 & ~&cycles) cycles <= cycles + 6'd1;
  
                 if (ce_2 && dp_ready && cycles >= (use_alu_result ? op_cycles + alu_cycles : op_cycles)) begin
-
+                    decode_consume <= 0;
                     if (use_branch_result) begin
                         set_pc <= 1;
                         next_pc <= branch_new_pc;

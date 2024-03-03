@@ -292,8 +292,8 @@ end
 24'b11111111xx100xxxxxxxxxxx: begin /* BR ptr16 */
 	d.opcode <= OP_BR_ABS;
 	d.width <= WORD;
-	d.cycles <= 7;
-	d.mem_cycles <= 9;
+	d.cycles <= 3;
+	d.mem_cycles <= 5;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_MODRM;
@@ -306,8 +306,8 @@ end
 24'b11111111xx101xxxxxxxxxxx: begin /* BR memptr32 */
 	d.opcode <= OP_BR_ABS;
 	d.width <= DWORD;
-	d.cycles <= 9;
-	d.mem_cycles <= 9;
+	d.cycles <= 5;
+	d.mem_cycles <= 5;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_MODRM;
@@ -485,7 +485,7 @@ end
 24'b1100011xxx000xxxxxxxxxxx: begin /* MOV mem/reg, imm */
 	d.opcode <= OP_MOV;
 	d.cycles <= 2;
-	d.mem_cycles <= 3;
+	d.mem_cycles <= 1;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_IMM;
@@ -515,7 +515,7 @@ end
 	d.opcode <= OP_MOV;
 	d.width <= WORD;
 	d.cycles <= 2;
-	d.mem_cycles <= 3;
+	d.mem_cycles <= 1;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_SREG;
@@ -741,8 +741,8 @@ end
 24'b11101001xxxxxxxxxxxxxxxx: begin /* BR near-label */
 	d.opcode <= OP_BR_REL;
 	d.width <= WORD;
-	d.cycles <= 7;
-	d.mem_cycles <= 7;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_IMM;
@@ -753,8 +753,8 @@ end
 24'b11101011xxxxxxxxxxxxxxxx: begin /* BR short-label */
 	d.opcode <= OP_BR_REL;
 	d.width <= WORD;
-	d.cycles <= 7;
-	d.mem_cycles <= 7;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_IMM_EXT;
@@ -765,8 +765,8 @@ end
 24'b11101010xxxxxxxxxxxxxxxx: begin /* BR far-label */
 	d.opcode <= OP_BR_ABS;
 	d.width <= DWORD;
-	d.cycles <= 7;
-	d.mem_cycles <= 7;
+	d.cycles <= 3;
+	d.mem_cycles <= 3;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_IMM;
@@ -1524,7 +1524,7 @@ end
 24'b1000100xxxxxxxxxxxxxxxxx: begin /* MOV mem, reg */
 	d.opcode <= OP_MOV;
 	d.cycles <= 2;
-	d.mem_cycles <= 3;
+	d.mem_cycles <= 1;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_REG_0;

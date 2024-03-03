@@ -414,7 +414,7 @@ b1000100W_MD_GP0_MEM:
   dst: MODRM
   src: REG_0
   cycles: 2
-  mem_cycles: 3
+  mem_cycles: 1
 
 b1000101W_MD_GP0_MEM:
   desc: MOV reg, mem
@@ -437,7 +437,7 @@ b1100011W_MD_000_MEM:
   dst: MODRM
   src: IMM
   cycles: 2
-  mem_cycles: 3
+  mem_cycles: 1
 
 b1010000W:
   desc: MOV ACC, dmem
@@ -469,7 +469,7 @@ b10001100_MD_0_SR_MEM:
   src: SREG
   width: WORD
   cycles: 2
-  mem_cycles: 3
+  mem_cycles: 1
 
 b11000101_MD_GP0_MEM:
   op: MOV_SEG
@@ -537,29 +537,29 @@ b1110_1001:
   op: BR_REL
   src: IMM
   width: WORD
-  cycles: 7
+  cycles: 3
 
 b1110_1011:
   desc: BR short-label
   op: BR_REL
   src: IMM_EXT
   width: WORD
-  cycles: 7
+  cycles: 3
 
 b1110_1010:
   desc: BR far-label
   op: BR_ABS
   src: IMM
   width: DWORD
-  cycles: 7
+  cycles: 3
 
 b1111_1111_MD_100_MEM:
   desc: BR ptr16
   op: BR_ABS
   src: MODRM
   width: WORD
-  cycles: 7
-  mem_cycles: 9
+  cycles: 3
+  mem_cycles: 5
 
 
 b1111_1111_MD_101_MEM:
@@ -567,7 +567,7 @@ b1111_1111_MD_101_MEM:
   op: BR_ABS
   src: MODRM
   width: DWORD
-  cycles: 9
+  cycles: 5
 
 
 #
