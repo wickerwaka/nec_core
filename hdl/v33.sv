@@ -346,7 +346,7 @@ wire [31:0] alu_result;
 flags_t alu_flags_result;
 reg use_alu_result;
 reg alu_wide;
-wire [5:0] alu_cycles;
+wire [9:0] alu_cycles;
 
 alu ALU(
     .clk,
@@ -409,8 +409,8 @@ reg [4:0] bcd_result_high, bcd_result_low;
 
 reg stack_modified_pc, stack_modified_ps;
 
-reg [5:0] cycles;
-reg [5:0] op_cycles = 0;
+reg [9:0] cycles;
+reg [9:0] op_cycles = 0;
 
 always_ff @(posedge clk) begin
     bit [15:0] addr;
@@ -478,8 +478,8 @@ always_ff @(posedge clk) begin
                 exec_stage <= 4'd0;
 
                 if (1) begin
-                    op_cycles <= 6'd0;
-                    cycles <= 6'd1;
+                    op_cycles <= 10'd0;
+                    cycles <= 10'd1;
 
                     if (intreq & flags.IE) begin
                         state <= INT_ACK_WAIT;
