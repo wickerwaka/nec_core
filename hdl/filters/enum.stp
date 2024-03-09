@@ -140,21 +140,27 @@
     <symbol name="WORD" value="01" />
     <symbol name="DWORD" value="10" />
   </table>
-  <table name="cpu_state_e" width="4">
-    <symbol name="IDLE" value="0000" />
-    <symbol name="FETCH_OPERANDS" value="0001" />
-    <symbol name="FETCH_OPERANDS2" value="0010" />
-    <symbol name="PUSH" value="0011" />
-    <symbol name="POP" value="0100" />
-    <symbol name="POP_WAIT" value="0101" />
-    <symbol name="EXECUTE" value="0110" />
-    <symbol name="STORE_RESULT" value="0111" />
-    <symbol name="INT_ACK_WAIT" value="1000" />
-    <symbol name="INT_INITIATE" value="1001" />
-    <symbol name="INT_FETCH_VEC" value="1010" />
-    <symbol name="INT_FETCH_WAIT1" value="1011" />
-    <symbol name="INT_FETCH_WAIT2" value="1100" />
-    <symbol name="INT_PUSH" value="1101" />
+  <table name="cpu_state_e" width="5">
+    <symbol name="IDLE" value="00000" />
+    <symbol name="FETCH_OPERAND" value="00001" />
+    <symbol name="FETCH_OPERAND1" value="00010" />
+    <symbol name="WAIT_OPERAND1" value="00011" />
+    <symbol name="WAIT_OPERAND2" value="00100" />
+    <symbol name="PUSH" value="00101" />
+    <symbol name="POP" value="00110" />
+    <symbol name="POP_WAIT" value="00111" />
+    <symbol name="EXECUTE_STALL" value="01000" />
+    <symbol name="EXECUTE" value="01001" />
+    <symbol name="STORE_DELAY" value="01010" />
+    <symbol name="STORE_REGISTER" value="01011" />
+    <symbol name="STORE_MEMORY" value="01100" />
+    <symbol name="BRANCH" value="01101" />
+    <symbol name="INT_ACK_WAIT" value="01110" />
+    <symbol name="INT_INITIATE" value="01111" />
+    <symbol name="INT_FETCH_VEC" value="10000" />
+    <symbol name="INT_FETCH_WAIT1" value="10001" />
+    <symbol name="INT_FETCH_WAIT2" value="10010" />
+    <symbol name="INT_PUSH" value="10011" />
   </table>
   <table name="decode_stage_e" width="3">
     <symbol name="INVALID" value="000" />

@@ -13,15 +13,13 @@ module nec_decode(
     input [15:0] new_pc,
     input        set_pc,
 
-    input        consume,
+    input        retire_op,
 
     input [3:0] ipq_len,
     input [7:0] ipq[8],
 
-    output logic busy,
     output logic valid,
 
-    input read_decode,
     output nec_decode_t decoded
 );
 
@@ -35,11 +33,12 @@ wire [23:0] q = { ipq_byte(0), ipq_byte(1), ipq_byte(2) };
 
 decode_stage_e stage;
 reg segment_override;
-nec_decode_t d;
 
-assign busy = (read_decode | set_pc) || ( stage != INVALID && stage != DECODED );
-assign valid = (stage == DECODED) && ~(read_decode | set_pc);
-assign decoded = d;
+reg decoded_valid;
+
+nec_decode_t d; // in flight
+
+assign valid = decoded_valid & ~set_pc;
 
 function bit [2:0] calc_imm_size(width_e width, operand_e s0, operand_e s1);
     case(s0)
@@ -99,12 +98,12 @@ always_ff @(posedge clk) begin
             pc <= new_pc;
             pc_ofs <= 4'd0;
             stage <= OPCODE_FIRST;
-        end else if (read_decode) begin
-            stage <= OPCODE_FIRST;
+            decoded_valid <= 0;
         end else begin
+            if (retire_op) decoded_valid <= 0;
+
             case(stage)
-                OPCODE_FIRST,
-                OPCODE: if (avail > 0) begin
+                OPCODE_FIRST: begin
                     if (stage == OPCODE_FIRST) begin
                         segment_override <= 0;
                         d.segment <= DS0;
@@ -113,6 +112,9 @@ always_ff @(posedge clk) begin
                         d.pc <= pc;
                         stage <= OPCODE;
                     end
+                end
+
+                OPCODE: if (avail > 0) begin
 
                     d.opcode <= OP_INVALID;
                     d.alu_operation <= ALU_OP_NONE;
@@ -183,13 +185,21 @@ always_ff @(posedge clk) begin
                     end
                 end
 
+                DECODED: begin
+                    if (retire_op | ~decoded_valid) begin
+                        decoded <= d;
+                        decoded_valid <= 1;
+                        stage <= OPCODE_FIRST;
+                    end
+                end
+
                 default: begin
                 end
             endcase
         end
 
         if (~set_pc) begin
-            if (consume) begin
+            if (1 /*~decoded_valid | retire_op*/) begin
                 pc <= pc + { 12'd0, pc_ofs } + { 12'd0, pc_increment };
                 pc_ofs <= 4'd0;
             end else begin

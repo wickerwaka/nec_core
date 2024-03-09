@@ -53,8 +53,8 @@ package types;
         bit [15:0] push;
         bit [15:0] pop;
 
-        bit [5:0] cycles;
-        bit [5:0] mem_cycles;
+        bit [9:0] cycles;
+        bit [9:0] mem_cycles;
     } nec_decode_t;
 
     typedef struct {

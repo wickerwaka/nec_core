@@ -154,13 +154,19 @@ width_e:
 cpu_state_e:
   values:
     - IDLE
-    - FETCH_OPERANDS
-    - FETCH_OPERANDS2
+    - FETCH_OPERAND
+    - FETCH_OPERAND1
+    - WAIT_OPERAND1
+    - WAIT_OPERAND2
     - PUSH
     - POP
     - POP_WAIT
+    - EXECUTE_STALL
     - EXECUTE
-    - STORE_RESULT
+    - STORE_DELAY
+    - STORE_REGISTER
+    - STORE_MEMORY
+    - BRANCH
     - INT_ACK_WAIT
     - INT_INITIATE
     - INT_FETCH_VEC

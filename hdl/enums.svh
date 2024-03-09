@@ -148,21 +148,27 @@ typedef enum bit [1:0] {
     DWORD = 2'b10
 } width_e /* verilator public */;
 
-typedef enum bit [3:0] {
-    IDLE            = 4'b0000,
-    FETCH_OPERANDS  = 4'b0001,
-    FETCH_OPERANDS2 = 4'b0010,
-    PUSH            = 4'b0011,
-    POP             = 4'b0100,
-    POP_WAIT        = 4'b0101,
-    EXECUTE         = 4'b0110,
-    STORE_RESULT    = 4'b0111,
-    INT_ACK_WAIT    = 4'b1000,
-    INT_INITIATE    = 4'b1001,
-    INT_FETCH_VEC   = 4'b1010,
-    INT_FETCH_WAIT1 = 4'b1011,
-    INT_FETCH_WAIT2 = 4'b1100,
-    INT_PUSH        = 4'b1101
+typedef enum bit [4:0] {
+    IDLE            = 5'b00000,
+    FETCH_OPERAND   = 5'b00001,
+    FETCH_OPERAND1  = 5'b00010,
+    WAIT_OPERAND1   = 5'b00011,
+    WAIT_OPERAND2   = 5'b00100,
+    PUSH            = 5'b00101,
+    POP             = 5'b00110,
+    POP_WAIT        = 5'b00111,
+    EXECUTE_STALL   = 5'b01000,
+    EXECUTE         = 5'b01001,
+    STORE_DELAY     = 5'b01010,
+    STORE_REGISTER  = 5'b01011,
+    STORE_MEMORY    = 5'b01100,
+    BRANCH          = 5'b01101,
+    INT_ACK_WAIT    = 5'b01110,
+    INT_INITIATE    = 5'b01111,
+    INT_FETCH_VEC   = 5'b10000,
+    INT_FETCH_WAIT1 = 5'b10001,
+    INT_FETCH_WAIT2 = 5'b10010,
+    INT_PUSH        = 5'b10011
 } cpu_state_e /* verilator public */;
 
 typedef enum bit [2:0] {

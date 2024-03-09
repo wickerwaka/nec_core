@@ -11,11 +11,14 @@ VerilatedVcdC *tfp;
 constexpr size_t ROM_SIZE = 512 * 1024;
 constexpr size_t RAM_SIZE = 64 * 1024;
 
+uint16_t tick_count = 0;
+
 uint8_t ram[RAM_SIZE];
 uint8_t rom[ROM_SIZE];
 
 uint16_t read_mem(uint32_t addr, bool ube)
 {
+    if( addr == 0xb0000 ) return tick_count;
     if( ( addr & 0xf0000 ) == 0xe0000 )
     {
         uint32_t aligned_addr = (addr & ~1) % RAM_SIZE;
@@ -52,6 +55,8 @@ void write_mem(uint32_t addr, bool ube, uint16_t dout)
 v33_types::cpu_state_e prev_state = v33_types::IDLE;
 void print_trace(const v33_V33 *cpu)
 {
+    return;
+
     if( cpu->state != v33_types::IDLE && prev_state == v33_types::IDLE)
     {
         printf("psw=%04X aw=%04X cw=%04X dw=%04X bw=%04X sp=%04X bp=%04X ix=%04X iy=%04X ds1=%04X ps=%04X ss=%04X ds0=%04X %05X\n",
@@ -90,6 +95,8 @@ void tick(int count = 1)
                 write_mem(top->addr, (~top->n_ube) & 1, top->dout);
             }
         }
+
+        if (top->ce_1) tick_count++;
 
         contextp->timeInc(1);
         top->clk = 0;
@@ -149,10 +156,16 @@ int main(int argc, char **argv)
     tick(10);
     top->reset = 0;
 
+    bool prev_dstb = top->n_dstb;
     while(true)
     {
         tick(1);
         if (!top->r_w && !top->m_io && top->addr == 0xdead) break;
+        if (!top->r_w && !top->m_io && top->addr == 0xdeee && !top->n_dstb && prev_dstb)
+        {
+            printf( "Ticks: %u\n", top->dout);
+        }
+        prev_dstb = top->n_dstb;
     }
 
     top->final();
