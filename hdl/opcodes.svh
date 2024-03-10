@@ -1549,10 +1549,8 @@ end
 end
 24'b1000011xxxxxxxxxxxxxxxxx: begin /* XCH mem/reg, reg */
 	d.opcode <= OP_XCH;
-	d.cycles <= 3;
-	d.mem_cycles <= 6;
 	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
+	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_REG_0;
 	d.source1 <= OPERAND_MODRM;
 	d.mod <= q[15:14];
@@ -1690,10 +1688,8 @@ end
 	d.opcode <= OP_XCH;
 	d.reg1 <= AW;
 	d.width <= WORD;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
 	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
+	d.dest <= OPERAND_REG_1;
 	d.source0 <= OPERAND_REG_0;
 	d.source1 <= OPERAND_REG_1;
 	d.reg0 <= q[18:16];

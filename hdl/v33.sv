@@ -103,6 +103,7 @@ reg set_pc /*verilator public*/;
 wire [7:0] ipq[8];
 wire [3:0] ipq_len;
 
+nec_decode_t store_decoded;
 nec_decode_t decoded /*verilator public*/;
 opcode_e cur_opcode;
 
@@ -229,7 +230,7 @@ function bit [15:0] get_operand(nec_decode_t dec, operand_e operand);
         OPERAND_CL: return { 8'd0, reg_cw[7:0] };
         default: return 16'hffff;
         endcase
-    end else if (dec.width == WORD) begin
+    end else begin
         case(operand)
         OPERAND_ACC: return reg_aw;
         OPERAND_IMM: return dec.imm[15:0];
@@ -518,12 +519,12 @@ always_ff @(posedge clk) begin
 
                         load_operands(decoded);
 
-                        if (decoded.push != 16'd0)
+                        if (decoded.mem_read)
+                            state <= FETCH_OPERAND;
+                        else if (decoded.push != 16'd0)
                             state <= PUSH;
                         else if (decoded.pop != 16'd0)
                             state <= POP;
-                        else if (decoded.mem_read)
-                            state <= FETCH_OPERAND;
                         else
                             state <= EXECUTE;
                     end
@@ -692,12 +693,11 @@ always_ff @(posedge clk) begin
                         end
 
                         OP_XCH: begin
+                            op_result <= TA;
                             if (decoded.width == BYTE) begin
                                 set_reg8(reg8_index_e'(decoded.reg0), TB[7:0]);
-                                set_reg8(reg8_index_e'(decoded.reg1), TA[7:0]);
                             end else begin
                                 set_reg16(reg16_index_e'(decoded.reg0), TB);
-                                set_reg16(reg16_index_e'(decoded.reg1), TA);
                             end
                         end
 
@@ -787,12 +787,12 @@ always_ff @(posedge clk) begin
                         end
 
                         OP_RET: begin
-                            set_pc <= 1;
+                            branch = 1;
                         end
 
                         OP_RET_POP_VALUE: begin
                             reg_sp <= reg_sp + TA;
-                            set_pc <= 1;
+                            branch = 1;
                         end
 
                         OP_IN: begin
@@ -1211,6 +1211,7 @@ always_ff @(posedge clk) begin
                         end else if (branch) begin
                             state <= BRANCH;
                         end else begin
+                            store_decoded <= decoded;
                             if (need_delay) begin
                                 state <= STORE_DELAY;
                                 cycles <= 10'd1;
@@ -1264,13 +1265,13 @@ always_ff @(posedge clk) begin
                         // flags.MD  <= dp_din[15]; // TODO V33, no MD flag, V20/30 will need this
                     end
                     11: begin
-                        reg_ps <= dp_din;
+                        branch_new_ps <= dp_din;
                         stack_modified_ps <= 1;
                     end
                     12: reg_ss <= dp_din;
                     13: reg_ds0 <= dp_din;
                     14: begin
-                        next_pc <= dp_din;
+                        branch_new_pc <= dp_din;
                         stack_modified_pc <= 1;
                     end
                     15: begin
@@ -1293,11 +1294,7 @@ always_ff @(posedge clk) begin
                         state <= IDLE;
                         retire_op <= 1;
                     end else begin
-                        if (decoded.mem_read) begin
-                            state <= FETCH_OPERAND;
-                        end else begin
-                            state <= EXECUTE;
-                        end
+                        state <= EXECUTE;
                     end
                 end else begin
                     if (mem_write) begin
@@ -1360,11 +1357,7 @@ always_ff @(posedge clk) begin
                         state <= IDLE;
                         retire_op <= 1;
                     end else begin
-                        if (decoded.mem_read) begin
-                            state <= FETCH_OPERAND;
-                        end else begin
-                            state <= EXECUTE;
-                        end
+                        state <= EXECUTE;
                     end
                 end 
             end // PUSH
@@ -1399,7 +1392,7 @@ always_ff @(posedge clk) begin
             STORE_MEMORY: begin
                 if (ce_1 & dp_ready) begin
                     result32 = use_alu_result ? alu_result : { 16'd0, op_result };
-                    write_memory(calculated_ea, decoded.segment, decoded.width, result32[15:0]);
+                    write_memory(calculated_ea, store_decoded.segment, store_decoded.width, result32[15:0]);
                     state <= IDLE;
                 end
             end
@@ -1409,38 +1402,38 @@ always_ff @(posedge clk) begin
                     if (1) begin
                         result32 = use_alu_result ? alu_result : { 16'd0, op_result };
 
-                        case(decoded.dest)
+                        case(store_decoded.dest)
                         OPERAND_ACC: begin
-                            if (decoded.width == BYTE)
+                            if (store_decoded.width == BYTE)
                                 reg_aw[7:0] <= result32[7:0];
                             else
                                 reg_aw <= result32[15:0];
                         end
                         OPERAND_MODRM: begin
-                            if (decoded.mod == 2'b11) begin
-                                if (decoded.width == BYTE)
-                                    set_reg8(reg8_index_e'(decoded.rm), result32[7:0]);
+                            if (store_decoded.mod == 2'b11) begin
+                                if (store_decoded.width == BYTE)
+                                    set_reg8(reg8_index_e'(store_decoded.rm), result32[7:0]);
                                 else
-                                    set_reg16(reg16_index_e'(decoded.rm), result32[15:0]);
+                                    set_reg16(reg16_index_e'(store_decoded.rm), result32[15:0]);
                             end
                         end
                         OPERAND_SREG: begin
-                            set_sreg(sreg_index_e'(decoded.sreg), result32[15:0]);
+                            set_sreg(sreg_index_e'(store_decoded.sreg), result32[15:0]);
                         end
                         OPERAND_REG_0: begin
-                            if (decoded.width == BYTE)
-                                set_reg8(reg8_index_e'(decoded.reg0), result32[7:0]);
+                            if (store_decoded.width == BYTE)
+                                set_reg8(reg8_index_e'(store_decoded.reg0), result32[7:0]);
                             else
-                                set_reg16(reg16_index_e'(decoded.reg0), result32[15:0]);
+                                set_reg16(reg16_index_e'(store_decoded.reg0), result32[15:0]);
                         end
                         OPERAND_REG_1: begin
-                            if (decoded.width == BYTE)
-                                set_reg8(reg8_index_e'(decoded.reg1), result32[7:0]);
+                            if (store_decoded.width == BYTE)
+                                set_reg8(reg8_index_e'(store_decoded.reg1), result32[7:0]);
                             else
-                                set_reg16(reg16_index_e'(decoded.reg1), result32[15:0]);
+                                set_reg16(reg16_index_e'(store_decoded.reg1), result32[15:0]);
                         end
                         OPERAND_PRODUCT: begin
-                            if (decoded.width == WORD) reg_dw <= result32[31:16];
+                            if (store_decoded.width == WORD) reg_dw <= result32[31:16];
                             reg_aw <= result32[15:0];
                         end
                         default: begin end
@@ -1450,7 +1443,7 @@ always_ff @(posedge clk) begin
                             flags <= alu_flags_result;
                         end
 
-                        if (decoded.mem_write) begin
+                        if (store_decoded.mem_write) begin
                             state <= STORE_MEMORY;
                         end else begin
                             state <= IDLE;

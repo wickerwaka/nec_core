@@ -471,19 +471,18 @@ b10011110:
 b1000011W_MD_GP0_MEM:
   op: XCH
   desc: XCH mem/reg, reg
+  dst: MODRM
   src0: REG_0
   src1: MODRM
-  cycles: 3
-  mem_cycles: 6
 
 b10010_GP0:
   op: XCH
   desc: XCH AW, reg16
+  dst: REG_1
   src0: REG_0
   src1: REG_1
   reg1: AW
   width: WORD
-  cycles: 3
 
 
 #

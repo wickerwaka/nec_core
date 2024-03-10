@@ -39,24 +39,29 @@ void write_mem(uint32_t addr, bool ube, uint16_t dout)
 v33_types::cpu_state_e prev_state = v33_types::IDLE;
 void print_trace(const v33_V33 *cpu)
 {
+    static bool skip = true; // skip the first output because mame does
     if( cpu->state != v33_types::IDLE && prev_state == v33_types::IDLE)
     {
-        printf("psw=%04X aw=%04X cw=%04X dw=%04X bw=%04X sp=%04X bp=%04X ix=%04X iy=%04X ds1=%04X ps=%04X ss=%04X ds0=%04X %05X\n",
-            cpu->reg_psw,
-            cpu->reg_aw,
-            cpu->reg_cw,
-            cpu->reg_dw,
-            cpu->reg_bw,
-            cpu->reg_sp,
-            cpu->reg_bp,
-            cpu->reg_ix,
-            cpu->reg_iy,
-            cpu->reg_ds1,
-            cpu->reg_ps,
-            cpu->reg_ss,
-            cpu->reg_ds0,
-            (cpu->reg_ps << 4) + cpu->decoded.__PVT__pc
-        );
+        if (!skip)
+        {
+            printf("psw=%04X aw=%04X cw=%04X dw=%04X bw=%04X sp=%04X bp=%04X ix=%04X iy=%04X ds1=%04X ps=%04X ss=%04X ds0=%04X %05X\n",
+                cpu->reg_psw,
+                cpu->reg_aw,
+                cpu->reg_cw,
+                cpu->reg_dw,
+                cpu->reg_bw,
+                cpu->reg_sp,
+                cpu->reg_bp,
+                cpu->reg_ix,
+                cpu->reg_iy,
+                cpu->reg_ds1,
+                cpu->reg_ps,
+                cpu->reg_ss,
+                cpu->reg_ds0,
+                (cpu->reg_ps << 4) + cpu->decoded.__PVT__pc
+            );
+        }
+        skip = false;
     }
     prev_state = (v33_types::cpu_state_e)cpu->state;
 }
