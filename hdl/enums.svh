@@ -155,28 +155,34 @@ typedef enum bit [4:0] {
     WAIT_OPERAND1   = 5'b00011,
     WAIT_OPERAND2   = 5'b00100,
     PUSH            = 5'b00101,
-    POP             = 5'b00110,
-    POP_WAIT        = 5'b00111,
-    EXECUTE_STALL   = 5'b01000,
-    EXECUTE         = 5'b01001,
-    STORE_DELAY     = 5'b01010,
-    STORE_REGISTER  = 5'b01011,
-    STORE_MEMORY    = 5'b01100,
-    BRANCH          = 5'b01101,
-    INT_ACK_WAIT    = 5'b01110,
-    INT_INITIATE    = 5'b01111,
-    INT_FETCH_VEC   = 5'b10000,
-    INT_FETCH_WAIT1 = 5'b10001,
-    INT_FETCH_WAIT2 = 5'b10010,
-    INT_PUSH        = 5'b10011
+    PUSH_STALL      = 5'b00110,
+    POP             = 5'b00111,
+    POP_WAIT        = 5'b01000,
+    EXECUTE_STALL   = 5'b01001,
+    EXECUTE         = 5'b01010,
+    STORE_DELAY     = 5'b01011,
+    STORE_REGISTER  = 5'b01100,
+    STORE_MEMORY    = 5'b01101,
+    BRANCH          = 5'b01110,
+    BRANCH_STALL    = 5'b01111,
+    INT_ACK_WAIT    = 5'b10000,
+    INT_INITIATE    = 5'b10001,
+    INT_FETCH_VEC   = 5'b10010,
+    INT_FETCH_WAIT1 = 5'b10011,
+    INT_FETCH_WAIT2 = 5'b10100,
+    INT_PUSH        = 5'b10101
 } cpu_state_e /* verilator public */;
 
-typedef enum bit [2:0] {
-    INVALID      = 3'b000,
-    OPCODE_FIRST = 3'b001,
-    OPCODE       = 3'b010,
-    IMMEDIATES   = 3'b011,
-    DECODED      = 3'b100
+typedef enum bit [3:0] {
+    INVALID       = 4'b0000,
+    OPCODE_FIRST  = 4'b0001,
+    OPCODE        = 4'b0010,
+    IMMEDIATES    = 4'b0011,
+    DECODED       = 4'b0100,
+    OPCODE_STALL0 = 4'b0101,
+    OPCODE_STALL1 = 4'b0110,
+    OPCODE_STALL2 = 4'b0111,
+    OPCODE_STALL3 = 4'b1000
 } decode_stage_e /* verilator public */;
 
 typedef enum bit [2:0] {

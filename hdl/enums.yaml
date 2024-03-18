@@ -159,6 +159,7 @@ cpu_state_e:
     - WAIT_OPERAND1
     - WAIT_OPERAND2
     - PUSH
+    - PUSH_STALL
     - POP
     - POP_WAIT
     - EXECUTE_STALL
@@ -167,6 +168,7 @@ cpu_state_e:
     - STORE_REGISTER
     - STORE_MEMORY
     - BRANCH
+    - BRANCH_STALL
     - INT_ACK_WAIT
     - INT_INITIATE
     - INT_FETCH_VEC
@@ -181,6 +183,11 @@ decode_stage_e:
     - OPCODE
     - IMMEDIATES
     - DECODED
+    - OPCODE_STALL0
+    - OPCODE_STALL1
+    - OPCODE_STALL2
+    - OPCODE_STALL3
+
 
 repeat_e:
   values:

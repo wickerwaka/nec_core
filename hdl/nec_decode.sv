@@ -103,7 +103,8 @@ always_ff @(posedge clk) begin
             if (retire_op) decoded_valid <= 0;
 
             case(stage)
-                OPCODE_FIRST: begin
+                OPCODE_FIRST,
+                OPCODE: if (avail > 0) begin
                     if (stage == OPCODE_FIRST) begin
                         segment_override <= 0;
                         d.segment <= DS0;
@@ -112,9 +113,6 @@ always_ff @(posedge clk) begin
                         d.pc <= pc;
                         stage <= OPCODE;
                     end
-                end
-
-                OPCODE: if (avail > 0) begin
 
                     d.opcode <= OP_INVALID;
                     d.alu_operation <= ALU_OP_NONE;

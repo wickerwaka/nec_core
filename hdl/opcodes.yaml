@@ -67,7 +67,7 @@ b1101001W_MD_SFT_MEM:
   op: SHIFT_CL
   dst: MODRM
   src: MODRM
-  cycles: 2
+  cycles: 3
 
 b1100000W_MD_SFT_MEM:
   desc: SHIFT mem/reg, imm
@@ -75,7 +75,7 @@ b1100000W_MD_SFT_MEM:
   dst: MODRM
   src0: MODRM
   src1: IMM8
-  cycles: 2
+  cycles: 3
 
 #
 # CMP

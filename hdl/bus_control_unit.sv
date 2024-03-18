@@ -116,6 +116,8 @@ wire dp_bus_ready = (dp_final_cycle && ce_1 && t_state == T_2 && ~n_ready);
 assign dp_ready = ~dp_req & ~dp_req2 & (dp_bus_ready | ~dp_busy);
 int intack_idles;
 
+reg [3:0] prefetch_delay;
+
 always_comb begin
     if (~dp_addr[0]) dp_din = din;
     else if (dp_addr[0] & dp_wide) dp_din = { din[7:0], dp_din_buf[15:8] };
@@ -123,8 +125,6 @@ always_comb begin
 end
 
 always_ff @(posedge clk) begin
-    bit [3:0] new_ipq_used;
-
     if (reset) begin
         t_state <= T_IDLE;
 
@@ -145,14 +145,14 @@ always_ff @(posedge clk) begin
         dp_busy <= 0;
         dp_din_buf <= 16'hffff;
 
+        prefetch_delay <= 4'd0;
+
     end else if (ce_1 | ce_2) begin
         bit [15:0] cur_pfp;
-        new_ipq_used = ipq_len;
         cur_pfp = reg_pfp;
         if (pfp_set) begin
             reg_pfp <= ipq_head;
             cur_pfp = ipq_head;
-            new_ipq_used = 0;
             discard_ipq_fetch <= 1;
         end
 
@@ -161,13 +161,33 @@ always_ff @(posedge clk) begin
         if (~intreq) intack <= 0;
 
         if (ce_1 && t_state == T_1) begin
-            n_bcyst <= 1;
             n_dstb <= 0;
             dout <= dp_addr[0] ? { dp_dout[7:0], dp_dout[15:8] } : dp_dout;
         end else if (ce_2 && t_state == T_IDLE) begin
+            bit do_prefetch;
+
             n_dstb <= 1; // clear data strobe
             n_buslock <= ~buslock_prefix;
             intack_idles <= intack_idles + 1;
+            
+            do_prefetch = 0;
+
+            if (block_prefetch) begin
+                do_prefetch = 0;
+                prefetch_delay <= 4'd0;
+            end else if (ipq_len < 5) begin
+                prefetch_delay <= prefetch_delay + 4'd1;
+                if (prefetch_delay > 4'd0) do_prefetch = 1;
+                do_prefetch = 1;
+            end else if (ipq_len < 7) begin
+                prefetch_delay <= prefetch_delay + 4'd1;
+                if (prefetch_delay > 4'd0) do_prefetch = 1;
+                do_prefetch = 1;
+            end else begin
+                do_prefetch = 0;
+                prefetch_delay <= 4'd0;
+            end
+
             if (cycle_type == INT_ACK1) begin
                 if (intack_idles == 6) begin
                     t_state <= T_1;
@@ -214,15 +234,17 @@ always_ff @(posedge clk) begin
                 n_ube <= (~dp_wide & ~dp_addr[0]);
                 dp_final_cycle <= ~dp_wide | ~dp_addr[0];
                 dp_busy <= 1;
-            end else if (new_ipq_used < 7 && ~block_prefetch) begin
+            end else if (do_prefetch) begin
                 t_state <= T_1;
                 n_bcyst <= 0;
                 cycle_type <= IPQ_FETCH;
                 addr <= physical_addr(PS, cur_pfp);
                 n_ube <= 0; // always
                 discard_ipq_fetch <= 0;
+                prefetch_delay <= 4'd0;
             end
         end else if (ce_2 && t_state == T_1) begin
+            n_bcyst <= 1;
             t_state <= T_2;
         end else if (ce_1 && t_state == T_2) begin
             if (~n_ready) begin
