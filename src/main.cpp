@@ -125,12 +125,13 @@ void tick_ce()
 
 int main(int argc, char **argv)
 {
-    if (argc != 2)
+    if (argc < 2)
     {
-        printf( "Usage: %s BIN_FILE\n", argv[0] );
+        printf( "Usage: %s BIN_FILE [VCD_NAME]\n", argv[0] );
         return -1;
     }
 
+    printf( "Loading %s\n", argv[1] );
     FILE *fp = fopen( argv[1], "rb" );
     if (fp == nullptr)
     {
@@ -147,7 +148,12 @@ int main(int argc, char **argv)
     Verilated::traceEverOn(true);
     tfp = new VerilatedVcdC;
     top->trace(tfp, 99);
-    tfp->open("v33.vcd");
+
+    if (argc > 2)
+    {
+        printf("Tracing to %s\n", argv[2]);
+        tfp->open(argv[2]);
+    }
 
     top->ce_1 = 0;
     top->ce_2 = 1;
@@ -156,17 +162,27 @@ int main(int argc, char **argv)
     tick(10);
     top->reset = 0;
 
+    printf("Running\n");
+
     bool prev_dstb = top->n_dstb;
+    int loop_count = 0;
     while(true)
     {
         tick(1);
-        if (!top->r_w && !top->m_io && top->addr == 0xdead) break;
+        if (!top->r_w && !top->m_io && top->addr == 0xdead && !top->n_dstb && prev_dstb)
+        {
+            loop_count++;
+            if (loop_count > 2)
+                break;
+        }
         if (!top->r_w && !top->m_io && top->addr == 0xdeee && !top->n_dstb && prev_dstb)
         {
             printf( "Ticks: %u\n", top->dout);
         }
         prev_dstb = top->n_dstb;
     }
+
+    printf("Done\n");
 
     top->final();
     tfp->close();
