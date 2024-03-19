@@ -268,6 +268,7 @@ always_ff @(posedge clk) begin
                     end
                     MEM_WRITE, IO_WRITE: begin
                         dp_busy <= ~dp_final_cycle;
+                        n_dstb <= 1;
                     end
                     INT_ACK1,
                     INT_ACK2: begin
