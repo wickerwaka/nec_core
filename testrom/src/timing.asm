@@ -1,89 +1,82 @@
 BITS 16
 
 align 256
-global small_mov_loop
-small_mov_loop:
+global mov_2byte_to_mem
+mov_2byte_to_mem:
     mov bx, 0xfff0
     mov dx, 0xdead
     jmp .inner_loop
 align 16
 .inner_loop:
-    mov di, 0xfff2
-    mov si, 0xfff2
-    rcl ax, 31
-    rcl ax, 31
-    rcl ax, 31
-    rcl ax, 31
 
-    stosb
-    stosb
-    stosb
-    stosb
-    lodsb
-    lodsb
-    lodsb
-    lodsb
-
+%rep 10
     mov [bx], ax
     mov [bx], ax
     mov [bx], ax
     mov [bx], ax
-
-    mov [bx], ax
-    mov [bx], ax
-    mov [bx], ax
-    mov [bx], ax
-
-    mov [bx], ax
-    mov [bx], ax
-    mov [bx], ax
-    mov [bx], ax
-
-
+%endrep
 
     out dx, al
 
     jmp .inner_loop
 
 align 256
-global odd_mov_loop
-odd_mov_loop:
+global mov_2byte_from_mem
+mov_2byte_from_mem:
+    mov bx, 0xfff0
+    mov dx, 0xdead
+    jmp .inner_loop
+align 16
+.inner_loop:
+
+%rep 10
+    mov ax, [bx]
+    mov ax, [bx]
+    mov ax, [bx]
+    mov ax, [bx]
+%endrep
+
+    out dx, al
+
+    jmp .inner_loop
+
+align 256
+global mov_3byte_to_mem
+mov_3byte_to_mem:
     mov bx, 0xfff0
     mov dx, 0xdead
     mov cl, 31
     jmp .inner_loop
 align 16
 .inner_loop:
-    ; fill prefetch
-    rcl ax, cl
-    rcl ax, cl
-    rcl ax, cl
-    rcl ax, cl
 
+%rep 10
     mov [bx+2], ax
     mov [bx+4], ax
     mov [bx+6], ax
     mov [bx+8], ax
+%endrep
 
-    mov [bx+2], ax
-    mov [bx+4], ax
-    mov [bx+6], ax
-    mov [bx+8], ax
+    out dx, al
 
-    mov [bx+2], ax
-    mov [bx+4], ax
-    mov [bx+6], ax
-    mov [bx+8], ax
+    jmp .inner_loop
 
-    mov [bx+2], ax
-    mov [bx+4], ax
-    mov [bx+6], ax
-    mov [bx+8], ax
+align 256
+global mov_3byte_from_mem
+mov_3byte_from_mem:
+    mov bx, 0xfff0
+    mov dx, 0xdead
+    mov cl, 31
+    jmp .inner_loop
+align 16
+.inner_loop:
 
-    mov [bx+2], ax
-    mov [bx+4], ax
-    mov [bx+6], ax
-    mov [bx+8], ax
+%rep 10
+    mov ax, [bx+2]
+    mov ax, [bx+4]
+    mov ax, [bx+6]
+    mov ax, [bx+8]
+%endrep
 
     out dx, al
 
@@ -92,6 +85,7 @@ align 16
 align 256
 global nop_loop
 nop_loop:
+    mov dx, 0xdead
     jmp .inner_loop
 align 16
 .inner_loop:
