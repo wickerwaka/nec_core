@@ -1,14 +1,24 @@
 BITS 16
 
+%macro test_start 1
 align 256
-global mov_2byte_to_mem
-mov_2byte_to_mem:
+global %1
+%1:
     mov bx, 0xfff0
     mov dx, 0xdead
+    mov cl, 15
     jmp .inner_loop
 align 16
 .inner_loop:
+%endmacro
 
+%macro test_end 0
+    out dx, al
+
+    jmp .inner_loop
+%endmacro
+
+test_start mov_2byte_to_mem
 %rep 10
     mov [bx], ax
     mov [bx], ax
@@ -16,19 +26,18 @@ align 16
     mov [bx], ax
 %endrep
 
-    out dx, al
+    ror ax, cl
 
-    jmp .inner_loop
+%rep 10
+    mov [bx], ax
+    mov [bx], ax
+    mov [bx], ax
+    mov [bx], ax
+%endrep
+test_end
 
-align 256
-global mov_2byte_from_mem
-mov_2byte_from_mem:
-    mov bx, 0xfff0
-    mov dx, 0xdead
-    jmp .inner_loop
-align 16
-.inner_loop:
 
+test_start mov_2byte_from_mem
 %rep 10
     mov ax, [bx]
     mov ax, [bx]
@@ -36,20 +45,17 @@ align 16
     mov ax, [bx]
 %endrep
 
-    out dx, al
+    ror ax, cl
 
-    jmp .inner_loop
+%rep 10
+    mov ax, [bx]
+    mov ax, [bx]
+    mov ax, [bx]
+    mov ax, [bx]
+%endrep
+test_end
 
-align 256
-global mov_3byte_to_mem
-mov_3byte_to_mem:
-    mov bx, 0xfff0
-    mov dx, 0xdead
-    mov cl, 31
-    jmp .inner_loop
-align 16
-.inner_loop:
-
+test_start mov_3byte_to_mem
 %rep 10
     mov [bx+2], ax
     mov [bx+4], ax
@@ -57,20 +63,17 @@ align 16
     mov [bx+8], ax
 %endrep
 
-    out dx, al
+    ror ax, cl
 
-    jmp .inner_loop
+%rep 10
+    mov [bx+2], ax
+    mov [bx+4], ax
+    mov [bx+6], ax
+    mov [bx+8], ax
+%endrep
+test_end
 
-align 256
-global mov_3byte_from_mem
-mov_3byte_from_mem:
-    mov bx, 0xfff0
-    mov dx, 0xdead
-    mov cl, 31
-    jmp .inner_loop
-align 16
-.inner_loop:
-
+test_start mov_3byte_from_mem
 %rep 10
     mov ax, [bx+2]
     mov ax, [bx+4]
@@ -78,25 +81,93 @@ align 16
     mov ax, [bx+8]
 %endrep
 
-    out dx, al
+    ror ax, cl
 
-    jmp .inner_loop
+%rep 10
+    mov ax, [bx+2]
+    mov ax, [bx+4]
+    mov ax, [bx+6]
+    mov ax, [bx+8]
+%endrep
+test_end
 
-align 256
-global nop_loop
-nop_loop:
-    mov dx, 0xdead
-    jmp .inner_loop
-align 16
-.inner_loop:
+test_start add_2byte_to_mem
+%rep 10
+    add [bx], ax
+    add [bx], ax
+    add [bx], ax
+    add [bx], ax
+%endrep
 
+    ror ax, cl
+
+%rep 10
+    add [bx], ax
+    add [bx], ax
+    add [bx], ax
+    add [bx], ax
+%endrep
+test_end
+
+test_start add_3byte_to_mem
+%rep 10
+    add [bx+2], ax
+    add [bx+4], ax
+    add [bx+6], ax
+    add [bx+8], ax
+%endrep
+
+    ror ax, cl
+
+%rep 10
+    add [bx+2], ax
+    add [bx+4], ax
+    add [bx+6], ax
+    add [bx+8], ax
+%endrep
+test_end
+
+test_start add_2byte_from_mem
+%rep 10
+    add ax, [bx]
+    add ax, [bx]
+    add ax, [bx]
+    add ax, [bx]
+%endrep
+
+    ror ax, cl
+
+%rep 10
+    add ax, [bx]
+    add ax, [bx]
+    add ax, [bx]
+    add ax, [bx]
+%endrep
+test_end
+
+test_start add_3byte_from_mem
+%rep 10
+    add ax, [bx+2]
+    add ax, [bx+4]
+    add ax, [bx+6]
+    add ax, [bx+8]
+%endrep
+
+    ror ax, cl
+
+%rep 10
+    add ax, [bx+2]
+    add ax, [bx+4]
+    add ax, [bx+6]
+    add ax, [bx+8]
+%endrep
+test_end
+
+test_start nop_loop
 %rep 32
     nop
 %endrep
-
-    out dx, al
-
-    jmp .inner_loop
+test_end
 
 align 256
 global push_all_loop

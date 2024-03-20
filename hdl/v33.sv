@@ -352,7 +352,7 @@ reg retire_op;
 wire next_decode_valid;
 
 nec_decode nec_decode(
-    .clk, .ce(ce_1 | ce_2),
+    .clk, .ce_1, .ce_2,
     .ipq_len,
     .ipq,
     .new_pc(next_pc), .set_pc,
@@ -482,7 +482,7 @@ always_ff @(posedge clk) begin
         halt <= 0;
     end else if (ce_1 | ce_2) begin
         div_start <= 0;
-                retire_op <= 0;
+        retire_op <= 0;
         set_pc <= 0;
         dp_req <= 0;
 
@@ -1219,6 +1219,7 @@ always_ff @(posedge clk) begin
                             end else begin
                                 retire_op <= 1;
                                 state <= STORE_REGISTER;
+                                //block_prefetch <= decoded.mem_write;
                             end
                         end
                     end
@@ -1395,6 +1396,7 @@ always_ff @(posedge clk) begin
                 if (~&cycles) cycles <= cycles + 10'd1;
                 if (cycles >= op_cycles) begin
                     state <= STORE_REGISTER;
+                    //block_prefetch <= decoded.mem_write;
                     retire_op <= 1;
                 end
             end
@@ -1404,6 +1406,7 @@ always_ff @(posedge clk) begin
                     result32 = use_alu_result ? alu_result : { 16'd0, op_result };
                     write_memory(calculated_ea, store_decoded.segment, store_decoded.width, result32[15:0]);
                     state <= IDLE;
+                    block_prefetch <= 0;
                 end
             end
 

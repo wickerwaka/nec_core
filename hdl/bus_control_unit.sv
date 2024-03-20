@@ -174,17 +174,12 @@ always_ff @(posedge clk) begin
 
             if (block_prefetch) begin
                 do_prefetch = 0;
-                prefetch_delay <= 4'd0;
-            end else if (ipq_len < 5) begin
-                prefetch_delay <= prefetch_delay + 4'd1;
-                if (prefetch_delay > 4'd0) do_prefetch = 1;
-                do_prefetch = 1;
+                prefetch_delay <= 4'd2;
             end else if (ipq_len < 7) begin
-                prefetch_delay <= prefetch_delay + 4'd1;
+                prefetch_delay <= 4'd1;
                 if (prefetch_delay > 4'd0) do_prefetch = 1;
-                do_prefetch = 1;
+                //do_prefetch = 1;
             end else begin
-                do_prefetch = 0;
                 prefetch_delay <= 4'd0;
             end
 
@@ -241,7 +236,7 @@ always_ff @(posedge clk) begin
                 addr <= physical_addr(PS, cur_pfp);
                 n_ube <= 0; // always
                 discard_ipq_fetch <= 0;
-                prefetch_delay <= 4'd0;
+                //prefetch_delay <= 4'd0;
             end
         end else if (ce_2 && t_state == T_1) begin
             n_bcyst <= 1;

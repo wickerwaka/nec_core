@@ -6,7 +6,8 @@ import types::*;
 
 module nec_decode(
     input clk,
-    input ce,
+    input ce_1,
+    input ce_2,
 
     output reg [15:0] pc,
 
@@ -93,7 +94,7 @@ always_ff @(posedge clk) begin
     pc_increment = 4'd0;
     avail = ipq_len - pc_ofs;
 
-    if (ce) begin
+    if (ce_1 | ce_2) begin
         if (set_pc) begin
             pc <= new_pc;
             pc_ofs <= 4'd0;
@@ -104,7 +105,7 @@ always_ff @(posedge clk) begin
 
             case(stage)
                 OPCODE_FIRST,
-                OPCODE: if (avail > 0) begin
+                OPCODE: if (ce_2 && avail > 0) begin
                     if (stage == OPCODE_FIRST) begin
                         segment_override <= 0;
                         d.segment <= DS0;
@@ -146,7 +147,7 @@ always_ff @(posedge clk) begin
                     end
                 end
 
-                IMMEDIATES: begin
+                IMMEDIATES: if (ce_1) begin
                     disp_size = 3'd0;
                     imm_size = 3'd0;
                     d.mem_read <= 0;
@@ -183,7 +184,7 @@ always_ff @(posedge clk) begin
                     end
                 end
 
-                DECODED: begin
+                DECODED: if (ce_2) begin
                     if (retire_op | ~decoded_valid) begin
                         decoded <= d;
                         decoded_valid <= 1;

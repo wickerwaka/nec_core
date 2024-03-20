@@ -64,6 +64,7 @@ if __name__ == '__main__':
 
     start_start = False
     start_end = False
+    cycles = 0
     for time, clk_val in clk:
         kvp = {}
         for name, ser in series.items():
@@ -88,7 +89,7 @@ if __name__ == '__main__':
         for a in ['A7', 'A6', 'A5', 'A4', 'A3', 'A2', 'A1', 'A0']:
             addr = (addr * 2) + kvp[a]
         
-        line = f'CLK={clk_val}'
+        line = f'{cycles:03d} CLK={clk_val}'
 
         for n in ['/DSTB', '/BCYST', 'BUSST0', 'BUSST1', 'M/IO', 'R/W']:
             line += f' {n}={kvp[n]}'
@@ -96,4 +97,7 @@ if __name__ == '__main__':
         line += f' A={addr:02x}\n'
 
         fp.write(line)
+
+        if clk_val == '0':
+            cycles += 1
 
