@@ -175,14 +175,16 @@ typedef enum bit [4:0] {
 
 typedef enum bit [3:0] {
     INVALID       = 4'b0000,
-    OPCODE_FIRST  = 4'b0001,
-    OPCODE        = 4'b0010,
-    IMMEDIATES    = 4'b0011,
-    DECODED       = 4'b0100,
-    OPCODE_STALL0 = 4'b0101,
-    OPCODE_STALL1 = 4'b0110,
-    OPCODE_STALL2 = 4'b0111,
-    OPCODE_STALL3 = 4'b1000
+    OPCODE_STALL  = 4'b0001,
+    OPCODE_FIRST  = 4'b0010,
+    OPCODE        = 4'b0011,
+    IMMEDIATES    = 4'b0100,
+    DECODED       = 4'b0101,
+    DECODED1      = 4'b0110,
+    OPCODE_STALL0 = 4'b0111,
+    OPCODE_STALL1 = 4'b1000,
+    OPCODE_STALL2 = 4'b1001,
+    OPCODE_STALL3 = 4'b1010
 } decode_stage_e /* verilator public */;
 
 typedef enum bit [2:0] {

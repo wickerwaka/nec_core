@@ -179,10 +179,12 @@ cpu_state_e:
 decode_stage_e:
   values:
     - INVALID
+    - OPCODE_STALL
     - OPCODE_FIRST
     - OPCODE
     - IMMEDIATES
     - DECODED
+    - DECODED1
     - OPCODE_STALL0
     - OPCODE_STALL1
     - OPCODE_STALL2

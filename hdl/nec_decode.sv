@@ -36,10 +36,11 @@ decode_stage_e stage;
 reg segment_override;
 
 reg decoded_valid;
+reg ea_valid;
 
 nec_decode_t d; // in flight
 
-assign valid = decoded_valid & ~set_pc;
+assign valid = decoded_valid & ea_valid & ~set_pc;
 
 function bit [2:0] calc_imm_size(width_e width, operand_e s0, operand_e s1);
     case(s0)
@@ -100,50 +101,60 @@ always_ff @(posedge clk) begin
             pc_ofs <= 4'd0;
             stage <= OPCODE_FIRST;
             decoded_valid <= 0;
+            ea_valid <= 0;
         end else begin
             if (retire_op) decoded_valid <= 0;
 
             case(stage)
+                OPCODE_STALL: if (ce_2 && avail > 0) begin
+                    stage <= OPCODE_FIRST;
+                end
+
                 OPCODE_FIRST,
-                OPCODE: if (ce_2 && avail > 0) begin
+                OPCODE: if (ce_2) begin 
                     if (stage == OPCODE_FIRST) begin
                         segment_override <= 0;
                         d.segment <= DS0;
                         d.buslock <= 0;
                         d.rep <= REPEAT_NONE;
                         d.pc <= pc;
-                        stage <= OPCODE;
+                        if (avail == 0)
+                            stage <= OPCODE;
+                        else
+                            stage <= OPCODE;
                     end
 
-                    d.opcode <= OP_INVALID;
-                    d.alu_operation <= ALU_OP_NONE;
-                    d.push <= 16'd0;
-                    d.pop <= 16'd0;
-                    d.cycles <= 0;
-                    d.mem_cycles <= 0;
+                    if (avail > 0) begin
+                        d.opcode <= OP_INVALID;
+                        d.alu_operation <= ALU_OP_NONE;
+                        d.push <= 16'd0;
+                        d.pop <= 16'd0;
+                        d.cycles <= 0;
+                        d.mem_cycles <= 0;
 
-                    valid_op = 0;
-                    case(q[23:16])
-                        8'b00100110: begin segment_override <= 1; d.segment <= DS1; pc_increment = 4'd1; end
-                        8'b00101110: begin segment_override <= 1; d.segment <= PS;  pc_increment = 4'd1; end
-                        8'b00110110: begin segment_override <= 1; d.segment <= SS;  pc_increment = 4'd1; end
-                        8'b00111110: begin segment_override <= 1; d.segment <= DS0; pc_increment = 4'd1; end
-                        8'b11110000: begin d.buslock <= 1;                          pc_increment = 4'd1; end
-                        8'b11110011: begin d.rep <= REPEAT_Z;                       pc_increment = 4'd1; end
-                        8'b01100101: begin d.rep <= REPEAT_C;                       pc_increment = 4'd1; end
-                        8'b01100100: begin d.rep <= REPEAT_NC;                      pc_increment = 4'd1; end
-                        8'b11110010: begin d.rep <= REPEAT_NZ;                      pc_increment = 4'd1; end
+                        valid_op = 0;
+                        case(q[23:16])
+                            8'b00100110: begin segment_override <= 1; d.segment <= DS1; pc_increment = 4'd1; end
+                            8'b00101110: begin segment_override <= 1; d.segment <= PS;  pc_increment = 4'd1; end
+                            8'b00110110: begin segment_override <= 1; d.segment <= SS;  pc_increment = 4'd1; end
+                            8'b00111110: begin segment_override <= 1; d.segment <= DS0; pc_increment = 4'd1; end
+                            8'b11110000: begin d.buslock <= 1;                          pc_increment = 4'd1; end
+                            8'b11110011: begin d.rep <= REPEAT_Z;                       pc_increment = 4'd1; end
+                            8'b01100101: begin d.rep <= REPEAT_C;                       pc_increment = 4'd1; end
+                            8'b01100100: begin d.rep <= REPEAT_NC;                      pc_increment = 4'd1; end
+                            8'b11110010: begin d.rep <= REPEAT_NZ;                      pc_increment = 4'd1; end
 
-                        default: begin
-                            casex(q)
-                                `include "opcodes.svh"
-                            endcase
+                            default: begin
+                                casex(q)
+                                    `include "opcodes.svh"
+                                endcase
+                            end
+                        endcase
+                        
+                        if (valid_op && (avail >= {1'd0, op_size})) begin
+                            stage <= IMMEDIATES;
+                            pc_increment = {1'd0, op_size};
                         end
-                    endcase
-                    
-                    if (valid_op && (avail >= {1'd0, op_size})) begin
-                        stage <= IMMEDIATES;
-                        pc_increment = {1'd0, op_size};
                     end
                 end
 
@@ -188,6 +199,7 @@ always_ff @(posedge clk) begin
                     if (retire_op | ~decoded_valid) begin
                         decoded <= d;
                         decoded_valid <= 1;
+                        ea_valid <= ~d.mem_read & ~d.mem_write;
                         stage <= OPCODE_FIRST;
                     end
                 end
@@ -196,6 +208,8 @@ always_ff @(posedge clk) begin
                 end
             endcase
         end
+
+        if (ce_2 & decoded_valid) ea_valid <= 1;
 
         if (~set_pc) begin
             if (1 /*~decoded_valid | retire_op*/) begin

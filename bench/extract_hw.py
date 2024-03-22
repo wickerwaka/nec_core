@@ -98,6 +98,6 @@ if __name__ == '__main__':
 
         fp.write(line)
 
-        if clk_val == '0':
+        if clk_val == '2':
             cycles += 1
 

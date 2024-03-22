@@ -723,8 +723,6 @@ end
 24'b11101001xxxxxxxxxxxxxxxx: begin /* BR near-label */
 	d.opcode <= OP_BR_REL;
 	d.width <= WORD;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_IMM;
@@ -735,8 +733,6 @@ end
 24'b11101011xxxxxxxxxxxxxxxx: begin /* BR short-label */
 	d.opcode <= OP_BR_REL;
 	d.width <= WORD;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
 	d.use_modrm <= 0;
 	d.dest <= OPERAND_NONE;
 	d.source0 <= OPERAND_IMM_EXT;
@@ -1395,8 +1391,8 @@ end
 end
 24'b1101001xxxxxxxxxxxxxxxxx: begin /* SHIFT mem/reg, CL */
 	d.opcode <= OP_SHIFT_CL;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
+	d.cycles <= 2;
+	d.mem_cycles <= 2;
 	d.use_modrm <= 1;
 	d.dest <= OPERAND_MODRM;
 	d.source0 <= OPERAND_MODRM;

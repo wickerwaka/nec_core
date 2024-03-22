@@ -67,7 +67,7 @@ b1101001W_MD_SFT_MEM:
   op: SHIFT_CL
   dst: MODRM
   src: MODRM
-  cycles: 3
+  cycles: 2
 
 b1100000W_MD_SFT_MEM:
   desc: SHIFT mem/reg, imm
@@ -509,14 +509,14 @@ b1110_1001:
   op: BR_REL
   src: IMM
   width: WORD
-  cycles: 3
+  cycles: 0
 
 b1110_1011:
   desc: BR short-label
   op: BR_REL
   src: IMM_EXT
   width: WORD
-  cycles: 3
+  cycles: 0
 
 b1110_1010:
   desc: BR far-label

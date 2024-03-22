@@ -166,14 +166,16 @@
   </table>
   <table name="decode_stage_e" width="4">
     <symbol name="INVALID" value="0000" />
-    <symbol name="OPCODE_FIRST" value="0001" />
-    <symbol name="OPCODE" value="0010" />
-    <symbol name="IMMEDIATES" value="0011" />
-    <symbol name="DECODED" value="0100" />
-    <symbol name="OPCODE_STALL0" value="0101" />
-    <symbol name="OPCODE_STALL1" value="0110" />
-    <symbol name="OPCODE_STALL2" value="0111" />
-    <symbol name="OPCODE_STALL3" value="1000" />
+    <symbol name="OPCODE_STALL" value="0001" />
+    <symbol name="OPCODE_FIRST" value="0010" />
+    <symbol name="OPCODE" value="0011" />
+    <symbol name="IMMEDIATES" value="0100" />
+    <symbol name="DECODED" value="0101" />
+    <symbol name="DECODED1" value="0110" />
+    <symbol name="OPCODE_STALL0" value="0111" />
+    <symbol name="OPCODE_STALL1" value="1000" />
+    <symbol name="OPCODE_STALL2" value="1001" />
+    <symbol name="OPCODE_STALL3" value="1010" />
   </table>
   <table name="repeat_e" width="3">
     <symbol name="REPEAT_NONE" value="000" />

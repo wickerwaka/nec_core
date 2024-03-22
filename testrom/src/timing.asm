@@ -55,6 +55,43 @@ test_start mov_2byte_from_mem
 %endrep
 test_end
 
+test_start lock_mov_2byte_to_mem
+%rep 10
+    lock mov [bx], ax
+    lock mov [bx], ax
+    lock mov [bx], ax
+    lock mov [bx], ax
+%endrep
+
+    ror ax, cl
+
+%rep 10
+    lock mov [bx], ax
+    lock mov [bx], ax
+    lock mov [bx], ax
+    lock mov [bx], ax
+%endrep
+test_end
+
+
+test_start lock_mov_2byte_from_mem
+%rep 10
+    lock mov ax, [bx]
+    lock mov ax, [bx]
+    lock mov ax, [bx]
+    lock mov ax, [bx]
+%endrep
+
+    ror ax, cl
+
+%rep 10
+    lock mov ax, [bx]
+    lock mov ax, [bx]
+    lock mov ax, [bx]
+    lock mov ax, [bx]
+%endrep
+test_end
+
 test_start mov_3byte_to_mem
 %rep 10
     mov [bx+2], ax
@@ -160,6 +197,43 @@ test_start add_3byte_from_mem
     add ax, [bx+4]
     add ax, [bx+6]
     add ax, [bx+8]
+%endrep
+test_end
+
+
+test_start lock_add_2byte_to_mem
+%rep 10
+    lock add [bx], ax
+    lock add [bx], ax
+    lock add [bx], ax
+    lock add [bx], ax
+%endrep
+
+    ror ax, cl
+
+%rep 10
+    lock add [bx], ax
+    lock add [bx], ax
+    lock add [bx], ax
+    lock add [bx], ax
+%endrep
+test_end
+
+test_start lock_add_2byte_from_mem
+%rep 10
+    lock add ax, [bx]
+    lock add ax, [bx]
+    lock add ax, [bx]
+    lock add ax, [bx]
+%endrep
+
+    ror ax, cl
+
+%rep 10
+    lock add ax, [bx]
+    lock add ax, [bx]
+    lock add ax, [bx]
+    lock add ax, [bx]
 %endrep
 test_end
 
