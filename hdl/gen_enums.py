@@ -66,12 +66,15 @@ def enum_filter(fp, desc):
         fp.write( f"{value:0{hexdigits}x} {symbol}\n")
 
 
-input_name = 'hdl/enums.yaml'
+input_names = ['hdl/enums.yaml', 'hdl/opcode_enums.yaml']
 output_name = 'hdl/enums.svh'
 filter_dir = 'hdl/filters'
 stp_name = 'hdl/filters/enum.stp'
 
-enums_desc = yaml.safe_load(open(input_name, 'r'))
+enums_desc = {}
+for input_name in input_names:
+    desc = yaml.safe_load(open(input_name, 'r'))
+    enums_desc.update(desc)
 
 enums = [ process_enum(k, v) for k, v in enums_desc.items() ]
 

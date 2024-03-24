@@ -42,6 +42,7 @@ if __name__ == '__main__':
         'BUSST1': 'libsigrok4DSL.BUSST1',
         'M/IO': 'libsigrok4DSL.M/IO',
         'R/W': 'libsigrok4DSL.R/W',
+        '/BUSLOCK': 'libsigrok4DSL./BUSLOCK',
         'A0': 'libsigrok4DSL.A0',
         'A1': 'libsigrok4DSL.A1',
         'A2': 'libsigrok4DSL.A2',
@@ -91,7 +92,7 @@ if __name__ == '__main__':
         
         line = f'{cycles:03d} CLK={clk_val}'
 
-        for n in ['/DSTB', '/BCYST', 'BUSST0', 'BUSST1', 'M/IO', 'R/W']:
+        for n in ['/DSTB', '/BCYST', 'BUSST0', 'BUSST1', 'M/IO', 'R/W', '/BUSLOCK']:
             line += f' {n}={kvp[n]}'
         
         line += f' A={addr:02x}\n'

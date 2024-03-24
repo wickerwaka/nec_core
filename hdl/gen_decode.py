@@ -1,6 +1,8 @@
 import yaml
 import sys
 
+from anytree import Node, RenderTree, search, PostOrderIter
+
 placeholders = {
     'MD': {
         'signal': 'mod',
@@ -55,132 +57,241 @@ def assign_src_dst(op_desc, assignments):
 
     mapping = { 'dest': dst, 'source0': src0, 'source1': src1 }
 
-    found = {}
-    for o in mapping.values():
-        if is_mem_type(o):
-            found[o] = True
+    found = None
+    found_src = False
+    found_dst = False
+
+    if is_mem_type(dst):
+        found = dst
+        found_dst = True
     
-    if len(found) > 1:
-        raise "Conflicting memory operands"
+    if is_mem_type(src0):
+        found = src0
+        found_src = True
 
-    if len(found) == 1:
-        mem_type = list(found.keys())[0]
-        assignments.append( f"d.use_modrm <= 1")
+    if is_mem_type(src1):
+        found = src1
+        found_src = True
 
-        if mem_type == 'DMEM':
-            assignments.append( "d.rm <= 3'b110" )
-            assignments.append( "d.mod <= 2'b00" )
-            mem_type = 'MODRM'
-        
+    if found:
+        if found == 'DMEM':
+            assignments["rm"] = "3'b110"
+            assignments["mod"] = "2'b00"
+            found = 'MODRM'
+            if found_dst:
+                assignments['mem_write'] = '1'
+            if found_src:
+                assignments['mem_read'] = '1'
+        else:
+            mod = assignments["mod"]
+            if found_dst:
+                assignments['mem_write'] = f"{mod} != 2'b11"
+            if found_src:
+                assignments['mem_read'] = f"{mod} != 2'b11"
+
         for k in list(mapping.keys()):
             if is_mem_type(mapping[k]):
-                mapping[k] = mem_type
-    else:
-        assignments.append( f"d.use_modrm <= 0")
+                mapping[k] = found
 
     for k, v in mapping.items():
-        assignments.append( f"d.{k} <= OPERAND_{v}" )
+        if v != 'NONE':
+            assignments[k] = f"OPERAND_{v}"
     
     return assignments
 
 
-def to_entry(k: str, op_desc: dict):
-    if not k.startswith('b'):
-        return None
+def add_child(parent, match, assignments):
+    existing = None
+    for child in parent.children:
+        if child.match == match:
+            existing = child
     
-    assignments = []
+    if existing:
+        if existing.assignments != assignments:
+            print(existing)
+            raise "Oops"
+        return existing
+    
+    return Node(match, parent=parent, match=match, assignments=assignments, comment='', prefix=False)
+
+def add_nodes(root: Node, k: str, op_desc: dict):
+    if not k.startswith('b'):
+        return
 
     opcode = op_desc.get('op')
+
+    k = k[1:]
+    k = k.replace('_', '')
+
+    k_size = (len(k) + 7) // 8
+
+    k = k + ('x' * ((k_size * 8) - len(k)))
+    nodes = []
+
+    parent = root
+
+    for x in range(k_size):
+        segment = k[x*8:(x*8)+8]
+        assign = {}
+
+        for pid, desc in placeholders.items():
+            idx = segment.find(pid)
+            if idx != -1:
+                start = 7 - idx
+                end = 8 - (idx + len(pid))
+                source = f"q[{start}:{end}]"
+                if start == end:
+                    source = f"q[{start}]"
+                
+                tr = desc.get('transform', None)
+                if tr:
+                    source = tr(source)
+                assign[desc['signal']] = source
+                segment = segment.replace(pid, 'x' * len(pid))
+        
+        parent = add_child(parent, segment, assign)
+
+    assignments = parent.assignments
+
+    prefix = False
     comment = op_desc.get('desc') or opcode
+
     if opcode:
-        assignments.append( f"d.opcode <= OP_{opcode}" )
+        assignments["opcode"] = f"OP_{opcode}"
 
     alu_op = op_desc.get('alu')
     if alu_op:
-        assignments.append( f"d.alu_operation <= ALU_OP_{alu_op}" )
+        assignments["alu_operation"] = f"ALU_OP_{alu_op}"
     
     sreg = op_desc.get('sreg')
     if sreg:
-        assignments.append( f"d.sreg <= {sreg}" )
+        assignments["sreg"] = sreg
 
     reg = op_desc.get('reg0')
     if reg:
-        assignments.append( f"d.reg0 <= {reg}" )
+        assignments["reg0"] = reg
 
     reg = op_desc.get('reg1')
     if reg:
-        assignments.append( f"d.reg1 <= {reg}" )
+        assignments["reg1"] = reg
 
     width = op_desc.get('width')
     if width:
-        assignments.append( f"d.width <= {width}" )
+        assignments["width"] = width
 
     cycles = op_desc.get('cycles', 0)
     if cycles:
-        assignments.append( f'd.cycles <= {cycles}' )
+        assignments["cycles"] = cycles
 
     mem_cycles = op_desc.get('mem_cycles', cycles)
     if mem_cycles:
-        assignments.append( f'd.mem_cycles <= {mem_cycles}')
+        assignments["mem_cycles"] = mem_cycles
 
     push = op_desc.get('push')
     if push:
         if not isinstance(push, list):
             push = [ push ]
         agg = ' | '.join( [ f"STACK_{x}" for x in push ] )
-        assignments.append( f"d.push <= {agg}" )
+        assignments["push"] = agg
 
     pop = op_desc.get('pop')
     if pop:
         if not isinstance(pop, list):
             pop = [ pop ]
         agg = ' | '.join( [ f"STACK_{x}" for x in pop ] )
-        assignments.append( f"d.pop <= {agg}" )
+        assignments["pop"] = agg
 
-    assignments = assign_src_dst(op_desc, assignments)
+    segment = op_desc.get('segment')
+    if segment:
+        assignments['segment'] = segment
+        assignments['segment_override'] = '1'
+        prefix = True
 
-    k = k[1:]
-    k = k.replace('_', '')
+    repeat = op_desc.get('repeat')
+    if repeat:
+        assignments['rep'] = repeat
+        prefix = True
 
-    for pid, desc in placeholders.items():
-        idx = k.find(pid)
-        if idx != -1:
-            start = 23 - idx
-            end = 24 - (idx + len(pid))
-            source = f"q[{start}:{end}]"
-            if start == end:
-                source = f"q[{start}]"
-            
-            tr = desc.get('transform', None)
-            if tr:
-                source = tr(source)
-            assignments.append( f"d.{desc['signal']} <= {source}" )
-            k = k.replace(pid, 'x' * len(pid))
-    
-    
-    pre_size = (len(k) + 7) // 8
-    assignments.append( f"op_size = {pre_size}" )
-    assignments.append( f"valid_op = 1" )
+    buslock = op_desc.get('buslock')
+    if buslock:
+        assignments['buslock'] = '1'
+        prefix = True
 
-    k = k + 'x' * (24 - len(k))
+    parent.assignments = assign_src_dst(op_desc, assignments)
 
-    return {
-        'match': k,
-        'assignments': assignments,
-        'comment': comment,
-        'vagueness': k.count('x'),
-    }
+    parent.comment = comment
+    parent.is_prefix = prefix
 
+def node_state_name(node: Node) -> str:
+    if node.parent:
+        return node_state_name(node.parent) + f'_{node.match}'
+    else:
+        return 'ROOT'
 
 input_name = 'hdl/opcodes.yaml'
 output_name = 'hdl/opcodes.svh'
+output_enumname = 'hdl/opcode_enums.yaml'
 
 opcode_desc = yaml.safe_load(open(input_name, 'r'))
 
-cases = []
-for k, v in opcode_desc.items():
-    cases.append(to_entry(k, v))
 
+root = Node("ROOT")
+for k, v in opcode_desc.items():
+    add_nodes(root, k, v)
+
+
+state_names = [ node_state_name(node) for node in PostOrderIter(root, lambda x: not x.is_leaf and not x.is_root) ]
+enums = {
+    'decode_state_e': {
+        'values': [
+            'INITIAL',
+            'TERMINAL',
+            'PREFIX_CONTINUE',
+            'ILLEGAL'
+        ] + state_names
+    }
+}
+
+with open(output_enumname, 'wt') as fp:
+    yaml.safe_dump(enums, fp)
+
+fp = open(output_name, "wt")
+for node in PostOrderIter(root, lambda x: not x.is_leaf):
+    name = node_state_name(node)
+
+    fp.write( f"task process_{name}(input bit [7:0] q);\n" )
+    fp.write( f"  casex(q)\n" )
+    children = list(node.children)
+    children.sort(key=lambda x: x.match.count('x'))
+    for child in children:
+        fp.write( f"    8'b{child.match}: begin\n" )
+        for sym, val in child.assignments.items():
+            fp.write( f"      d.{sym} <= {val};\n" )
+        if child.is_leaf and child.is_prefix:
+            fp.write( f"      state <= PREFIX_CONTINUE;\n" )
+        elif child.is_leaf:
+            fp.write( f"      state <= TERMINAL;\n" )
+        else:
+            fp.write( f"      state <= {node_state_name(child)};\n" )
+        fp.write( f"    end\n" )
+    fp.write( f"    default: begin\n" )
+    fp.write( f"      state <= ILLEGAL;\n" )
+    fp.write( f"    end\n" )
+    fp.write( f"  endcase\n" )
+    fp.write( f"endtask\n\n" )
+
+fp.write( f"task process_decode(input bit [7:0] q);\n" )
+fp.write( f"  case(state)\n" )
+for name in state_names:
+    fp.write( f"    {name}: process_{name}(q);\n" )
+fp.write( f"    default: process_ROOT(q);\n" )
+fp.write( f"  endcase\n" )
+fp.write( f"endtask\n\n" )
+
+
+#print(RenderTree(root))
+
+"""
 cases.sort(key=lambda x: x['vagueness'])
 
 with open(output_name, "wt") as fp:
@@ -188,6 +299,8 @@ with open(output_name, "wt") as fp:
         assigns = ';\n\t'.join(c['assignments'])
         comment = c['comment']
         match = c['match']
+        path = c['path']
+        fp.write( f"/* {path} */\n" )
         fp.write( f"24'b{match}: begin /* {comment} */\n\t{assigns};\nend\n" )
 
 
@@ -195,4 +308,4 @@ for idx1 in range(len(cases)):
     for idx2 in range(idx1 + 1, len(cases)):
         if cases[idx1]['vagueness'] == cases[idx2]['vagueness'] and is_ambiguous(cases[idx1]['match'], cases[idx2]['match']):
             print(f"Ambiguous: {cases[idx1]['match']}  {cases[idx2]['match']}")
-
+"""

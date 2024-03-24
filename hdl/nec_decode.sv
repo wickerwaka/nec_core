@@ -24,23 +24,20 @@ module nec_decode(
     output nec_decode_t decoded
 );
 
-reg [3:0] pc_ofs;
+/* verilator lint_off CASEX */
+/* verilator lint_off CASEOVERLAP */
+`include "opcodes.svh"
+/* verilator lint_on CASEOVERLAP */
+/* verilator lint_on CASEX */
 
 function bit [7:0] ipq_byte(bit [2:0] ofs);
-    return ipq[pc[2:0] + ofs[2:0] + pc_ofs[2:0]];
+    return ipq[pc[2:0] + ofs[2:0]];
 endfunction
 
-wire [23:0] q = { ipq_byte(0), ipq_byte(1), ipq_byte(2) };
-
-decode_stage_e stage;
-reg segment_override;
-
-reg decoded_valid;
-reg ea_valid;
+decode_state_e state;
 
 nec_decode_t d; // in flight
-
-assign valid = decoded_valid & ea_valid & ~set_pc;
+assign decoded = d;
 
 function bit [2:0] calc_imm_size(width_e width, operand_e s0, operand_e s1);
     case(s0)
@@ -84,140 +81,85 @@ function sreg_index_e calc_seg(bit [2:0] mem, bit [1:0] mod);
     return seg;
 endfunction
 
-/* verilator lint_off CASEX */
-always_ff @(posedge clk) begin
-    bit valid_op;
-    bit [2:0] op_size;
-    bit [2:0] imm_size, disp_size;
-    bit [3:0] pc_increment;
-    bit [3:0] avail;
+reg [2:0] disp_read;
+reg [2:0] imm_read;
 
-    pc_increment = 4'd0;
-    avail = ipq_len - pc_ofs;
+task reset_decode();
+    d.segment_override <= 0;
+    d.segment <= DS0;
+    d.buslock <= 0;
+    d.rep <= REPEAT_NONE;
+    d.mem_write <= 0;
+    d.mem_read <= 0;
+    d.mod <= 2'b11;
+    d.dest <= OPERAND_NONE;
+    d.source0 <= OPERAND_NONE;
+    d.source1 <= OPERAND_NONE;
+    d.opcode <= OP_INVALID;
+    d.alu_operation <= ALU_OP_NONE;
+    d.push <= 16'd0;
+    d.pop <= 16'd0;
+
+    d.cycles <= 0;
+    d.mem_cycles <= 0;
+
+    disp_read <= 3'd0;
+    imm_read <= 3'd0;
+    state <= INITIAL;
+endtask
+
+
+wire [2:0] disp_size = calc_disp_size(d.rm, d.mod);
+wire [2:0] imm_size = calc_imm_size(d.width, d.source0, d.source1);
+
+wire decode_ready = state == TERMINAL && disp_size == disp_read && imm_size == imm_read;
+assign valid = decode_ready & ~set_pc;
+
+
+always_ff @(posedge clk) begin
+    bit [3:0] avail;
+    bit [7:0] q;
+
+    avail = ipq_len;
+
+    q = ipq_byte(0);
 
     if (ce_1 | ce_2) begin
         if (set_pc) begin
             pc <= new_pc;
-            pc_ofs <= 4'd0;
-            stage <= OPCODE_FIRST;
-            decoded_valid <= 0;
-            ea_valid <= 0;
-        end else begin
-            if (retire_op) decoded_valid <= 0;
-
-            case(stage)
-                OPCODE_STALL: if (ce_2 && avail > 0) begin
-                    stage <= OPCODE_FIRST;
-                end
-
-                OPCODE_FIRST,
-                OPCODE: if (ce_2) begin 
-                    if (stage == OPCODE_FIRST) begin
-                        segment_override <= 0;
-                        d.segment <= DS0;
-                        d.buslock <= 0;
-                        d.rep <= REPEAT_NONE;
-                        d.pc <= pc;
-                        if (avail == 0)
-                            stage <= OPCODE;
-                        else
-                            stage <= OPCODE;
-                    end
-
-                    if (avail > 0) begin
-                        d.opcode <= OP_INVALID;
-                        d.alu_operation <= ALU_OP_NONE;
-                        d.push <= 16'd0;
-                        d.pop <= 16'd0;
-                        d.cycles <= 0;
-                        d.mem_cycles <= 0;
-
-                        valid_op = 0;
-                        case(q[23:16])
-                            8'b00100110: begin segment_override <= 1; d.segment <= DS1; pc_increment = 4'd1; end
-                            8'b00101110: begin segment_override <= 1; d.segment <= PS;  pc_increment = 4'd1; end
-                            8'b00110110: begin segment_override <= 1; d.segment <= SS;  pc_increment = 4'd1; end
-                            8'b00111110: begin segment_override <= 1; d.segment <= DS0; pc_increment = 4'd1; end
-                            8'b11110000: begin d.buslock <= 1;                          pc_increment = 4'd1; end
-                            8'b11110011: begin d.rep <= REPEAT_Z;                       pc_increment = 4'd1; end
-                            8'b01100101: begin d.rep <= REPEAT_C;                       pc_increment = 4'd1; end
-                            8'b01100100: begin d.rep <= REPEAT_NC;                      pc_increment = 4'd1; end
-                            8'b11110010: begin d.rep <= REPEAT_NZ;                      pc_increment = 4'd1; end
-
-                            default: begin
-                                casex(q)
-                                    `include "opcodes.svh"
-                                endcase
-                            end
-                        endcase
-                        
-                        if (valid_op && (avail >= {1'd0, op_size})) begin
-                            stage <= IMMEDIATES;
-                            pc_increment = {1'd0, op_size};
+            reset_decode();
+        end else if (ce_1) begin
+            case(state)
+                TERMINAL: begin
+                    if (disp_read < disp_size) begin
+                        if (avail > 0) begin
+                            d.disp[(disp_read*8) +: 8] <= q;
+                            pc <= pc + 16'd1;
+                            disp_read <= disp_read + 3'd1;
                         end
-                    end
-                end
-
-                IMMEDIATES: if (ce_1) begin
-                    disp_size = 3'd0;
-                    imm_size = 3'd0;
-                    d.mem_read <= 0;
-                    d.mem_write <= 0;
-                    d.defer_read <= 0;
-
-                    if (~segment_override & d.use_modrm) d.segment <= calc_seg(d.rm, d.mod);
-
-                    d.defer_read <= (d.push != 16'd0 && d.opcode != OP_PUSH) || (d.pop != 16'd0 && d.opcode != OP_POP);
-
-                    if (d.use_modrm & d.mod != 2'b11) begin
-                        disp_size = calc_disp_size(d.rm, d.mod);
-                        if (d.opcode != OP_LDEA) begin
-                            d.mem_read <= (d.source0 == OPERAND_MODRM || d.source1 == OPERAND_MODRM) ? 1 : 0;
-                            d.mem_write <= d.dest == OPERAND_MODRM ? 1 : 0;
+                    end else if (imm_read < imm_size) begin
+                        if (avail > 0) begin
+                            d.imm[(imm_read*8) +: 8] <= q;
+                            pc <= pc + 16'd1;
+                            imm_read <= imm_read + 3'd1;
                         end
-                    end
-
-                    if (d.opcode == OP_PREPARE) begin
-                        imm_size = 3'd3;
-                    end else begin
-                        imm_size = calc_imm_size(d.width, d.source0, d.source1);
-                    end
-
-                    if (avail >= (disp_size + imm_size)) begin
-                        d.imm[7:0] <= ipq_byte(disp_size);
-                        d.imm[15:8] <= ipq_byte(disp_size + 3'd1);
-                        d.imm[23:16] <= ipq_byte(disp_size + 3'd2);
-                        d.imm[31:24] <= ipq_byte(disp_size + 3'd3);
-                        d.disp <= { ipq_byte(3'd1), ipq_byte(3'd0) };
-                        d.end_pc <= pc + { 12'd0, pc_ofs } + { 13'd0, disp_size + imm_size };
-                        pc_increment = disp_size + imm_size;
-                        stage <= DECODED;
-                    end
-                end
-
-                DECODED: if (ce_2) begin
-                    if (retire_op | ~decoded_valid) begin
-                        decoded <= d;
-                        decoded_valid <= 1;
-                        ea_valid <= ~d.mem_read & ~d.mem_write;
-                        stage <= OPCODE_FIRST;
+                    end else if (retire_op) begin
+                        reset_decode();
+                        if (avail > 0) begin
+                            process_decode(q);
+                            pc <= pc + 16'd1;
+                        end
                     end
                 end
 
                 default: begin
+                    if (avail > 0) begin
+                        process_decode(q);
+                        pc <= pc + 16'd1;
+                    end
                 end
+
             endcase
-        end
-
-        if (ce_2 & decoded_valid) ea_valid <= 1;
-
-        if (~set_pc) begin
-            if (1 /*~decoded_valid | retire_op*/) begin
-                pc <= pc + { 12'd0, pc_ofs } + { 12'd0, pc_increment };
-                pc_ofs <= 4'd0;
-            end else begin
-                pc_ofs <= pc_ofs + pc_increment;
-            end
         end
     end
 end

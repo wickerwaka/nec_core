@@ -136,12 +136,21 @@ b01001_GP0:
   src: REG_0
   width: WORD
 
-b1111111W_MD_001_MEM:
+b11111111_MD_001_MEM:
   desc: DEC mem/reg
   op: ALU
   alu: DEC
   dst: MODRM
   src: MODRM
+  width: WORD
+
+b11111110_MD_001_MEM:
+  desc: DEC mem/reg
+  op: ALU
+  alu: DEC
+  dst: MODRM
+  src: MODRM
+  width: BYTE
 
 b01000_GP0:
   desc: INC reg16
@@ -151,12 +160,21 @@ b01000_GP0:
   src: REG_0
   width: WORD
 
-b1111111W_MD_000_MEM:
+b11111111_MD_000_MEM:
   desc: INC mem/reg
   op: ALU
   alu: INC
   dst: MODRM
   src: MODRM
+  width: WORD
+
+b11111110_MD_000_MEM:
+  desc: INC mem/reg
+  op: ALU
+  alu: INC
+  dst: MODRM
+  src: MODRM
+  width: BYTE
 
 #
 # TEST
@@ -178,12 +196,23 @@ b1010100W:
   src1: IMM
   cycles: 2
 
-b1111011W_MD_000_MEM:
+b11110110_MD_000_MEM:
   desc: TEST mem/reg, imm
   op: ALU
   alu: AND
   src0: MODRM
   src1: IMM
+  width: BYTE
+  cycles: 2
+  mem_cycles: 4
+
+b11110111_MD_000_MEM:
+  desc: TEST mem/reg, imm
+  op: ALU
+  alu: AND
+  src0: MODRM
+  src1: IMM
+  width: WORD
   cycles: 2
   mem_cycles: 4
 
@@ -192,24 +221,46 @@ b1111011W_MD_000_MEM:
 #
 # NOT
 #
-b1111011W_MD_010_MEM:
+b11110110_MD_010_MEM:
   desc: NOT mem/reg
   op: ALU
   alu: NOT
   dst: MODRM
   src0: MODRM
+  width: BYTE
+  cycles: 2
+  mem_cycles: 5
+
+b11110111_MD_010_MEM:
+  desc: NOT mem/reg
+  op: ALU
+  alu: NOT
+  dst: MODRM
+  src0: MODRM
+  width: WORD
   cycles: 2
   mem_cycles: 5
 
 #
 # NEG
 #
-b1111011W_MD_011_MEM:
+b11110110_MD_011_MEM:
   desc: NEG mem/reg
   op: ALU
   alu: NEG
   dst: MODRM
   src0: MODRM
+  width: BYTE
+  cycles: 2
+  mem_cycles: 5
+
+b11110111_MD_011_MEM:
+  desc: NEG mem/reg
+  op: ALU
+  alu: NEG
+  dst: MODRM
+  src0: MODRM
+  width: WORD
   cycles: 2
   mem_cycles: 5
 
@@ -1100,3 +1151,40 @@ b00001111_00101000_MD_000_MEM:
   cycles: 13
   mem_cycles: 15
 
+
+
+b00100110:
+  desc: DS1
+  segment: DS1
+
+b00101110:
+  desc: PS
+  segment: PS
+
+b00110110:
+  desc: SS
+  segment: SS
+
+b00111110:
+ desc: DS0
+ segment: DS0
+
+b11110000:
+  desc: LOCK
+  buslock: true
+
+b11110011:
+  desc: REPZ
+  repeat: REPEAT_Z
+
+b01100101:
+  desc: REPC
+  repeat: REPEAT_C
+
+b01100100:
+  desc: REPNC
+  repeat: REPEAT_NC
+
+b11110010:
+  desc: REPNZ
+  repeat: REPEAT_NZ

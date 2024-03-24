@@ -185,7 +185,6 @@ task set_sreg(input sreg_index_e r, input bit[15:0] val);
     SS: reg_ss <= val;
     PS: begin
         reg_ps <= val;
-        next_pc <= decoded.end_pc;
         set_pc <= 1;
     end
     endcase
@@ -350,6 +349,7 @@ bus_control_unit BCU(
 
 reg retire_op;
 wire next_decode_valid;
+nec_decode_t next_decode;
 
 nec_decode nec_decode(
     .clk, .ce_1, .ce_2,
@@ -358,7 +358,7 @@ nec_decode nec_decode(
     .new_pc(next_pc), .set_pc,
     .pc(cur_pc),
     .valid(next_decode_valid),
-    .decoded(decoded),
+    .decoded(next_decode),
     .retire_op
 );
 
@@ -482,7 +482,7 @@ always_ff @(posedge clk) begin
         halt <= 0;
     end else if (ce_1 | ce_2) begin
         div_start <= 0;
-        retire_op <= 0;
+        if (ce_1) retire_op <= 0;
         set_pc <= 0;
         dp_req <= 0;
 
@@ -502,32 +502,33 @@ always_ff @(posedge clk) begin
                     if (intreq & flags.IE) begin
                         state <= INT_ACK_WAIT;
                     end else if (next_decode_valid) begin
-                        cur_opcode <= decoded.opcode;
+                        decoded <= next_decode;
+                        cur_opcode <= next_decode.opcode;
                         push_sp_save <= reg_sp;
-                        push_list <= decoded.push;
-                        pop_list <= decoded.pop;
+                        push_list <= next_decode.push;
+                        pop_list <= next_decode.pop;
 
-                        next_pc <= decoded.end_pc;
+                        next_pc <= cur_pc;
 
-                        op_cycles <= decoded.cycles;
-                        if (decoded.mem_read | decoded.mem_write) begin
-                            op_cycles <= decoded.mem_cycles;
+                        op_cycles <= next_decode.cycles;
+                        if (next_decode.mem_read | next_decode.mem_write) begin
+                            op_cycles <= next_decode.mem_cycles;
                         end
 
-                        calculated_ea <= calc_ea(decoded.rm, decoded.mod, decoded.disp);
+                        calculated_ea <= calc_ea(next_decode.rm, next_decode.mod, next_decode.disp);
 
-                        if (decoded.opcode == OP_BR_ABS || decoded.opcode == OP_BR_REL) block_prefetch <= 1;
+                        load_operands(next_decode);
 
-                        load_operands(decoded);
-
-                        if (decoded.mem_read)
+                        if (next_decode.mem_read)
                             state <= FETCH_OPERAND;
-                        else if (decoded.push != 16'd0)
+                        else if (next_decode.push != 16'd0)
                             state <= PUSH_STALL;
-                        else if (decoded.pop != 16'd0)
+                        else if (next_decode.pop != 16'd0)
                             state <= POP;
                         else
                             state <= EXECUTE;
+                        
+                        retire_op <= 1;
                     end
                 end
             end // IDLE
@@ -732,7 +733,7 @@ always_ff @(posedge clk) begin
                             delay = cond ? 0 : 1;
 
                             if (cond) begin
-                                branch_new_pc <= decoded.end_pc + TA;
+                                branch_new_pc <= next_pc + TA;
                                 branch_new_ps <= reg_ps;
                                 branch = 1;
                             end
@@ -761,14 +762,14 @@ always_ff @(posedge clk) begin
                             delay = cond ? 0 : 1;
 
                             if (cond) begin
-                                branch_new_pc <= decoded.end_pc + TA;
+                                branch_new_pc <= next_pc + TA;
                                 branch_new_ps <= reg_ps;
                                 branch = 1;
                             end
                         end
 
                         OP_BR_REL: begin
-                            branch_new_pc <= decoded.end_pc + TA;
+                            branch_new_pc <= next_pc + TA;
                             branch_new_ps <= reg_ps;
                             branch = 1;
                         end
@@ -1217,7 +1218,7 @@ always_ff @(posedge clk) begin
                                 state <= STORE_DELAY;
                                 cycles <= 10'd1;
                             end else begin
-                                retire_op <= 1;
+                                //retire_op <= 1;
                                 state <= STORE_REGISTER;
                                 //block_prefetch <= decoded.mem_write;
                             end
@@ -1294,7 +1295,7 @@ always_ff @(posedge clk) begin
                 if (list == 16'd0) begin
                     if (decoded.opcode == OP_POP) begin
                         state <= IDLE;
-                        retire_op <= 1;
+                        //retire_op <= 1;
                     end else begin
                         state <= EXECUTE;
                     end
@@ -1361,7 +1362,7 @@ always_ff @(posedge clk) begin
                         state <= INT_FETCH_VEC;
                     end else if (decoded.opcode == OP_PUSH) begin
                         state <= IDLE;
-                        retire_op <= 1;
+                        //retire_op <= 1;
                     end else begin
                         state <= EXECUTE;
                     end
@@ -1397,7 +1398,7 @@ always_ff @(posedge clk) begin
                 if (cycles >= op_cycles) begin
                     state <= STORE_REGISTER;
                     //block_prefetch <= decoded.mem_write;
-                    retire_op <= 1;
+                    //retire_op <= 1;
                 end
             end
 

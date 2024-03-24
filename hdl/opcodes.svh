@@ -1,1766 +1,1870 @@
-24'b0000111100101010xx000xxx: begin /* ROR4 reg8/mem8 */
-	d.opcode <= OP_ROR4;
-	d.width <= BYTE;
-	d.cycles <= 13;
-	d.mem_cycles <= 15;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[7:6];
-	d.rm <= q[2:0];
-	op_size = 3;
-	valid_op = 1;
-end
-24'b0000111100101000xx000xxx: begin /* ROL4 reg8/mem8 */
-	d.opcode <= OP_ROL4;
-	d.width <= BYTE;
-	d.cycles <= 13;
-	d.mem_cycles <= 15;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[7:6];
-	d.rm <= q[2:0];
-	op_size = 3;
-	valid_op = 1;
-end
-24'b000011110001000xxx000xxx: begin /* TEST1 reg, CL */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_TEST1;
-	d.cycles <= 4;
-	d.mem_cycles <= 6;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_CL;
-	d.mod <= q[7:6];
-	d.rm <= q[2:0];
-	d.width <= q[8] ? WORD : BYTE;
-	op_size = 3;
-	valid_op = 1;
-end
-24'b000011110001100xxx000xxx: begin /* TEST1 reg, imm */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_TEST1;
-	d.cycles <= 4;
-	d.mem_cycles <= 6;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_IMM8;
-	d.mod <= q[7:6];
-	d.rm <= q[2:0];
-	d.width <= q[8] ? WORD : BYTE;
-	op_size = 3;
-	valid_op = 1;
-end
-24'b000011110001001xxx000xxx: begin /* CLR1 reg, CL */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_CLR1;
-	d.cycles <= 4;
-	d.mem_cycles <= 5;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_CL;
-	d.mod <= q[7:6];
-	d.rm <= q[2:0];
-	d.width <= q[8] ? WORD : BYTE;
-	op_size = 3;
-	valid_op = 1;
-end
-24'b000011110001101xxx000xxx: begin /* CLR1 reg, imm */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_CLR1;
-	d.cycles <= 4;
-	d.mem_cycles <= 5;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_IMM8;
-	d.mod <= q[7:6];
-	d.rm <= q[2:0];
-	d.width <= q[8] ? WORD : BYTE;
-	op_size = 3;
-	valid_op = 1;
-end
-24'b000011110001010xxx000xxx: begin /* SET1 reg, CL */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_SET1;
-	d.cycles <= 4;
-	d.mem_cycles <= 5;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_CL;
-	d.mod <= q[7:6];
-	d.rm <= q[2:0];
-	d.width <= q[8] ? WORD : BYTE;
-	op_size = 3;
-	valid_op = 1;
-end
-24'b000011110001110xxx000xxx: begin /* SET1 reg, imm */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_SET1;
-	d.cycles <= 4;
-	d.mem_cycles <= 5;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_IMM8;
-	d.mod <= q[7:6];
-	d.rm <= q[2:0];
-	d.width <= q[8] ? WORD : BYTE;
-	op_size = 3;
-	valid_op = 1;
-end
-24'b000011110001011xxx000xxx: begin /* NOT1 reg, CL */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_NOT1;
-	d.cycles <= 4;
-	d.mem_cycles <= 5;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_CL;
-	d.mod <= q[7:6];
-	d.rm <= q[2:0];
-	d.width <= q[8] ? WORD : BYTE;
-	op_size = 3;
-	valid_op = 1;
-end
-24'b000011110001111xxx000xxx: begin /* NOT1 reg, imm */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_NOT1;
-	d.cycles <= 4;
-	d.mem_cycles <= 5;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_IMM8;
-	d.mod <= q[7:6];
-	d.rm <= q[2:0];
-	d.width <= q[8] ? WORD : BYTE;
-	op_size = 3;
-	valid_op = 1;
-end
-24'b0000111100100000xxxxxxxx: begin /* ADD4S */
-	d.opcode <= OP_ADD4S;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b0000111100100010xxxxxxxx: begin /* SUB4S */
-	d.opcode <= OP_SUB4S;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b0000111100100110xxxxxxxx: begin /* CMP4S */
-	d.opcode <= OP_CMP4S;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b11110110xx100xxxxxxxxxxx: begin /* MULU mem/reg */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_MULU;
-	d.width <= BYTE;
-	d.cycles <= 8;
-	d.mem_cycles <= 10;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_PRODUCT;
-	d.source0 <= OPERAND_ACC;
-	d.source1 <= OPERAND_MODRM;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b11110110xx101xxxxxxxxxxx: begin /* MUL mem/reg */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_MUL;
-	d.width <= BYTE;
-	d.cycles <= 8;
-	d.mem_cycles <= 10;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_PRODUCT;
-	d.source0 <= OPERAND_ACC;
-	d.source1 <= OPERAND_MODRM;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b11110111xx100xxxxxxxxxxx: begin /* MULU mem/reg */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_MULU;
-	d.width <= WORD;
-	d.cycles <= 12;
-	d.mem_cycles <= 14;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_PRODUCT;
-	d.source0 <= OPERAND_ACC;
-	d.source1 <= OPERAND_MODRM;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b11110111xx101xxxxxxxxxxx: begin /* MUL mem/reg */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_MUL;
-	d.width <= WORD;
-	d.cycles <= 12;
-	d.mem_cycles <= 14;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_PRODUCT;
-	d.source0 <= OPERAND_ACC;
-	d.source1 <= OPERAND_MODRM;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b11110110xx110xxxxxxxxxxx: begin /* DIVU mem/reg */
-	d.opcode <= OP_DIVU;
-	d.width <= BYTE;
-	d.cycles <= 11;
-	d.mem_cycles <= 14;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b11110110xx111xxxxxxxxxxx: begin /* DIV mem/reg */
-	d.opcode <= OP_DIV;
-	d.width <= BYTE;
-	d.cycles <= 17;
-	d.mem_cycles <= 18;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b11110111xx110xxxxxxxxxxx: begin /* DIVU mem/reg */
-	d.opcode <= OP_DIVU;
-	d.width <= WORD;
-	d.cycles <= 19;
-	d.mem_cycles <= 21;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b11110111xx111xxxxxxxxxxx: begin /* DIV mem/reg */
-	d.opcode <= OP_DIV;
-	d.width <= WORD;
-	d.cycles <= 24;
-	d.mem_cycles <= 26;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b11111111xx100xxxxxxxxxxx: begin /* BR ptr16 */
-	d.opcode <= OP_BR_ABS;
-	d.width <= WORD;
-	d.cycles <= 3;
-	d.mem_cycles <= 5;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b11111111xx101xxxxxxxxxxx: begin /* BR memptr32 */
-	d.opcode <= OP_BR_ABS;
-	d.width <= DWORD;
-	d.cycles <= 5;
-	d.mem_cycles <= 5;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b11111111xx010xxxxxxxxxxx: begin /* CALL ptr16 */
-	d.opcode <= OP_BR_ABS;
-	d.width <= WORD;
-	d.cycles <= 7;
-	d.mem_cycles <= 7;
-	d.push <= STACK_PC;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b11111111xx011xxxxxxxxxxx: begin /* CALL memptr32 */
-	d.opcode <= OP_BR_ABS;
-	d.width <= DWORD;
-	d.cycles <= 7;
-	d.mem_cycles <= 7;
-	d.push <= STACK_PC | STACK_PS;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b11111111xx110xxxxxxxxxxx: begin /* PUSH reg16/mem16 */
-	d.opcode <= OP_PUSH;
-	d.width <= WORD;
-	d.cycles <= 1;
-	d.mem_cycles <= 1;
-	d.push <= STACK_OPERAND;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b10001111xx000xxxxxxxxxxx: begin /* POP reg16/mem16 */
-	d.opcode <= OP_POP;
-	d.width <= WORD;
-	d.cycles <= 1;
-	d.mem_cycles <= 1;
-	d.pop <= STACK_OPERAND;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b1000000xxx111xxxxxxxxxxx: begin /* CMP mem/reg, imm */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_CMP;
-	d.cycles <= 2;
-	d.mem_cycles <= 4;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_IMM;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b1000001xxx111xxxxxxxxxxx: begin /* CMP mem/reg, sext_imm */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_CMP;
-	d.cycles <= 2;
-	d.mem_cycles <= 4;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_IMM_EXT;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b1111111xxx001xxxxxxxxxxx: begin /* DEC mem/reg */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_DEC;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b1111111xxx000xxxxxxxxxxx: begin /* INC mem/reg */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_INC;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b1111011xxx000xxxxxxxxxxx: begin /* TEST mem/reg, imm */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_AND;
-	d.cycles <= 2;
-	d.mem_cycles <= 4;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_IMM;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b1111011xxx010xxxxxxxxxxx: begin /* NOT mem/reg */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_NOT;
-	d.cycles <= 2;
-	d.mem_cycles <= 5;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b1111011xxx011xxxxxxxxxxx: begin /* NEG mem/reg */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_NEG;
-	d.cycles <= 2;
-	d.mem_cycles <= 5;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b1100011xxx000xxxxxxxxxxx: begin /* MOV mem/reg, imm */
-	d.opcode <= OP_MOV;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_IMM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b10001110xx0xxxxxxxxxxxxx: begin /* MOV sreg, mem/reg */
-	d.opcode <= OP_MOV;
-	d.width <= WORD;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_SREG;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.sreg <= q[12:11];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b10001100xx0xxxxxxxxxxxxx: begin /* MOV mem/reg, sreg */
-	d.opcode <= OP_MOV;
-	d.width <= WORD;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_SREG;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.sreg <= q[12:11];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b10010000xxxxxxxxxxxxxxxx: begin /* NOP */
-	d.opcode <= OP_NOP;
-	d.cycles <= 1;
-	d.mem_cycles <= 1;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01101011xxxxxxxxxxxxxxxx: begin /* MUL reg, mem/reg, sext_imm8 */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_MUL;
-	d.width <= WORD;
-	d.cycles <= 12;
-	d.mem_cycles <= 14;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_REG_0;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_IMM_EXT;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.reg0 <= q[13:11];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b01101001xxxxxxxxxxxxxxxx: begin /* MUL reg, mem/reg, imm16 */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_MUL;
-	d.width <= WORD;
-	d.cycles <= 12;
-	d.mem_cycles <= 14;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_REG_0;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_IMM;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.reg0 <= q[13:11];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b00100111xxxxxxxxxxxxxxxx: begin /* ADJ4A */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_ADJ4A;
-	d.reg0 <= AW;
-	d.width <= WORD;
-	d.cycles <= 2;
-	d.mem_cycles <= 2;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_REG_0;
-	d.source0 <= OPERAND_REG_0;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b00101111xxxxxxxxxxxxxxxx: begin /* ADJ4S */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_ADJ4S;
-	d.reg0 <= AW;
-	d.width <= WORD;
-	d.cycles <= 2;
-	d.mem_cycles <= 2;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_REG_0;
-	d.source0 <= OPERAND_REG_0;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b00110111xxxxxxxxxxxxxxxx: begin /* ADJBA */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_ADJBA;
-	d.reg0 <= AW;
-	d.width <= WORD;
-	d.cycles <= 4;
-	d.mem_cycles <= 4;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_REG_0;
-	d.source0 <= OPERAND_REG_0;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b00111111xxxxxxxxxxxxxxxx: begin /* ADJBS */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_ADJBS;
-	d.reg0 <= AW;
-	d.width <= WORD;
-	d.cycles <= 4;
-	d.mem_cycles <= 4;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_REG_0;
-	d.source0 <= OPERAND_REG_0;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11010101xxxxxxxxxxxxxxxx: begin /* CVTDB */
-	d.opcode <= OP_CVTDB;
-	d.cycles <= 8;
-	d.mem_cycles <= 8;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_IMM8;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11010100xxxxxxxxxxxxxxxx: begin /* CVTBD */
-	d.opcode <= OP_CVTBD;
-	d.cycles <= 12;
-	d.mem_cycles <= 12;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_IMM8;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b10011000xxxxxxxxxxxxxxxx: begin /* CVTBW */
-	d.opcode <= OP_CVTBW;
-	d.cycles <= 2;
-	d.mem_cycles <= 2;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b10011001xxxxxxxxxxxxxxxx: begin /* CVTWL */
-	d.opcode <= OP_CVTWL;
-	d.cycles <= 2;
-	d.mem_cycles <= 2;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b10001101xxxxxxxxxxxxxxxx: begin /* LDEA reg16, mem16 */
-	d.opcode <= OP_LDEA;
-	d.width <= WORD;
-	d.cycles <= 2;
-	d.mem_cycles <= 2;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_REG_0;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.reg0 <= q[13:11];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b11000101xxxxxxxxxxxxxxxx: begin /* MOV_SEG */
-	d.opcode <= OP_MOV_SEG;
-	d.sreg <= DS0;
-	d.width <= DWORD;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.reg0 <= q[13:11];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b11000100xxxxxxxxxxxxxxxx: begin /* MOV_SEG */
-	d.opcode <= OP_MOV_SEG;
-	d.sreg <= DS1;
-	d.width <= DWORD;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.reg0 <= q[13:11];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b10011111xxxxxxxxxxxxxxxx: begin /* MOV AH, PSW */
-	d.opcode <= OP_MOV_AH_PSW;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b10011110xxxxxxxxxxxxxxxx: begin /* MOV AH, PSW */
-	d.opcode <= OP_MOV_PSW_AH;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11101001xxxxxxxxxxxxxxxx: begin /* BR near-label */
-	d.opcode <= OP_BR_REL;
-	d.width <= WORD;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_IMM;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11101011xxxxxxxxxxxxxxxx: begin /* BR short-label */
-	d.opcode <= OP_BR_REL;
-	d.width <= WORD;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_IMM_EXT;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11101010xxxxxxxxxxxxxxxx: begin /* BR far-label */
-	d.opcode <= OP_BR_ABS;
-	d.width <= DWORD;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_IMM;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11101000xxxxxxxxxxxxxxxx: begin /* CALL near */
-	d.opcode <= OP_BR_REL;
-	d.width <= WORD;
-	d.cycles <= 5;
-	d.mem_cycles <= 5;
-	d.push <= STACK_PC;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_IMM;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b10011010xxxxxxxxxxxxxxxx: begin /* CALL far-proc */
-	d.opcode <= OP_BR_ABS;
-	d.width <= DWORD;
-	d.cycles <= 5;
-	d.mem_cycles <= 5;
-	d.push <= STACK_PC | STACK_PS;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_IMM;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11000011xxxxxxxxxxxxxxxx: begin /* RET */
-	d.opcode <= OP_RET;
-	d.cycles <= 8;
-	d.mem_cycles <= 8;
-	d.pop <= STACK_PC;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11000010xxxxxxxxxxxxxxxx: begin /* RET pop-value */
-	d.opcode <= OP_RET_POP_VALUE;
-	d.width <= WORD;
-	d.cycles <= 8;
-	d.mem_cycles <= 8;
-	d.pop <= STACK_PC;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_IMM;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11001011xxxxxxxxxxxxxxxx: begin /* RETF */
-	d.opcode <= OP_RET;
-	d.cycles <= 8;
-	d.mem_cycles <= 8;
-	d.pop <= STACK_PC | STACK_PS;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11001010xxxxxxxxxxxxxxxx: begin /* RETF pop-value */
-	d.opcode <= OP_RET_POP_VALUE;
-	d.width <= WORD;
-	d.cycles <= 8;
-	d.mem_cycles <= 8;
-	d.pop <= STACK_PC | STACK_PS;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_IMM;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11001111xxxxxxxxxxxxxxxx: begin /* RETI */
-	d.opcode <= OP_RET;
-	d.cycles <= 7;
-	d.mem_cycles <= 7;
-	d.pop <= STACK_PC | STACK_PS | STACK_PSW;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01010000xxxxxxxxxxxxxxxx: begin /* PUSH AW */
-	d.opcode <= OP_PUSH;
-	d.cycles <= 1;
-	d.mem_cycles <= 1;
-	d.push <= STACK_AW;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01010001xxxxxxxxxxxxxxxx: begin /* PUSH CW */
-	d.opcode <= OP_PUSH;
-	d.cycles <= 1;
-	d.mem_cycles <= 1;
-	d.push <= STACK_CW;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01010010xxxxxxxxxxxxxxxx: begin /* PUSH DW */
-	d.opcode <= OP_PUSH;
-	d.cycles <= 1;
-	d.mem_cycles <= 1;
-	d.push <= STACK_DW;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01010011xxxxxxxxxxxxxxxx: begin /* PUSH BW */
-	d.opcode <= OP_PUSH;
-	d.cycles <= 1;
-	d.mem_cycles <= 1;
-	d.push <= STACK_BW;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01010100xxxxxxxxxxxxxxxx: begin /* PUSH SP */
-	d.opcode <= OP_PUSH;
-	d.cycles <= 1;
-	d.mem_cycles <= 1;
-	d.push <= STACK_SP;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01010101xxxxxxxxxxxxxxxx: begin /* PUSH BP */
-	d.opcode <= OP_PUSH;
-	d.cycles <= 1;
-	d.mem_cycles <= 1;
-	d.push <= STACK_BP;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01010110xxxxxxxxxxxxxxxx: begin /* PUSH IX */
-	d.opcode <= OP_PUSH;
-	d.cycles <= 1;
-	d.mem_cycles <= 1;
-	d.push <= STACK_IX;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01010111xxxxxxxxxxxxxxxx: begin /* PUSH IY */
-	d.opcode <= OP_PUSH;
-	d.cycles <= 1;
-	d.mem_cycles <= 1;
-	d.push <= STACK_IY;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b00000110xxxxxxxxxxxxxxxx: begin /* PUSH DS1 */
-	d.opcode <= OP_PUSH;
-	d.cycles <= 1;
-	d.mem_cycles <= 1;
-	d.push <= STACK_DS1;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b00001110xxxxxxxxxxxxxxxx: begin /* PUSH PS */
-	d.opcode <= OP_PUSH;
-	d.cycles <= 1;
-	d.mem_cycles <= 1;
-	d.push <= STACK_PS;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b00010110xxxxxxxxxxxxxxxx: begin /* PUSH SS */
-	d.opcode <= OP_PUSH;
-	d.cycles <= 1;
-	d.mem_cycles <= 1;
-	d.push <= STACK_SS;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b00011110xxxxxxxxxxxxxxxx: begin /* PUSH DS0 */
-	d.opcode <= OP_PUSH;
-	d.cycles <= 1;
-	d.mem_cycles <= 1;
-	d.push <= STACK_DS0;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b10011100xxxxxxxxxxxxxxxx: begin /* PUSH PSW */
-	d.opcode <= OP_PUSH;
-	d.cycles <= 1;
-	d.mem_cycles <= 1;
-	d.push <= STACK_PSW;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01100000xxxxxxxxxxxxxxxx: begin /* PUSH R */
-	d.opcode <= OP_PUSH;
-	d.cycles <= 4;
-	d.mem_cycles <= 4;
-	d.push <= STACK_AW | STACK_CW | STACK_DW | STACK_BW | STACK_SP | STACK_BP | STACK_IX | STACK_IY;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01101010xxxxxxxxxxxxxxxx: begin /* PUSH imm8 */
-	d.opcode <= OP_PUSH;
-	d.width <= BYTE;
-	d.cycles <= 1;
-	d.mem_cycles <= 1;
-	d.push <= STACK_OPERAND;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_IMM;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01101000xxxxxxxxxxxxxxxx: begin /* PUSH imm16 */
-	d.opcode <= OP_PUSH;
-	d.width <= WORD;
-	d.cycles <= 1;
-	d.mem_cycles <= 1;
-	d.push <= STACK_OPERAND;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_IMM;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01011000xxxxxxxxxxxxxxxx: begin /* POP AW */
-	d.opcode <= OP_POP;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
-	d.pop <= STACK_AW;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01011001xxxxxxxxxxxxxxxx: begin /* POP CW */
-	d.opcode <= OP_POP;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
-	d.pop <= STACK_CW;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01011010xxxxxxxxxxxxxxxx: begin /* POP DW */
-	d.opcode <= OP_POP;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
-	d.pop <= STACK_DW;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01011011xxxxxxxxxxxxxxxx: begin /* POP BW */
-	d.opcode <= OP_POP;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
-	d.pop <= STACK_BW;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01011100xxxxxxxxxxxxxxxx: begin /* POP SP */
-	d.opcode <= OP_POP;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
-	d.pop <= STACK_SP;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01011101xxxxxxxxxxxxxxxx: begin /* POP BP */
-	d.opcode <= OP_POP;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
-	d.pop <= STACK_BP;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01011110xxxxxxxxxxxxxxxx: begin /* POP IX */
-	d.opcode <= OP_POP;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
-	d.pop <= STACK_IX;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01011111xxxxxxxxxxxxxxxx: begin /* POP IY */
-	d.opcode <= OP_POP;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
-	d.pop <= STACK_IY;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b00000111xxxxxxxxxxxxxxxx: begin /* POP DS1 */
-	d.opcode <= OP_POP;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
-	d.pop <= STACK_DS1;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b00010111xxxxxxxxxxxxxxxx: begin /* POP SS */
-	d.opcode <= OP_POP;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
-	d.pop <= STACK_SS;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b00011111xxxxxxxxxxxxxxxx: begin /* POP DS0 */
-	d.opcode <= OP_POP;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
-	d.pop <= STACK_DS0;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b10011101xxxxxxxxxxxxxxxx: begin /* POP PSW */
-	d.opcode <= OP_POP;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
-	d.pop <= STACK_PSW;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01100001xxxxxxxxxxxxxxxx: begin /* POP R */
-	d.opcode <= OP_POP;
-	d.cycles <= 8;
-	d.mem_cycles <= 8;
-	d.pop <= STACK_AW | STACK_CW | STACK_DW | STACK_BW | STACK_BP_SKIP_SP | STACK_IX | STACK_IY;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11001000xxxxxxxxxxxxxxxx: begin /* PREPARE imm16, imm8 */
-	d.opcode <= OP_PREPARE;
-	d.cycles <= 13;
-	d.mem_cycles <= 13;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11001001xxxxxxxxxxxxxxxx: begin /* DISPOSE */
-	d.opcode <= OP_DISPOSE;
-	d.cycles <= 4;
-	d.mem_cycles <= 4;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11110100xxxxxxxxxxxxxxxx: begin /* HALT */
-	d.opcode <= OP_HALT;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11110101xxxxxxxxxxxxxxxx: begin /* NOT1 CY */
-	d.opcode <= OP_NOT1_CY;
-	d.cycles <= 2;
-	d.mem_cycles <= 2;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11111000xxxxxxxxxxxxxxxx: begin /* CLR1 CY */
-	d.opcode <= OP_CLR1_CY;
-	d.cycles <= 2;
-	d.mem_cycles <= 2;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11111001xxxxxxxxxxxxxxxx: begin /* SET1 CY */
-	d.opcode <= OP_SET1_CY;
-	d.cycles <= 2;
-	d.mem_cycles <= 2;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11111010xxxxxxxxxxxxxxxx: begin /* DI */
-	d.opcode <= OP_DI;
-	d.cycles <= 2;
-	d.mem_cycles <= 2;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11111011xxxxxxxxxxxxxxxx: begin /* EI */
-	d.opcode <= OP_EI;
-	d.cycles <= 2;
-	d.mem_cycles <= 2;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11111100xxxxxxxxxxxxxxxx: begin /* CLR1 DIR */
-	d.opcode <= OP_CLR1_DIR;
-	d.cycles <= 2;
-	d.mem_cycles <= 2;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11111101xxxxxxxxxxxxxxxx: begin /* SET1 DIR */
-	d.opcode <= OP_SET1_DIR;
-	d.cycles <= 2;
-	d.mem_cycles <= 2;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01100010xxxxxxxxxxxxxxxx: begin /* CHKIND reg16, mem32 */
-	d.opcode <= OP_CHKIND;
-	d.width <= DWORD;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.reg0 <= q[13:11];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b11001100xxxxxxxxxxxxxxxx: begin /* BRK 3 */
-	d.opcode <= OP_BRK3;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11001101xxxxxxxxxxxxxxxx: begin /* BRK imm */
-	d.opcode <= OP_BRK;
-	d.width <= BYTE;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_IMM;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11001110xxxxxxxxxxxxxxxx: begin /* BRKV */
-	d.opcode <= OP_BRKV;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b11010111xxxxxxxxxxxxxxxx: begin /* TRANS */
-	d.opcode <= OP_TRANS;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b1000000xxxxxxxxxxxxxxxxx: begin /* ALU_OP mem/reg, imm */
-	d.opcode <= OP_ALU;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_IMM;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.width <= q[16] ? WORD : BYTE;
-	d.alu_operation <= alu_operation_e'(q[13:11]);
-	op_size = 2;
-	valid_op = 1;
-end
-24'b1000001xxxxxxxxxxxxxxxxx: begin /* ALU_OP mem/reg, sext_imm */
-	d.opcode <= OP_ALU;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_IMM_EXT;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.width <= q[16] ? WORD : BYTE;
-	d.alu_operation <= alu_operation_e'(q[13:11]);
-	op_size = 2;
-	valid_op = 1;
-end
-24'b1101000xxxxxxxxxxxxxxxxx: begin /* SHIFT mem/reg, 1 */
-	d.opcode <= OP_SHIFT_1;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.width <= q[16] ? WORD : BYTE;
-	d.shift <= q[13:11];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b1101001xxxxxxxxxxxxxxxxx: begin /* SHIFT mem/reg, CL */
-	d.opcode <= OP_SHIFT_CL;
-	d.cycles <= 2;
-	d.mem_cycles <= 2;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.width <= q[16] ? WORD : BYTE;
-	d.shift <= q[13:11];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b1100000xxxxxxxxxxxxxxxxx: begin /* SHIFT mem/reg, imm */
-	d.opcode <= OP_SHIFT;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_IMM8;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.width <= q[16] ? WORD : BYTE;
-	d.shift <= q[13:11];
-	op_size = 2;
-	valid_op = 1;
-end
-24'b0011100xxxxxxxxxxxxxxxxx: begin /* CMP mem/reg, reg */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_CMP;
-	d.cycles <= 2;
-	d.mem_cycles <= 4;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_REG_0;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.reg0 <= q[13:11];
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b0011101xxxxxxxxxxxxxxxxx: begin /* CMP reg, mem/reg */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_CMP;
-	d.cycles <= 2;
-	d.mem_cycles <= 4;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_REG_0;
-	d.source1 <= OPERAND_MODRM;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.reg0 <= q[13:11];
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b0011110xxxxxxxxxxxxxxxxx: begin /* CMP acc, imm */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_CMP;
-	d.cycles <= 2;
-	d.mem_cycles <= 2;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_ACC;
-	d.source1 <= OPERAND_IMM;
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b1000010xxxxxxxxxxxxxxxxx: begin /* TEST mem/reg, reg */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_AND;
-	d.cycles <= 2;
-	d.mem_cycles <= 4;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_REG_0;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.reg0 <= q[13:11];
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b1010100xxxxxxxxxxxxxxxxx: begin /* TEST acc, imm */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_AND;
-	d.cycles <= 2;
-	d.mem_cycles <= 2;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_ACC;
-	d.source1 <= OPERAND_IMM;
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b1000100xxxxxxxxxxxxxxxxx: begin /* MOV mem, reg */
-	d.opcode <= OP_MOV;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_REG_0;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.reg0 <= q[13:11];
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b1000101xxxxxxxxxxxxxxxxx: begin /* MOV reg, mem */
-	d.opcode <= OP_MOV;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_REG_0;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.reg0 <= q[13:11];
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b1010000xxxxxxxxxxxxxxxxx: begin /* MOV ACC, dmem */
-	d.opcode <= OP_MOV;
-	d.use_modrm <= 1;
-	d.rm <= 3'b110;
-	d.mod <= 2'b00;
-	d.dest <= OPERAND_ACC;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_NONE;
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b1010001xxxxxxxxxxxxxxxxx: begin /* MOV dmem, ACC */
-	d.opcode <= OP_MOV;
-	d.use_modrm <= 1;
-	d.rm <= 3'b110;
-	d.mod <= 2'b00;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_ACC;
-	d.source1 <= OPERAND_NONE;
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b1000011xxxxxxxxxxxxxxxxx: begin /* XCH mem/reg, reg */
-	d.opcode <= OP_XCH;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_REG_0;
-	d.source1 <= OPERAND_MODRM;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.reg0 <= q[13:11];
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 2;
-	valid_op = 1;
-end
-24'b1110010xxxxxxxxxxxxxxxxx: begin /* IN acc, imm8 */
-	d.opcode <= OP_IN;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_IMM8;
-	d.source1 <= OPERAND_NONE;
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b1110110xxxxxxxxxxxxxxxxx: begin /* IN acc, DW */
-	d.opcode <= OP_IN;
-	d.reg0 <= DW;
-	d.cycles <= 3;
-	d.mem_cycles <= 3;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_REG_0;
-	d.source1 <= OPERAND_NONE;
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b1110011xxxxxxxxxxxxxxxxx: begin /* OUT imm8, acc */
-	d.opcode <= OP_OUT;
-	d.cycles <= 1;
-	d.mem_cycles <= 1;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_IMM8;
-	d.source1 <= OPERAND_NONE;
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b1110111xxxxxxxxxxxxxxxxx: begin /* OUT DW, acc */
-	d.opcode <= OP_OUT;
-	d.reg0 <= DW;
-	d.cycles <= 1;
-	d.mem_cycles <= 1;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_REG_0;
-	d.source1 <= OPERAND_NONE;
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b1010101xxxxxxxxxxxxxxxxx: begin /* STM */
-	d.opcode <= OP_STM;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b1010011xxxxxxxxxxxxxxxxx: begin /* CMPBK */
-	d.opcode <= OP_CMPBK;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b1010111xxxxxxxxxxxxxxxxx: begin /* CMPM */
-	d.opcode <= OP_CMPM;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b1010110xxxxxxxxxxxxxxxxx: begin /* LDM */
-	d.opcode <= OP_LDM;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b1010010xxxxxxxxxxxxxxxxx: begin /* MOVBK */
-	d.opcode <= OP_MOVBK;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_NONE;
-	d.source1 <= OPERAND_NONE;
-	d.width <= q[16] ? WORD : BYTE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01001xxxxxxxxxxxxxxxxxxx: begin /* DEC reg16 */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_DEC;
-	d.width <= WORD;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_REG_0;
-	d.source0 <= OPERAND_REG_0;
-	d.source1 <= OPERAND_NONE;
-	d.reg0 <= q[18:16];
-	op_size = 1;
-	valid_op = 1;
-end
-24'b01000xxxxxxxxxxxxxxxxxxx: begin /* INC reg16 */
-	d.opcode <= OP_ALU;
-	d.alu_operation <= ALU_OP_INC;
-	d.width <= WORD;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_REG_0;
-	d.source0 <= OPERAND_REG_0;
-	d.source1 <= OPERAND_NONE;
-	d.reg0 <= q[18:16];
-	op_size = 1;
-	valid_op = 1;
-end
-24'b10010xxxxxxxxxxxxxxxxxxx: begin /* XCH AW, reg16 */
-	d.opcode <= OP_XCH;
-	d.reg1 <= AW;
-	d.width <= WORD;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_REG_1;
-	d.source0 <= OPERAND_REG_0;
-	d.source1 <= OPERAND_REG_1;
-	d.reg0 <= q[18:16];
-	op_size = 1;
-	valid_op = 1;
-end
-24'b00xxx00xxxxxxxxxxxxxxxxx: begin /* ALU_OP mem/reg, reg */
-	d.opcode <= OP_ALU;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_MODRM;
-	d.source0 <= OPERAND_MODRM;
-	d.source1 <= OPERAND_REG_0;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.reg0 <= q[13:11];
-	d.width <= q[16] ? WORD : BYTE;
-	d.alu_operation <= alu_operation_e'(q[21:19]);
-	op_size = 2;
-	valid_op = 1;
-end
-24'b00xxx01xxxxxxxxxxxxxxxxx: begin /* ALU_OP reg, mem/reg */
-	d.opcode <= OP_ALU;
-	d.use_modrm <= 1;
-	d.dest <= OPERAND_REG_0;
-	d.source0 <= OPERAND_REG_0;
-	d.source1 <= OPERAND_MODRM;
-	d.mod <= q[15:14];
-	d.rm <= q[10:8];
-	d.reg0 <= q[13:11];
-	d.width <= q[16] ? WORD : BYTE;
-	d.alu_operation <= alu_operation_e'(q[21:19]);
-	op_size = 2;
-	valid_op = 1;
-end
-24'b00xxx10xxxxxxxxxxxxxxxxx: begin /* ALU_OP acc, imm */
-	d.opcode <= OP_ALU;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_ACC;
-	d.source0 <= OPERAND_ACC;
-	d.source1 <= OPERAND_IMM;
-	d.width <= q[16] ? WORD : BYTE;
-	d.alu_operation <= alu_operation_e'(q[21:19]);
-	op_size = 1;
-	valid_op = 1;
-end
-24'b1011xxxxxxxxxxxxxxxxxxxx: begin /* MOV reg, imm */
-	d.opcode <= OP_MOV;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_REG_0;
-	d.source0 <= OPERAND_IMM;
-	d.source1 <= OPERAND_NONE;
-	d.reg0 <= q[18:16];
-	d.width <= q[19] ? WORD : BYTE;
-	op_size = 1;
-	valid_op = 1;
-end
-24'b0111xxxxxxxxxxxxxxxxxxxx: begin /* B cond, disp */
-	d.opcode <= OP_B_COND;
-	d.width <= WORD;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_IMM_EXT;
-	d.source1 <= OPERAND_NONE;
-	d.cond <= q[19:16];
-	op_size = 1;
-	valid_op = 1;
-end
-24'b1110xxxxxxxxxxxxxxxxxxxx: begin /* B_CW_COND */
-	d.opcode <= OP_B_CW_COND;
-	d.width <= WORD;
-	d.use_modrm <= 0;
-	d.dest <= OPERAND_NONE;
-	d.source0 <= OPERAND_IMM_EXT;
-	d.source1 <= OPERAND_NONE;
-	d.cond <= q[19:16];
-	op_size = 1;
-	valid_op = 1;
-end
+task process_ROOT_00xxx00x(input bit [7:0] q);
+  casex(q)
+    8'bxxxxxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.reg0 <= q[5:3];
+      d.opcode <= OP_ALU;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_REG_0;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_00xxx01x(input bit [7:0] q);
+  casex(q)
+    8'bxxxxxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.reg0 <= q[5:3];
+      d.opcode <= OP_ALU;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_REG_0;
+      d.source0 <= OPERAND_REG_0;
+      d.source1 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_1000000x(input bit [7:0] q);
+  casex(q)
+    8'bxx111xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_CMP;
+      d.cycles <= 2;
+      d.mem_cycles <= 4;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    8'bxxxxxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.alu_operation <= alu_operation_e'(q[5:3]);
+      d.opcode <= OP_ALU;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_1000001x(input bit [7:0] q);
+  casex(q)
+    8'bxx111xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_CMP;
+      d.cycles <= 2;
+      d.mem_cycles <= 4;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_IMM_EXT;
+      state <= TERMINAL;
+    end
+    8'bxxxxxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.alu_operation <= alu_operation_e'(q[5:3]);
+      d.opcode <= OP_ALU;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_IMM_EXT;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_1101000x(input bit [7:0] q);
+  casex(q)
+    8'bxxxxxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.shift <= q[5:3];
+      d.opcode <= OP_SHIFT_1;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_1101001x(input bit [7:0] q);
+  casex(q)
+    8'bxxxxxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.shift <= q[5:3];
+      d.opcode <= OP_SHIFT_CL;
+      d.cycles <= 2;
+      d.mem_cycles <= 2;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_1100000x(input bit [7:0] q);
+  casex(q)
+    8'bxxxxxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.shift <= q[5:3];
+      d.opcode <= OP_SHIFT;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_IMM8;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_0011100x(input bit [7:0] q);
+  casex(q)
+    8'bxxxxxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.reg0 <= q[5:3];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_CMP;
+      d.cycles <= 2;
+      d.mem_cycles <= 4;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_REG_0;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_0011101x(input bit [7:0] q);
+  casex(q)
+    8'bxxxxxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.reg0 <= q[5:3];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_CMP;
+      d.cycles <= 2;
+      d.mem_cycles <= 4;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_REG_0;
+      d.source1 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_11111111(input bit [7:0] q);
+  casex(q)
+    8'bxx001xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_DEC;
+      d.width <= WORD;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    8'bxx000xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_INC;
+      d.width <= WORD;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    8'bxx100xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_BR_ABS;
+      d.width <= WORD;
+      d.cycles <= 3;
+      d.mem_cycles <= 5;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    8'bxx101xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_BR_ABS;
+      d.width <= DWORD;
+      d.cycles <= 5;
+      d.mem_cycles <= 5;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    8'bxx010xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_BR_ABS;
+      d.width <= WORD;
+      d.cycles <= 7;
+      d.mem_cycles <= 7;
+      d.push <= STACK_PC;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    8'bxx011xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_BR_ABS;
+      d.width <= DWORD;
+      d.cycles <= 7;
+      d.mem_cycles <= 7;
+      d.push <= STACK_PC | STACK_PS;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    8'bxx110xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_PUSH;
+      d.width <= WORD;
+      d.cycles <= 1;
+      d.mem_cycles <= 1;
+      d.push <= STACK_OPERAND;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_11111110(input bit [7:0] q);
+  casex(q)
+    8'bxx001xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_DEC;
+      d.width <= BYTE;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    8'bxx000xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_INC;
+      d.width <= BYTE;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_1000010x(input bit [7:0] q);
+  casex(q)
+    8'bxxxxxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.reg0 <= q[5:3];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_AND;
+      d.cycles <= 2;
+      d.mem_cycles <= 4;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_REG_0;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_11110110(input bit [7:0] q);
+  casex(q)
+    8'bxx000xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_AND;
+      d.width <= BYTE;
+      d.cycles <= 2;
+      d.mem_cycles <= 4;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    8'bxx010xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_NOT;
+      d.width <= BYTE;
+      d.cycles <= 2;
+      d.mem_cycles <= 5;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    8'bxx011xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_NEG;
+      d.width <= BYTE;
+      d.cycles <= 2;
+      d.mem_cycles <= 5;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    8'bxx100xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_MULU;
+      d.width <= BYTE;
+      d.cycles <= 8;
+      d.mem_cycles <= 10;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_PRODUCT;
+      d.source0 <= OPERAND_ACC;
+      d.source1 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    8'bxx101xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_MUL;
+      d.width <= BYTE;
+      d.cycles <= 8;
+      d.mem_cycles <= 10;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_PRODUCT;
+      d.source0 <= OPERAND_ACC;
+      d.source1 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    8'bxx110xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_DIVU;
+      d.width <= BYTE;
+      d.cycles <= 11;
+      d.mem_cycles <= 14;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    8'bxx111xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_DIV;
+      d.width <= BYTE;
+      d.cycles <= 17;
+      d.mem_cycles <= 18;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_11110111(input bit [7:0] q);
+  casex(q)
+    8'bxx000xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_AND;
+      d.width <= WORD;
+      d.cycles <= 2;
+      d.mem_cycles <= 4;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    8'bxx010xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_NOT;
+      d.width <= WORD;
+      d.cycles <= 2;
+      d.mem_cycles <= 5;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    8'bxx011xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_NEG;
+      d.width <= WORD;
+      d.cycles <= 2;
+      d.mem_cycles <= 5;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    8'bxx100xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_MULU;
+      d.width <= WORD;
+      d.cycles <= 12;
+      d.mem_cycles <= 14;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_PRODUCT;
+      d.source0 <= OPERAND_ACC;
+      d.source1 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    8'bxx101xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_MUL;
+      d.width <= WORD;
+      d.cycles <= 12;
+      d.mem_cycles <= 14;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_PRODUCT;
+      d.source0 <= OPERAND_ACC;
+      d.source1 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    8'bxx110xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_DIVU;
+      d.width <= WORD;
+      d.cycles <= 19;
+      d.mem_cycles <= 21;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    8'bxx111xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_DIV;
+      d.width <= WORD;
+      d.cycles <= 24;
+      d.mem_cycles <= 26;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_01101011(input bit [7:0] q);
+  casex(q)
+    8'bxxxxxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.reg0 <= q[5:3];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_MUL;
+      d.width <= WORD;
+      d.cycles <= 12;
+      d.mem_cycles <= 14;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_REG_0;
+      d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_IMM_EXT;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_01101001(input bit [7:0] q);
+  casex(q)
+    8'bxxxxxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.reg0 <= q[5:3];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_MUL;
+      d.width <= WORD;
+      d.cycles <= 12;
+      d.mem_cycles <= 14;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_REG_0;
+      d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_10001101(input bit [7:0] q);
+  casex(q)
+    8'bxxxxxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.reg0 <= q[5:3];
+      d.opcode <= OP_LDEA;
+      d.width <= WORD;
+      d.cycles <= 2;
+      d.mem_cycles <= 2;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_REG_0;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_1000100x(input bit [7:0] q);
+  casex(q)
+    8'bxxxxxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.reg0 <= q[5:3];
+      d.opcode <= OP_MOV;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_REG_0;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_1000101x(input bit [7:0] q);
+  casex(q)
+    8'bxxxxxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.reg0 <= q[5:3];
+      d.opcode <= OP_MOV;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_REG_0;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_1100011x(input bit [7:0] q);
+  casex(q)
+    8'bxx000xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_MOV;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_10001110(input bit [7:0] q);
+  casex(q)
+    8'bxx0xxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.sreg <= q[4:3];
+      d.opcode <= OP_MOV;
+      d.width <= WORD;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_SREG;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_10001100(input bit [7:0] q);
+  casex(q)
+    8'bxx0xxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.sreg <= q[4:3];
+      d.opcode <= OP_MOV;
+      d.width <= WORD;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_SREG;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_11000101(input bit [7:0] q);
+  casex(q)
+    8'bxxxxxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.reg0 <= q[5:3];
+      d.opcode <= OP_MOV_SEG;
+      d.sreg <= DS0;
+      d.width <= DWORD;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_11000100(input bit [7:0] q);
+  casex(q)
+    8'bxxxxxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.reg0 <= q[5:3];
+      d.opcode <= OP_MOV_SEG;
+      d.sreg <= DS1;
+      d.width <= DWORD;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_1000011x(input bit [7:0] q);
+  casex(q)
+    8'bxxxxxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.reg0 <= q[5:3];
+      d.opcode <= OP_XCH;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_REG_0;
+      d.source1 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_10001111(input bit [7:0] q);
+  casex(q)
+    8'bxx000xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_POP;
+      d.width <= WORD;
+      d.cycles <= 1;
+      d.mem_cycles <= 1;
+      d.pop <= STACK_OPERAND;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_01100010(input bit [7:0] q);
+  casex(q)
+    8'bxxxxxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.reg0 <= q[5:3];
+      d.opcode <= OP_CHKIND;
+      d.width <= DWORD;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_00001111_0001000x(input bit [7:0] q);
+  casex(q)
+    8'bxx000xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_TEST1;
+      d.cycles <= 4;
+      d.mem_cycles <= 6;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_CL;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_00001111_0001100x(input bit [7:0] q);
+  casex(q)
+    8'bxx000xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_TEST1;
+      d.cycles <= 4;
+      d.mem_cycles <= 6;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_IMM8;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_00001111_0001001x(input bit [7:0] q);
+  casex(q)
+    8'bxx000xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_CLR1;
+      d.cycles <= 4;
+      d.mem_cycles <= 5;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_CL;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_00001111_0001101x(input bit [7:0] q);
+  casex(q)
+    8'bxx000xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_CLR1;
+      d.cycles <= 4;
+      d.mem_cycles <= 5;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_IMM8;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_00001111_0001010x(input bit [7:0] q);
+  casex(q)
+    8'bxx000xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_SET1;
+      d.cycles <= 4;
+      d.mem_cycles <= 5;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_CL;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_00001111_0001110x(input bit [7:0] q);
+  casex(q)
+    8'bxx000xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_SET1;
+      d.cycles <= 4;
+      d.mem_cycles <= 5;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_IMM8;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_00001111_0001011x(input bit [7:0] q);
+  casex(q)
+    8'bxx000xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_NOT1;
+      d.cycles <= 4;
+      d.mem_cycles <= 5;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_CL;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_00001111_0001111x(input bit [7:0] q);
+  casex(q)
+    8'bxx000xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_NOT1;
+      d.cycles <= 4;
+      d.mem_cycles <= 5;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_IMM8;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_00001111_00101010(input bit [7:0] q);
+  casex(q)
+    8'bxx000xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ROR4;
+      d.width <= BYTE;
+      d.cycles <= 13;
+      d.mem_cycles <= 15;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_00001111_00101000(input bit [7:0] q);
+  casex(q)
+    8'bxx000xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_ROL4;
+      d.width <= BYTE;
+      d.cycles <= 13;
+      d.mem_cycles <= 15;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_00001111(input bit [7:0] q);
+  casex(q)
+    8'b00100000: begin
+      d.opcode <= OP_ADD4S;
+      state <= TERMINAL;
+    end
+    8'b00100010: begin
+      d.opcode <= OP_SUB4S;
+      state <= TERMINAL;
+    end
+    8'b00100110: begin
+      d.opcode <= OP_CMP4S;
+      state <= TERMINAL;
+    end
+    8'b00101010: begin
+      state <= ROOT_00001111_00101010;
+    end
+    8'b00101000: begin
+      state <= ROOT_00001111_00101000;
+    end
+    8'b0001000x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      state <= ROOT_00001111_0001000x;
+    end
+    8'b0001100x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      state <= ROOT_00001111_0001100x;
+    end
+    8'b0001001x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      state <= ROOT_00001111_0001001x;
+    end
+    8'b0001101x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      state <= ROOT_00001111_0001101x;
+    end
+    8'b0001010x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      state <= ROOT_00001111_0001010x;
+    end
+    8'b0001110x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      state <= ROOT_00001111_0001110x;
+    end
+    8'b0001011x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      state <= ROOT_00001111_0001011x;
+    end
+    8'b0001111x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      state <= ROOT_00001111_0001111x;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT(input bit [7:0] q);
+  casex(q)
+    8'b10010000: begin
+      d.opcode <= OP_NOP;
+      d.cycles <= 1;
+      d.mem_cycles <= 1;
+      state <= TERMINAL;
+    end
+    8'b11111111: begin
+      state <= ROOT_11111111;
+    end
+    8'b11111110: begin
+      state <= ROOT_11111110;
+    end
+    8'b11110110: begin
+      state <= ROOT_11110110;
+    end
+    8'b11110111: begin
+      state <= ROOT_11110111;
+    end
+    8'b01101011: begin
+      state <= ROOT_01101011;
+    end
+    8'b01101001: begin
+      state <= ROOT_01101001;
+    end
+    8'b00100111: begin
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_ADJ4A;
+      d.reg0 <= AW;
+      d.width <= WORD;
+      d.cycles <= 2;
+      d.mem_cycles <= 2;
+      d.dest <= OPERAND_REG_0;
+      d.source0 <= OPERAND_REG_0;
+      state <= TERMINAL;
+    end
+    8'b00101111: begin
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_ADJ4S;
+      d.reg0 <= AW;
+      d.width <= WORD;
+      d.cycles <= 2;
+      d.mem_cycles <= 2;
+      d.dest <= OPERAND_REG_0;
+      d.source0 <= OPERAND_REG_0;
+      state <= TERMINAL;
+    end
+    8'b00110111: begin
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_ADJBA;
+      d.reg0 <= AW;
+      d.width <= WORD;
+      d.cycles <= 4;
+      d.mem_cycles <= 4;
+      d.dest <= OPERAND_REG_0;
+      d.source0 <= OPERAND_REG_0;
+      state <= TERMINAL;
+    end
+    8'b00111111: begin
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_ADJBS;
+      d.reg0 <= AW;
+      d.width <= WORD;
+      d.cycles <= 4;
+      d.mem_cycles <= 4;
+      d.dest <= OPERAND_REG_0;
+      d.source0 <= OPERAND_REG_0;
+      state <= TERMINAL;
+    end
+    8'b11010101: begin
+      d.opcode <= OP_CVTDB;
+      d.cycles <= 8;
+      d.mem_cycles <= 8;
+      d.source0 <= OPERAND_IMM8;
+      state <= TERMINAL;
+    end
+    8'b11010100: begin
+      d.opcode <= OP_CVTBD;
+      d.cycles <= 12;
+      d.mem_cycles <= 12;
+      d.source0 <= OPERAND_IMM8;
+      state <= TERMINAL;
+    end
+    8'b10011000: begin
+      d.opcode <= OP_CVTBW;
+      d.cycles <= 2;
+      d.mem_cycles <= 2;
+      state <= TERMINAL;
+    end
+    8'b10011001: begin
+      d.opcode <= OP_CVTWL;
+      d.cycles <= 2;
+      d.mem_cycles <= 2;
+      state <= TERMINAL;
+    end
+    8'b10001101: begin
+      state <= ROOT_10001101;
+    end
+    8'b10001110: begin
+      state <= ROOT_10001110;
+    end
+    8'b10001100: begin
+      state <= ROOT_10001100;
+    end
+    8'b11000101: begin
+      state <= ROOT_11000101;
+    end
+    8'b11000100: begin
+      state <= ROOT_11000100;
+    end
+    8'b10011111: begin
+      d.opcode <= OP_MOV_AH_PSW;
+      state <= TERMINAL;
+    end
+    8'b10011110: begin
+      d.opcode <= OP_MOV_PSW_AH;
+      state <= TERMINAL;
+    end
+    8'b11101001: begin
+      d.opcode <= OP_BR_REL;
+      d.width <= WORD;
+      d.source0 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    8'b11101011: begin
+      d.opcode <= OP_BR_REL;
+      d.width <= WORD;
+      d.source0 <= OPERAND_IMM_EXT;
+      state <= TERMINAL;
+    end
+    8'b11101010: begin
+      d.opcode <= OP_BR_ABS;
+      d.width <= DWORD;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
+      d.source0 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    8'b11101000: begin
+      d.opcode <= OP_BR_REL;
+      d.width <= WORD;
+      d.cycles <= 5;
+      d.mem_cycles <= 5;
+      d.push <= STACK_PC;
+      d.source0 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    8'b10011010: begin
+      d.opcode <= OP_BR_ABS;
+      d.width <= DWORD;
+      d.cycles <= 5;
+      d.mem_cycles <= 5;
+      d.push <= STACK_PC | STACK_PS;
+      d.source0 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    8'b11000011: begin
+      d.opcode <= OP_RET;
+      d.cycles <= 8;
+      d.mem_cycles <= 8;
+      d.pop <= STACK_PC;
+      state <= TERMINAL;
+    end
+    8'b11000010: begin
+      d.opcode <= OP_RET_POP_VALUE;
+      d.width <= WORD;
+      d.cycles <= 8;
+      d.mem_cycles <= 8;
+      d.pop <= STACK_PC;
+      d.source0 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    8'b11001011: begin
+      d.opcode <= OP_RET;
+      d.cycles <= 8;
+      d.mem_cycles <= 8;
+      d.pop <= STACK_PC | STACK_PS;
+      state <= TERMINAL;
+    end
+    8'b11001010: begin
+      d.opcode <= OP_RET_POP_VALUE;
+      d.width <= WORD;
+      d.cycles <= 8;
+      d.mem_cycles <= 8;
+      d.pop <= STACK_PC | STACK_PS;
+      d.source0 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    8'b11001111: begin
+      d.opcode <= OP_RET;
+      d.cycles <= 7;
+      d.mem_cycles <= 7;
+      d.pop <= STACK_PC | STACK_PS | STACK_PSW;
+      state <= TERMINAL;
+    end
+    8'b01010000: begin
+      d.opcode <= OP_PUSH;
+      d.cycles <= 1;
+      d.mem_cycles <= 1;
+      d.push <= STACK_AW;
+      state <= TERMINAL;
+    end
+    8'b01010001: begin
+      d.opcode <= OP_PUSH;
+      d.cycles <= 1;
+      d.mem_cycles <= 1;
+      d.push <= STACK_CW;
+      state <= TERMINAL;
+    end
+    8'b01010010: begin
+      d.opcode <= OP_PUSH;
+      d.cycles <= 1;
+      d.mem_cycles <= 1;
+      d.push <= STACK_DW;
+      state <= TERMINAL;
+    end
+    8'b01010011: begin
+      d.opcode <= OP_PUSH;
+      d.cycles <= 1;
+      d.mem_cycles <= 1;
+      d.push <= STACK_BW;
+      state <= TERMINAL;
+    end
+    8'b01010100: begin
+      d.opcode <= OP_PUSH;
+      d.cycles <= 1;
+      d.mem_cycles <= 1;
+      d.push <= STACK_SP;
+      state <= TERMINAL;
+    end
+    8'b01010101: begin
+      d.opcode <= OP_PUSH;
+      d.cycles <= 1;
+      d.mem_cycles <= 1;
+      d.push <= STACK_BP;
+      state <= TERMINAL;
+    end
+    8'b01010110: begin
+      d.opcode <= OP_PUSH;
+      d.cycles <= 1;
+      d.mem_cycles <= 1;
+      d.push <= STACK_IX;
+      state <= TERMINAL;
+    end
+    8'b01010111: begin
+      d.opcode <= OP_PUSH;
+      d.cycles <= 1;
+      d.mem_cycles <= 1;
+      d.push <= STACK_IY;
+      state <= TERMINAL;
+    end
+    8'b00000110: begin
+      d.opcode <= OP_PUSH;
+      d.cycles <= 1;
+      d.mem_cycles <= 1;
+      d.push <= STACK_DS1;
+      state <= TERMINAL;
+    end
+    8'b00001110: begin
+      d.opcode <= OP_PUSH;
+      d.cycles <= 1;
+      d.mem_cycles <= 1;
+      d.push <= STACK_PS;
+      state <= TERMINAL;
+    end
+    8'b00010110: begin
+      d.opcode <= OP_PUSH;
+      d.cycles <= 1;
+      d.mem_cycles <= 1;
+      d.push <= STACK_SS;
+      state <= TERMINAL;
+    end
+    8'b00011110: begin
+      d.opcode <= OP_PUSH;
+      d.cycles <= 1;
+      d.mem_cycles <= 1;
+      d.push <= STACK_DS0;
+      state <= TERMINAL;
+    end
+    8'b10011100: begin
+      d.opcode <= OP_PUSH;
+      d.cycles <= 1;
+      d.mem_cycles <= 1;
+      d.push <= STACK_PSW;
+      state <= TERMINAL;
+    end
+    8'b01100000: begin
+      d.opcode <= OP_PUSH;
+      d.cycles <= 4;
+      d.mem_cycles <= 4;
+      d.push <= STACK_AW | STACK_CW | STACK_DW | STACK_BW | STACK_SP | STACK_BP | STACK_IX | STACK_IY;
+      state <= TERMINAL;
+    end
+    8'b01101010: begin
+      d.opcode <= OP_PUSH;
+      d.width <= BYTE;
+      d.cycles <= 1;
+      d.mem_cycles <= 1;
+      d.push <= STACK_OPERAND;
+      d.source0 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    8'b01101000: begin
+      d.opcode <= OP_PUSH;
+      d.width <= WORD;
+      d.cycles <= 1;
+      d.mem_cycles <= 1;
+      d.push <= STACK_OPERAND;
+      d.source0 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    8'b01011000: begin
+      d.opcode <= OP_POP;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
+      d.pop <= STACK_AW;
+      state <= TERMINAL;
+    end
+    8'b01011001: begin
+      d.opcode <= OP_POP;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
+      d.pop <= STACK_CW;
+      state <= TERMINAL;
+    end
+    8'b01011010: begin
+      d.opcode <= OP_POP;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
+      d.pop <= STACK_DW;
+      state <= TERMINAL;
+    end
+    8'b01011011: begin
+      d.opcode <= OP_POP;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
+      d.pop <= STACK_BW;
+      state <= TERMINAL;
+    end
+    8'b01011100: begin
+      d.opcode <= OP_POP;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
+      d.pop <= STACK_SP;
+      state <= TERMINAL;
+    end
+    8'b01011101: begin
+      d.opcode <= OP_POP;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
+      d.pop <= STACK_BP;
+      state <= TERMINAL;
+    end
+    8'b01011110: begin
+      d.opcode <= OP_POP;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
+      d.pop <= STACK_IX;
+      state <= TERMINAL;
+    end
+    8'b01011111: begin
+      d.opcode <= OP_POP;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
+      d.pop <= STACK_IY;
+      state <= TERMINAL;
+    end
+    8'b00000111: begin
+      d.opcode <= OP_POP;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
+      d.pop <= STACK_DS1;
+      state <= TERMINAL;
+    end
+    8'b00010111: begin
+      d.opcode <= OP_POP;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
+      d.pop <= STACK_SS;
+      state <= TERMINAL;
+    end
+    8'b00011111: begin
+      d.opcode <= OP_POP;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
+      d.pop <= STACK_DS0;
+      state <= TERMINAL;
+    end
+    8'b10011101: begin
+      d.opcode <= OP_POP;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
+      d.pop <= STACK_PSW;
+      state <= TERMINAL;
+    end
+    8'b01100001: begin
+      d.opcode <= OP_POP;
+      d.cycles <= 8;
+      d.mem_cycles <= 8;
+      d.pop <= STACK_AW | STACK_CW | STACK_DW | STACK_BW | STACK_BP_SKIP_SP | STACK_IX | STACK_IY;
+      state <= TERMINAL;
+    end
+    8'b10001111: begin
+      state <= ROOT_10001111;
+    end
+    8'b11001000: begin
+      d.opcode <= OP_PREPARE;
+      d.cycles <= 13;
+      d.mem_cycles <= 13;
+      state <= TERMINAL;
+    end
+    8'b11001001: begin
+      d.opcode <= OP_DISPOSE;
+      d.cycles <= 4;
+      d.mem_cycles <= 4;
+      state <= TERMINAL;
+    end
+    8'b11110100: begin
+      d.opcode <= OP_HALT;
+      state <= TERMINAL;
+    end
+    8'b11110101: begin
+      d.opcode <= OP_NOT1_CY;
+      d.cycles <= 2;
+      d.mem_cycles <= 2;
+      state <= TERMINAL;
+    end
+    8'b11111000: begin
+      d.opcode <= OP_CLR1_CY;
+      d.cycles <= 2;
+      d.mem_cycles <= 2;
+      state <= TERMINAL;
+    end
+    8'b11111001: begin
+      d.opcode <= OP_SET1_CY;
+      d.cycles <= 2;
+      d.mem_cycles <= 2;
+      state <= TERMINAL;
+    end
+    8'b11111010: begin
+      d.opcode <= OP_DI;
+      d.cycles <= 2;
+      d.mem_cycles <= 2;
+      state <= TERMINAL;
+    end
+    8'b11111011: begin
+      d.opcode <= OP_EI;
+      d.cycles <= 2;
+      d.mem_cycles <= 2;
+      state <= TERMINAL;
+    end
+    8'b11111100: begin
+      d.opcode <= OP_CLR1_DIR;
+      d.cycles <= 2;
+      d.mem_cycles <= 2;
+      state <= TERMINAL;
+    end
+    8'b11111101: begin
+      d.opcode <= OP_SET1_DIR;
+      d.cycles <= 2;
+      d.mem_cycles <= 2;
+      state <= TERMINAL;
+    end
+    8'b01100010: begin
+      state <= ROOT_01100010;
+    end
+    8'b11001100: begin
+      d.opcode <= OP_BRK3;
+      state <= TERMINAL;
+    end
+    8'b11001101: begin
+      d.opcode <= OP_BRK;
+      d.width <= BYTE;
+      d.source0 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    8'b11001110: begin
+      d.opcode <= OP_BRKV;
+      state <= TERMINAL;
+    end
+    8'b11010111: begin
+      d.opcode <= OP_TRANS;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
+      state <= TERMINAL;
+    end
+    8'b00001111: begin
+      state <= ROOT_00001111;
+    end
+    8'b00100110: begin
+      d.segment <= DS1;
+      d.segment_override <= 1;
+      state <= PREFIX_CONTINUE;
+    end
+    8'b00101110: begin
+      d.segment <= PS;
+      d.segment_override <= 1;
+      state <= PREFIX_CONTINUE;
+    end
+    8'b00110110: begin
+      d.segment <= SS;
+      d.segment_override <= 1;
+      state <= PREFIX_CONTINUE;
+    end
+    8'b00111110: begin
+      d.segment <= DS0;
+      d.segment_override <= 1;
+      state <= PREFIX_CONTINUE;
+    end
+    8'b11110000: begin
+      d.buslock <= 1;
+      state <= PREFIX_CONTINUE;
+    end
+    8'b11110011: begin
+      d.rep <= REPEAT_Z;
+      state <= PREFIX_CONTINUE;
+    end
+    8'b01100101: begin
+      d.rep <= REPEAT_C;
+      state <= PREFIX_CONTINUE;
+    end
+    8'b01100100: begin
+      d.rep <= REPEAT_NC;
+      state <= PREFIX_CONTINUE;
+    end
+    8'b11110010: begin
+      d.rep <= REPEAT_NZ;
+      state <= PREFIX_CONTINUE;
+    end
+    8'b1000000x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      state <= ROOT_1000000x;
+    end
+    8'b1000001x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      state <= ROOT_1000001x;
+    end
+    8'b1101000x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      state <= ROOT_1101000x;
+    end
+    8'b1101001x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      state <= ROOT_1101001x;
+    end
+    8'b1100000x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      state <= ROOT_1100000x;
+    end
+    8'b0011100x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      state <= ROOT_0011100x;
+    end
+    8'b0011101x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      state <= ROOT_0011101x;
+    end
+    8'b0011110x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_CMP;
+      d.cycles <= 2;
+      d.mem_cycles <= 2;
+      d.source0 <= OPERAND_ACC;
+      d.source1 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    8'b1000010x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      state <= ROOT_1000010x;
+    end
+    8'b1010100x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_AND;
+      d.cycles <= 2;
+      d.mem_cycles <= 2;
+      d.source0 <= OPERAND_ACC;
+      d.source1 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    8'b1000100x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      state <= ROOT_1000100x;
+    end
+    8'b1000101x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      state <= ROOT_1000101x;
+    end
+    8'b1100011x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      state <= ROOT_1100011x;
+    end
+    8'b1010000x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      d.opcode <= OP_MOV;
+      d.rm <= 3'b110;
+      d.mod <= 2'b00;
+      d.mem_read <= 1;
+      d.dest <= OPERAND_ACC;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    8'b1010001x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      d.opcode <= OP_MOV;
+      d.rm <= 3'b110;
+      d.mod <= 2'b00;
+      d.mem_write <= 1;
+      d.dest <= OPERAND_MODRM;
+      d.source0 <= OPERAND_ACC;
+      state <= TERMINAL;
+    end
+    8'b1000011x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      state <= ROOT_1000011x;
+    end
+    8'b1110010x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      d.opcode <= OP_IN;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
+      d.source0 <= OPERAND_IMM8;
+      state <= TERMINAL;
+    end
+    8'b1110110x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      d.opcode <= OP_IN;
+      d.reg0 <= DW;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
+      d.source0 <= OPERAND_REG_0;
+      state <= TERMINAL;
+    end
+    8'b1110011x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      d.opcode <= OP_OUT;
+      d.cycles <= 1;
+      d.mem_cycles <= 1;
+      d.source0 <= OPERAND_IMM8;
+      state <= TERMINAL;
+    end
+    8'b1110111x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      d.opcode <= OP_OUT;
+      d.reg0 <= DW;
+      d.cycles <= 1;
+      d.mem_cycles <= 1;
+      d.source0 <= OPERAND_REG_0;
+      state <= TERMINAL;
+    end
+    8'b1010101x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      d.opcode <= OP_STM;
+      state <= TERMINAL;
+    end
+    8'b1010011x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      d.opcode <= OP_CMPBK;
+      state <= TERMINAL;
+    end
+    8'b1010111x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      d.opcode <= OP_CMPM;
+      state <= TERMINAL;
+    end
+    8'b1010110x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      d.opcode <= OP_LDM;
+      state <= TERMINAL;
+    end
+    8'b1010010x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      d.opcode <= OP_MOVBK;
+      state <= TERMINAL;
+    end
+    8'b01001xxx: begin
+      d.reg0 <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_DEC;
+      d.width <= WORD;
+      d.dest <= OPERAND_REG_0;
+      d.source0 <= OPERAND_REG_0;
+      state <= TERMINAL;
+    end
+    8'b01000xxx: begin
+      d.reg0 <= q[2:0];
+      d.opcode <= OP_ALU;
+      d.alu_operation <= ALU_OP_INC;
+      d.width <= WORD;
+      d.dest <= OPERAND_REG_0;
+      d.source0 <= OPERAND_REG_0;
+      state <= TERMINAL;
+    end
+    8'b10010xxx: begin
+      d.reg0 <= q[2:0];
+      d.opcode <= OP_XCH;
+      d.reg1 <= AW;
+      d.width <= WORD;
+      d.dest <= OPERAND_REG_1;
+      d.source0 <= OPERAND_REG_0;
+      d.source1 <= OPERAND_REG_1;
+      state <= TERMINAL;
+    end
+    8'b00xxx00x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      d.alu_operation <= alu_operation_e'(q[5:3]);
+      state <= ROOT_00xxx00x;
+    end
+    8'b00xxx01x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      d.alu_operation <= alu_operation_e'(q[5:3]);
+      state <= ROOT_00xxx01x;
+    end
+    8'b00xxx10x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      d.alu_operation <= alu_operation_e'(q[5:3]);
+      d.opcode <= OP_ALU;
+      d.dest <= OPERAND_ACC;
+      d.source0 <= OPERAND_ACC;
+      d.source1 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    8'b1011xxxx: begin
+      d.reg0 <= q[2:0];
+      d.width <= q[3] ? WORD : BYTE;
+      d.opcode <= OP_MOV;
+      d.dest <= OPERAND_REG_0;
+      d.source0 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    8'b0111xxxx: begin
+      d.cond <= q[3:0];
+      d.opcode <= OP_B_COND;
+      d.width <= WORD;
+      d.source0 <= OPERAND_IMM_EXT;
+      state <= TERMINAL;
+    end
+    8'b1110xxxx: begin
+      d.cond <= q[3:0];
+      d.opcode <= OP_B_CW_COND;
+      d.width <= WORD;
+      d.source0 <= OPERAND_IMM_EXT;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_decode(input bit [7:0] q);
+  case(state)
+    ROOT_00xxx00x: process_ROOT_00xxx00x(q);
+    ROOT_00xxx01x: process_ROOT_00xxx01x(q);
+    ROOT_1000000x: process_ROOT_1000000x(q);
+    ROOT_1000001x: process_ROOT_1000001x(q);
+    ROOT_1101000x: process_ROOT_1101000x(q);
+    ROOT_1101001x: process_ROOT_1101001x(q);
+    ROOT_1100000x: process_ROOT_1100000x(q);
+    ROOT_0011100x: process_ROOT_0011100x(q);
+    ROOT_0011101x: process_ROOT_0011101x(q);
+    ROOT_11111111: process_ROOT_11111111(q);
+    ROOT_11111110: process_ROOT_11111110(q);
+    ROOT_1000010x: process_ROOT_1000010x(q);
+    ROOT_11110110: process_ROOT_11110110(q);
+    ROOT_11110111: process_ROOT_11110111(q);
+    ROOT_01101011: process_ROOT_01101011(q);
+    ROOT_01101001: process_ROOT_01101001(q);
+    ROOT_10001101: process_ROOT_10001101(q);
+    ROOT_1000100x: process_ROOT_1000100x(q);
+    ROOT_1000101x: process_ROOT_1000101x(q);
+    ROOT_1100011x: process_ROOT_1100011x(q);
+    ROOT_10001110: process_ROOT_10001110(q);
+    ROOT_10001100: process_ROOT_10001100(q);
+    ROOT_11000101: process_ROOT_11000101(q);
+    ROOT_11000100: process_ROOT_11000100(q);
+    ROOT_1000011x: process_ROOT_1000011x(q);
+    ROOT_10001111: process_ROOT_10001111(q);
+    ROOT_01100010: process_ROOT_01100010(q);
+    ROOT_00001111_0001000x: process_ROOT_00001111_0001000x(q);
+    ROOT_00001111_0001100x: process_ROOT_00001111_0001100x(q);
+    ROOT_00001111_0001001x: process_ROOT_00001111_0001001x(q);
+    ROOT_00001111_0001101x: process_ROOT_00001111_0001101x(q);
+    ROOT_00001111_0001010x: process_ROOT_00001111_0001010x(q);
+    ROOT_00001111_0001110x: process_ROOT_00001111_0001110x(q);
+    ROOT_00001111_0001011x: process_ROOT_00001111_0001011x(q);
+    ROOT_00001111_0001111x: process_ROOT_00001111_0001111x(q);
+    ROOT_00001111_00101010: process_ROOT_00001111_00101010(q);
+    ROOT_00001111_00101000: process_ROOT_00001111_00101000(q);
+    ROOT_00001111: process_ROOT_00001111(q);
+    default: process_ROOT(q);
+  endcase
+endtask
+

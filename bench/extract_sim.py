@@ -38,6 +38,7 @@ if __name__ == '__main__':
     name_map = {
         '/DSTB': 'TOP.V33.n_dstb',
         '/BCYST': 'TOP.V33.n_bcyst',
+        '/BUSLOCK': 'TOP.V33.n_buslock',
         'BUSST0': 'TOP.V33.busst0',
         'BUSST1': 'TOP.V33.busst1',
         'M/IO': 'TOP.V33.m_io',
@@ -85,7 +86,7 @@ if __name__ == '__main__':
         
         line = f'{cycles:03d} CLK={clk_val}'
 
-        for n in ['/DSTB', '/BCYST', 'BUSST0', 'BUSST1', 'M/IO', 'R/W']:
+        for n in ['/DSTB', '/BCYST', 'BUSST0', 'BUSST1', 'M/IO', 'R/W', '/BUSLOCK']:
             line += f' {n}={kvp[n]}'
         
         line += f' A={addr:02x}\n'

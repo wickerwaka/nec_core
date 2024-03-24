@@ -20,7 +20,7 @@ package types;
     
     typedef struct {
         bit [15:0] pc;
-        bit [15:0] end_pc;
+        //bit [15:0] end_pc;
 
         opcode_e opcode;
         alu_operation_e alu_operation;
@@ -30,15 +30,14 @@ package types;
 
         bit mem_read;
         bit mem_write;
-        bit defer_read;
 
         bit [15:0] disp;
         bit [31:0] imm;
+        bit segment_override;
         sreg_index_e segment;
         bit buslock;
         repeat_e rep;
 
-        bit use_modrm;
         bit [1:0] mod;
         bit [2:0] rm;
         bit [2:0] reg0;

@@ -40,10 +40,10 @@ m107: $(TIMING_TEST_TRACES_M107)
 $(BUILD_DIR)/v33: $(HDL_SRC) $(HDL_GEN) bench/main.cpp
 	$(VERILATOR) $(VERILATOR_ARGS) --prefix v33 --top V33 $(HDL_SRC) bench/main.cpp
 
-hdl/opcodes.svh: hdl/opcodes.yaml hdl/gen_decode.py
+hdl/opcodes%svh hdl/opcode_enums%yaml: hdl/opcodes.yaml hdl/gen_decode.py
 	$(PYTHON) hdl/gen_decode.py
 
-hdl/enums.svh: hdl/enums.yaml hdl/gen_enums.py
+hdl/enums.svh: hdl/enums.yaml hdl/opcode_enums.yaml hdl/gen_enums.py
 	$(PYTHON) hdl/gen_enums.py
 
 testrom/build/test_%/cpu.bin: ALWAYS
