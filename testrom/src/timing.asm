@@ -243,6 +243,33 @@ test_start nop_loop
 %endrep
 test_end
 
+test_start branch_always
+    ror ax, cl
+    jmp .near_prefetch
+    times 16 nop
+align 2
+.near_prefetch:
+    ror ax, cl
+    jmp 0x0000:.far_prefetch
+    times 16 nop
+align 2
+.far_prefetch:
+    times 32 nop
+    jmp .near_postfetch
+    times 16 nop
+align 2
+.near_postfetch:
+    times 32 nop
+    jmp 0x0000:.far_postfetch
+    times 16 nop
+align 2
+.far_postfetch:
+    times 16 nop
+test_end
+
+
+test_end
+
 align 256
 global push_all_loop
 push_all_loop:

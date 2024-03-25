@@ -100,9 +100,12 @@ task reset_decode();
     d.push <= 16'd0;
     d.pop <= 16'd0;
 
+    d.opclass <= MISC;
+
     d.cycles <= 0;
     d.mem_cycles <= 0;
 
+    decode_valid <= 0;
     disp_read <= 3'd0;
     imm_read <= 3'd0;
     state <= INITIAL;
@@ -112,7 +115,8 @@ endtask
 wire [2:0] disp_size = calc_disp_size(d.rm, d.mod);
 wire [2:0] imm_size = calc_imm_size(d.width, d.source0, d.source1);
 
-wire decode_ready = state == TERMINAL && disp_size == disp_read && imm_size == imm_read;
+reg decode_valid;
+wire decode_ready = state == TERMINAL && disp_size == disp_read && imm_size == imm_read && decode_valid;
 assign valid = decode_ready & ~set_pc;
 
 
@@ -132,22 +136,30 @@ always_ff @(posedge clk) begin
             case(state)
                 TERMINAL: begin
                     if (disp_read < disp_size) begin
+                        decode_valid <= 1;
                         if (avail > 0) begin
                             d.disp[(disp_read*8) +: 8] <= q;
                             pc <= pc + 16'd1;
+                            d.end_pc <= pc + 16'd1;
                             disp_read <= disp_read + 3'd1;
                         end
                     end else if (imm_read < imm_size) begin
+                        decode_valid <= 1;
                         if (avail > 0) begin
                             d.imm[(imm_read*8) +: 8] <= q;
                             pc <= pc + 16'd1;
+                            d.end_pc <= pc + 16'd1;
                             imm_read <= imm_read + 3'd1;
                         end
-                    end else if (retire_op) begin
-                        reset_decode();
-                        if (avail > 0) begin
-                            process_decode(q);
-                            pc <= pc + 16'd1;
+                    end else begin
+                        decode_valid <= 1;
+                        if (retire_op) begin
+                            reset_decode();
+                            if (avail > 0) begin
+                                process_decode(q);
+                                pc <= pc + 16'd1;
+                                d.end_pc <= pc + 16'd1;
+                            end
                         end
                     end
                 end
@@ -156,6 +168,7 @@ always_ff @(posedge clk) begin
                     if (avail > 0) begin
                         process_decode(q);
                         pc <= pc + 16'd1;
+                        d.end_pc <= pc + 16'd1;
                     end
                 end
 

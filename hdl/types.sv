@@ -20,9 +20,10 @@ package types;
     
     typedef struct {
         bit [15:0] pc;
-        //bit [15:0] end_pc;
+        bit [15:0] end_pc;
 
         opcode_e opcode;
+        opclass_e opclass;
         alu_operation_e alu_operation;
         operand_e source0;
         operand_e source1;

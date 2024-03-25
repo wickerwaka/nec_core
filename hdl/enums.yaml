@@ -30,6 +30,14 @@ reg16_index_e:
     - IX
     - IY
 
+opclass_e:
+  values:
+    - ALU
+    - BLOCK
+    - BRANCH
+    - MISC
+
+
 opcode_e:
   prefix: OP_
   values:
@@ -47,6 +55,8 @@ opcode_e:
     - OUT
     - BR_REL
     - BR_ABS
+    - CALL_REL
+    - CALL_ABS
     - RET
     - RET_POP_VALUE
     - STM
@@ -167,8 +177,6 @@ cpu_state_e:
     - STORE_DELAY
     - STORE_REGISTER
     - STORE_MEMORY
-    - BRANCH
-    - BRANCH_STALL
     - INT_ACK_WAIT
     - INT_INITIATE
     - INT_FETCH_VEC

@@ -27,6 +27,7 @@ TIMING_TESTS = \
 				lock_add_2byte_to_mem \
 				add_3byte_from_mem \
 				add_3byte_to_mem \
+				branch_always
 
 
 TIMING_TEST_TRACES = $(patsubst %,traces/sim/%.txt,$(TIMING_TESTS))

@@ -558,39 +558,38 @@ b1110_COND:
 b1110_1001:
   desc: BR near-label
   op: BR_REL
+  class: BRANCH
   src: IMM
   width: WORD
-  cycles: 0
 
 b1110_1011:
   desc: BR short-label
   op: BR_REL
+  class: BRANCH
   src: IMM_EXT
   width: WORD
-  cycles: 0
 
 b1110_1010:
   desc: BR far-label
   op: BR_ABS
+  class: BRANCH
   src: IMM
   width: DWORD
-  cycles: 3
 
 b1111_1111_MD_100_MEM:
   desc: BR ptr16
   op: BR_ABS
+  class: BRANCH
   src: MODRM
   width: WORD
-  cycles: 3
-  mem_cycles: 5
 
 
 b1111_1111_MD_101_MEM:
   desc: BR memptr32
   op: BR_ABS
+  class: BRANCH
   src: MODRM
   width: DWORD
-  cycles: 5
 
 
 #
@@ -599,39 +598,38 @@ b1111_1111_MD_101_MEM:
 b1110_1000:
   desc: CALL near
   op: BR_REL
+  class: BRANCH
   src: IMM
   width: WORD
   push: PC
-  cycles: 5
 
 b1111_1111_MD_010_MEM:
   desc: CALL ptr16
   op: BR_ABS
+  class: BRANCH
   src: MODRM
   width: WORD
   push: PC
-  cycles: 5
-  cycles: 7
 
 b1111_1111_MD_011_MEM:
   desc: CALL memptr32
   op: BR_ABS
+  class: BRANCH
   src: MODRM
   width: DWORD
   push:
     - PC
     - PS
-  cycles: 7
 
 b1001_1010:
   desc: CALL far-proc
   op: BR_ABS
+  class: BRANCH
   src: IMM
   width: DWORD
   push:
     - PC
     - PS
-  cycles: 5
 
 
 #
@@ -640,45 +638,45 @@ b1001_1010:
 b1100_0011:
   desc: RET
   op: RET
+  class: BRANCH
   pop:
     - PC
-  cycles: 8
 
 b1100_0010:
   desc: RET pop-value
   op: RET_POP_VALUE
+  class: BRANCH
   src: IMM
   width: WORD
   pop:
     - PC
-  cycles: 8
 
 b1100_1011:
   desc: RETF
   op: RET
+  class: BRANCH
   pop:
     - PC
     - PS
-  cycles: 8
 
 b1100_1010:
   desc: RETF pop-value
   op: RET_POP_VALUE
+  class: BRANCH
   src: IMM
   width: WORD
   pop:
     - PC
     - PS
-  cycles: 8
 
 b1100_1111:
   desc: RETI
   op: RET
+  class: BRANCH
   pop:
     - PC
     - PS
     - PSW
-  cycles: 7
 
 
 #

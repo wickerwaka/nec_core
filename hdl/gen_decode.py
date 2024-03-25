@@ -158,6 +158,10 @@ def add_nodes(root: Node, k: str, op_desc: dict):
 
     if opcode:
         assignments["opcode"] = f"OP_{opcode}"
+    
+    opclass = op_desc.get('class')
+    if opclass:
+        assignments["opclass"] = opclass
 
     alu_op = op_desc.get('alu')
     if alu_op:

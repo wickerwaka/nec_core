@@ -317,6 +317,104 @@ function alu_operation_e shift1_alu_op(bit [2:0] shift);
     endcase
 endfunction
 
+task handle_branch(input nec_decode_t dec);
+    case(dec.opcode)
+        OP_B_COND: begin
+            bit cond = 0;
+            case(decoded.cond)
+            4'b0000: cond = flags.V; /* V */
+            4'b0001: cond = ~flags.V; /* NV */
+            4'b0010: cond = flags.CY; /* C/L */
+            4'b0011: cond = ~flags.CY; /* NC/NL */
+            4'b0100: cond = flags.Z; /* E/Z */
+            4'b0101: cond = ~flags.Z; /* NE/NZ */
+            4'b0110: cond = (flags.CY | flags.Z); /* NH */
+            4'b0111: cond = ~(flags.CY | flags.Z); /* H */
+            4'b1000: cond = flags.S; /* N */
+            4'b1001: cond = ~flags.S; /* P */
+            4'b1010: cond = flags.P; /* PE */
+            4'b1011: cond = ~flags.P; /* PO */
+            4'b1100: cond = (flags.S ^ flags.V) & ~flags.Z; /* LT */
+            4'b1101: cond = ~(flags.S ^ flags.V) | flags.Z; /* GE */
+            4'b1110: cond = (flags.S ^ flags.V) | flags.Z; /* LE */
+            4'b1111: cond = ~((flags.S ^ flags.V) | flags.Z); /* GT */
+            endcase
+
+            if (cond) begin
+                next_pc <= dec.end_pc + get_operand(dec, dec.source0);
+                set_pc <= 1;
+                state <= IDLE;
+            end else begin
+                state <= EXECUTE;
+            end
+        end
+
+        OP_B_CW_COND: begin
+            bit cond = 0;
+            case(decoded.cond)
+            4'b0000: begin
+                reg_cw <= reg_cw - 16'd1;
+                cond = reg_cw != 16'd1 && ~flags.Z;
+            end
+            4'b0001: begin
+                reg_cw <= reg_cw - 16'd1;
+                cond = reg_cw != 16'd1 && flags.Z;
+            end
+            4'b0010: begin
+                reg_cw <= reg_cw - 16'd1;
+                cond = reg_cw != 16'd1;
+            end
+            4'b0011: cond = (reg_cw == 0);
+            default: begin
+            end
+            endcase
+
+            if (cond) begin
+                next_pc <= dec.end_pc + get_operand(dec, dec.source0);
+                set_pc <= 1;
+                state <= IDLE;
+            end else begin
+                state <= EXECUTE;
+            end
+        end
+
+        OP_BR_REL: begin
+            next_pc <= dec.end_pc + get_operand(dec, dec.source0);
+            set_pc <= 1;
+            state <= IDLE;
+        end
+
+        OP_BR_ABS: begin
+            if (dec.source0 == OPERAND_IMM && dec.width == DWORD) begin
+                next_pc <= dec.imm[15:0];
+                reg_ps <= dec.imm[31:16];
+            end else if (decoded.width == WORD) begin
+                next_pc <= get_operand(dec, dec.source0);
+            end else if (decoded.source0 == OPERAND_MODRM && decoded.width == DWORD) begin
+                next_pc <= TA;
+                reg_ps <= dp_din;
+            end
+            set_pc <= 1;
+            state <= IDLE;
+        end
+
+        OP_RET: begin
+            set_pc <= 1;
+            state <= IDLE;
+        end
+
+        OP_RET_POP_VALUE: begin
+            reg_sp <= reg_sp + get_operand(dec, dec.source0);
+            state <= IDLE;
+        end
+
+        default: begin
+        end
+    endcase
+endtask
+
+
+
 reg [7:0] interrupt_vector;
 wire bcu_intreq;
 wire bcu_intack;
@@ -440,8 +538,6 @@ always_ff @(posedge clk) begin
     bit [7:0] temp8;
     bit [9:0] delay;
 
-    bit branch;
-
     delay = 0;
 
     if (reset) begin
@@ -515,6 +611,8 @@ always_ff @(posedge clk) begin
                             op_cycles <= next_decode.mem_cycles;
                         end
 
+                        //block_prefetch <= next_decode.opcode == OP_BR_ABS || next_decode.opcode == OP_BR_REL;
+
                         calculated_ea <= calc_ea(next_decode.rm, next_decode.mod, next_decode.disp);
 
                         load_operands(next_decode);
@@ -525,6 +623,8 @@ always_ff @(posedge clk) begin
                             state <= PUSH_STALL;
                         else if (next_decode.pop != 16'd0)
                             state <= POP;
+                        else if (next_decode.opclass == BRANCH)
+                            handle_branch(next_decode);
                         else
                             state <= EXECUTE;
                         
@@ -552,6 +652,8 @@ always_ff @(posedge clk) begin
                         state <= PUSH_STALL;
                     else if (pop_list != 16'd0)
                         state <= POP;
+                    else if (decoded.opclass == BRANCH)
+                        handle_branch(decoded);
                     else if (decoded.opcode == OP_MOV)
                         state <= EXECUTE;
                     else
@@ -566,6 +668,8 @@ always_ff @(posedge clk) begin
                     state <= PUSH_STALL;
                 else if (pop_list != 16'd0)
                     state <= POP;
+                else if (decoded.opclass == BRANCH)
+                    handle_branch(decoded);
                 else
                     state <= EXECUTE;
             end // WAIT_OPERAND2
@@ -614,17 +718,19 @@ always_ff @(posedge clk) begin
             EXECUTE: begin
                 bit working;
                 bit exception;
-                bit branch;
 
                 if (dp_ready & ce_1) begin
                     working = 0;
                     exception = 0;
-                    branch = 0;
                     
                     exec_stage <= exec_stage + 4'd1;
 
                     case(decoded.opcode)
-                        OP_NOP, OP_PUSH, OP_POP: begin
+                        OP_NOP,
+                        OP_PUSH,
+                        OP_POP,
+                        OP_B_COND,
+                        OP_B_CW_COND: begin
                         end
 
                         OP_NOT1_CY:  flags.CY <= ~flags.CY;
@@ -707,94 +813,6 @@ always_ff @(posedge clk) begin
                         OP_SHIFT_1,
                         OP_SHIFT_CL,
                         OP_SHIFT: begin
-                        end
-
-                        OP_B_COND: begin
-                            bit cond = 0;
-                            case(decoded.cond)
-                            4'b0000: cond = flags.V; /* V */
-                            4'b0001: cond = ~flags.V; /* NV */
-                            4'b0010: cond = flags.CY; /* C/L */
-                            4'b0011: cond = ~flags.CY; /* NC/NL */
-                            4'b0100: cond = flags.Z; /* E/Z */
-                            4'b0101: cond = ~flags.Z; /* NE/NZ */
-                            4'b0110: cond = (flags.CY | flags.Z); /* NH */
-                            4'b0111: cond = ~(flags.CY | flags.Z); /* H */
-                            4'b1000: cond = flags.S; /* N */
-                            4'b1001: cond = ~flags.S; /* P */
-                            4'b1010: cond = flags.P; /* PE */
-                            4'b1011: cond = ~flags.P; /* PO */
-                            4'b1100: cond = (flags.S ^ flags.V) & ~flags.Z; /* LT */
-                            4'b1101: cond = ~(flags.S ^ flags.V) | flags.Z; /* GE */
-                            4'b1110: cond = (flags.S ^ flags.V) | flags.Z; /* LE */
-                            4'b1111: cond = ~((flags.S ^ flags.V) | flags.Z); /* GT */
-                            endcase
-
-                            delay = cond ? 0 : 1;
-
-                            if (cond) begin
-                                branch_new_pc <= next_pc + TA;
-                                branch_new_ps <= reg_ps;
-                                branch = 1;
-                            end
-                        end
-
-                        OP_B_CW_COND: begin
-                            bit cond = 0;
-                            case(decoded.cond)
-                            4'b0000: begin
-                                reg_cw <= reg_cw - 16'd1;
-                                cond = reg_cw != 16'd1 && ~flags.Z;
-                            end
-                            4'b0001: begin
-                                reg_cw <= reg_cw - 16'd1;
-                                cond = reg_cw != 16'd1 && flags.Z;
-                            end
-                            4'b0010: begin
-                                reg_cw <= reg_cw - 16'd1;
-                                cond = reg_cw != 16'd1;
-                            end
-                            4'b0011: cond = (reg_cw == 0);
-                            default: begin
-                            end
-                            endcase
-
-                            delay = cond ? 0 : 1;
-
-                            if (cond) begin
-                                branch_new_pc <= next_pc + TA;
-                                branch_new_ps <= reg_ps;
-                                branch = 1;
-                            end
-                        end
-
-                        OP_BR_REL: begin
-                            branch_new_pc <= next_pc + TA;
-                            branch_new_ps <= reg_ps;
-                            branch = 1;
-                        end
-
-                        OP_BR_ABS: begin
-                            if (decoded.source0 == OPERAND_IMM && decoded.width == DWORD) begin
-                                branch_new_pc <= decoded.imm[15:0];
-                                branch_new_ps <= decoded.imm[31:16];
-                            end else if (decoded.width == WORD) begin
-                                branch_new_pc <= TA;
-                                branch_new_ps <= reg_ps;
-                            end else if (decoded.source0 == OPERAND_MODRM && decoded.width == DWORD) begin
-                                branch_new_pc <= TA;
-                                branch_new_ps <= TB;
-                            end
-                            branch = 1;
-                        end
-
-                        OP_RET: begin
-                            branch = 1;
-                        end
-
-                        OP_RET_POP_VALUE: begin
-                            reg_sp <= reg_sp + TA;
-                            branch = 1;
                         end
 
                         OP_IN: begin
@@ -1210,8 +1228,6 @@ always_ff @(posedge clk) begin
 
                         if (exception) begin
                             state <= INT_INITIATE;
-                        end else if (branch) begin
-                            state <= BRANCH;
                         end else begin
                             store_decoded <= decoded;
                             if (need_delay) begin
@@ -1268,13 +1284,13 @@ always_ff @(posedge clk) begin
                         // flags.MD  <= dp_din[15]; // TODO V33, no MD flag, V20/30 will need this
                     end
                     11: begin
-                        branch_new_ps <= dp_din;
+                        reg_ps <= dp_din;
                         stack_modified_ps <= 1;
                     end
                     12: reg_ss <= dp_din;
                     13: reg_ds0 <= dp_din;
                     14: begin
-                        branch_new_pc <= dp_din;
+                        next_pc <= dp_din;
                         stack_modified_pc <= 1;
                     end
                     15: begin
@@ -1296,6 +1312,8 @@ always_ff @(posedge clk) begin
                     if (decoded.opcode == OP_POP) begin
                         state <= IDLE;
                         //retire_op <= 1;
+                    end else if (decoded.opclass == BRANCH) begin
+                        handle_branch(decoded);
                     end else begin
                         state <= EXECUTE;
                     end
@@ -1363,6 +1381,8 @@ always_ff @(posedge clk) begin
                     end else if (decoded.opcode == OP_PUSH) begin
                         state <= IDLE;
                         //retire_op <= 1;
+                    end else if (decoded.opclass == BRANCH) begin
+                        handle_branch(decoded);
                     end else begin
                         state <= EXECUTE;
                     end
@@ -1375,23 +1395,6 @@ always_ff @(posedge clk) begin
 
                 state <= POP_WAIT;
             end // POP
-
-            BRANCH: begin
-                set_pc <= 1;
-                next_pc <= branch_new_pc;
-                reg_ps <= branch_new_ps;
-                state <= BRANCH_STALL;
-                block_prefetch <= 0;
-            end
-
-            BRANCH_STALL: begin
-                 if (ce_2) begin
-                    if (~&cycles) cycles <= cycles + 10'd1;
-                    if (cycles >= op_cycles) begin
-                        state <= IDLE;
-                    end
-                 end
-            end
 
             STORE_DELAY: if (ce_1) begin
                 if (~&cycles) cycles <= cycles + 10'd1;

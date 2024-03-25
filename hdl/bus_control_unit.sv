@@ -178,7 +178,7 @@ always_ff @(posedge clk) begin
             end else if (ipq_len < 7) begin
                 prefetch_delay <= 4'd1;
                 if (prefetch_delay > 4'd0) do_prefetch = 1;
-                //do_prefetch = 1;
+                do_prefetch = 1;
             end else begin
                 prefetch_delay <= 4'd0;
             end
