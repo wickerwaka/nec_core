@@ -1,2 +1,4 @@
 build/
+.hdl_checker/
 *.bak
+.DS_Store
