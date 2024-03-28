@@ -51,8 +51,6 @@ opcode_e:
     - XCH
     - B_COND
     - B_CW_COND
-    - IN
-    - OUT
     - BR_REL
     - BR_ABS
     - CALL_REL
@@ -154,6 +152,8 @@ operand_e:
     - SREG
     - PRODUCT
     - CL
+    - IO_DIRECT
+    - IO_INDIRECT
 
 width_e:
   values:

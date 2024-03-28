@@ -107,21 +107,28 @@ nec_decode_t store_decoded;
 nec_decode_t decoded /*verilator public*/;
 opcode_e cur_opcode;
 
-function bit [15:0] calc_ea(bit [2:0] mem, bit [1:0] mod, bit [15:0] disp);
+function bit [15:0] calc_ea(nec_decode_t dec);
     bit [15:0] addr;
-    case(mem)
-    3'b000: addr = reg_bw + reg_ix;
-    3'b001: addr = reg_bw + reg_iy;
-    3'b010: addr = reg_bp + reg_ix;
-    3'b011: addr = reg_bp + reg_iy;
-    3'b100: addr = reg_ix;
-    3'b101: addr = reg_iy;
-    3'b110: addr = mod == 0 ? disp : reg_bp;
-    3'b111: addr = reg_bw;
-    endcase
 
-    if (mod == 2'b01) addr = addr + { {8{disp[7]}}, disp[7:0] };
-    else if (mod == 2'b10) addr = addr + disp;
+    if (dec.dest == OPERAND_IO_DIRECT || dec.source0 == OPERAND_IO_DIRECT) begin
+        addr = { 8'd0, dec.disp[7:0] };
+    end else if (dec.dest == OPERAND_IO_INDIRECT || dec.source0 == OPERAND_IO_INDIRECT) begin
+        addr = reg_dw;
+    end else begin
+        case(dec.rm)
+        3'b000: addr = reg_bw + reg_ix;
+        3'b001: addr = reg_bw + reg_iy;
+        3'b010: addr = reg_bp + reg_ix;
+        3'b011: addr = reg_bp + reg_iy;
+        3'b100: addr = reg_ix;
+        3'b101: addr = reg_iy;
+        3'b110: addr = dec.mod == 0 ? dec.disp : reg_bp;
+        3'b111: addr = reg_bw;
+        endcase
+
+        if (dec.mod == 2'b01) addr = addr + { {8{dec.disp[7]}}, dec.disp[7:0] };
+        else if (dec.mod == 2'b10) addr = addr + dec.disp;
+    end
 
     return addr;
 endfunction
@@ -190,21 +197,21 @@ task set_sreg(input sreg_index_e r, input bit[15:0] val);
     endcase
 endtask
 
-task write_memory(input bit [15:0] addr, input sreg_index_e seg, input width_e width, input [15:0] data);
+task write_memory(input bit [15:0] addr, input sreg_index_e seg, input width_e width, input [15:0] data, input bit io);
     dp_addr <= addr;
     dp_dout <= data;
     dp_write <= 1;
-    dp_io <= 0;
+    dp_io <= io;
     dp_zero_seg <= 0;
     dp_sreg <= seg;
     dp_wide <= width == BYTE ? 0 : 1;
     dp_req <= 1;
 endtask
 
-task read_memory(input bit [15:0] addr, input sreg_index_e seg, input width_e width);
+task read_memory(input bit [15:0] addr, input sreg_index_e seg, input width_e width, input bit io);
     dp_addr <= addr;
     dp_write <= 0;
-    dp_io <= 0;
+    dp_io <= io;
     dp_sreg <= seg;
     dp_zero_seg <= 0;
     dp_wide <= width == BYTE ? 0 : 1;
@@ -445,7 +452,7 @@ bus_control_unit BCU(
     .implementation_fault()
 );
 
-reg retire_op;
+wire retire_op = state == IDLE && next_decode_valid && (dp_ready | n_buslock);
 wire next_decode_valid;
 nec_decode_t next_decode;
 
@@ -578,7 +585,7 @@ always_ff @(posedge clk) begin
         halt <= 0;
     end else if (ce_1 | ce_2) begin
         div_start <= 0;
-        if (ce_1) retire_op <= 0;
+        //if (ce_1) retire_op <= 0;
         set_pc <= 0;
         dp_req <= 0;
 
@@ -613,7 +620,7 @@ always_ff @(posedge clk) begin
 
                         //block_prefetch <= next_decode.opcode == OP_BR_ABS || next_decode.opcode == OP_BR_REL;
 
-                        calculated_ea <= calc_ea(next_decode.rm, next_decode.mod, next_decode.disp);
+                        calculated_ea <= calc_ea(next_decode);
 
                         load_operands(next_decode);
 
@@ -628,7 +635,7 @@ always_ff @(posedge clk) begin
                         else
                             state <= EXECUTE;
                         
-                        retire_op <= 1;
+                        //retire_op <= 1;
                     end
                 end
             end // IDLE
@@ -638,14 +645,14 @@ always_ff @(posedge clk) begin
             end*/
 
             FETCH_OPERAND: if (ce_1 & dp_ready) begin
-                read_memory(calculated_ea, decoded.segment, decoded.width);
+                read_memory(calculated_ea, decoded.segment, decoded.width, decoded.io);
                 state <= WAIT_OPERAND1;
             end
 
             WAIT_OPERAND1: if (ce_1 & dp_ready) begin
                 load_operands(decoded);
                 if (decoded.width == DWORD) begin
-                    read_memory(calculated_ea + 16'd2, decoded.segment, WORD);
+                    read_memory(calculated_ea + 16'd2, decoded.segment, WORD, 0);
                     state <= WAIT_OPERAND2;
                 end else begin
                     if (push_list != 16'd0)
@@ -815,39 +822,6 @@ always_ff @(posedge clk) begin
                         OP_SHIFT: begin
                         end
 
-                        OP_IN: begin
-                            if (exec_stage == 0) begin
-                                dp_write <= 0;
-                                dp_io <= 1;
-                                dp_wide <= decoded.width == WORD ? 1 : 0;
-                                if (decoded.source0 == OPERAND_IMM8) begin
-                                    dp_addr <= { 8'd0, decoded.imm[7:0] };
-                                end else begin
-                                    dp_addr <= reg_dw;
-                                end
-                                dp_req <= 1;
-                                working = 1;
-                            end else begin
-                                if (decoded.width == BYTE)
-                                    set_reg8(AL, dp_din[7:0]);
-                                else
-                                    set_reg16(AW, dp_din);
-                            end
-                        end
-
-                        OP_OUT: begin
-                            dp_write <= 1;
-                            dp_io <= 1;
-                            dp_wide <= decoded.width == WORD ? 1 : 0;
-                            dp_dout <= reg_aw;
-                            if (decoded.source0 == OPERAND_IMM8) begin
-                                dp_addr <= { 8'd0, decoded.imm[7:0] };
-                            end else begin
-                                dp_addr <= reg_dw;
-                            end
-                            dp_req <= 1;
-                        end
-
                         OP_STM: begin
                             bit do_work = 1;
                             if (decoded.rep != REPEAT_NONE) begin
@@ -860,7 +834,7 @@ always_ff @(posedge clk) begin
                             end
 
                             if (do_work) begin
-                                write_memory(reg_iy, DS1, decoded.width, reg_aw);
+                                write_memory(reg_iy, DS1, decoded.width, reg_aw, 0);
                                 if (flags.DIR)
                                     reg_iy <= reg_iy - ( decoded.width == BYTE ? 16'd1 : 16'd2 );
                                 else
@@ -880,7 +854,7 @@ always_ff @(posedge clk) begin
                                 end
 
                                 if (do_work) begin
-                                    read_memory(reg_ix, decoded.segment, decoded.width);
+                                    read_memory(reg_ix, decoded.segment, decoded.width, 0);
                                     working = 1;
                                 end
                             end else begin
@@ -912,11 +886,11 @@ always_ff @(posedge clk) begin
                                 end
 
                                 if (do_work) begin
-                                    read_memory(reg_ix, decoded.segment, decoded.width);
+                                    read_memory(reg_ix, decoded.segment, decoded.width, 0);
                                     working = 1;
                                 end
                             end else begin
-                                write_memory(reg_iy, DS1, decoded.width, dp_din);
+                                write_memory(reg_iy, DS1, decoded.width, dp_din, 0);
                                 if (flags.DIR) begin
                                     reg_iy <= reg_iy - ( decoded.width == BYTE ? 16'd1 : 16'd2 );
                                     reg_ix <= reg_ix - ( decoded.width == BYTE ? 16'd1 : 16'd2 );
@@ -941,12 +915,12 @@ always_ff @(posedge clk) begin
                                 end
 
                                 if (do_work) begin
-                                    read_memory(reg_ix, decoded.segment, decoded.width);
+                                    read_memory(reg_ix, decoded.segment, decoded.width, 0);
                                     working = 1;
                                 end
                             end else if (exec_stage == 1) begin
                                 TA <= dp_din;
-                                read_memory(reg_iy, DS1, decoded.width);
+                                read_memory(reg_iy, DS1, decoded.width, 0);
                                 working = 1;
                                 if (flags.DIR) begin
                                     reg_iy <= reg_iy - ( decoded.width == BYTE ? 16'd1 : 16'd2 );
@@ -988,7 +962,7 @@ always_ff @(posedge clk) begin
                                 end
 
                                 if (do_work) begin
-                                    read_memory(reg_iy, DS1, decoded.width);
+                                    read_memory(reg_iy, DS1, decoded.width, 0);
                                     working = 1;
                                 end
                             end else if (exec_stage == 1) begin
@@ -1018,6 +992,8 @@ always_ff @(posedge clk) begin
                             end
                         end
 
+                        // TODO OUTM, INM
+                        
                         OP_DIV,
                         OP_DIVU: begin
                             bit [15:0] operand;
@@ -1078,7 +1054,7 @@ always_ff @(posedge clk) begin
                                 prepare_nesting_level <= decoded.imm[20:16];
                                 reg_sp <= reg_sp - 16'd2;
                                 prepare_sp_save <= reg_sp - 16'd2;
-                                write_memory(reg_sp - 16'd2, SS, WORD, reg_bp);
+                                write_memory(reg_sp - 16'd2, SS, WORD, reg_bp, 0);
                                 working = 1;
 
                                 case(decoded.imm[20:16])
@@ -1089,12 +1065,12 @@ always_ff @(posedge clk) begin
                             end else if (exec_stage == 1) begin
                                 reg_sp <= reg_sp - 16'd2;
                                 reg_bp <= reg_bp - 16'd2;
-                                write_memory(reg_sp - 16'd2, SS, WORD, reg_bp - 16'd2);
+                                write_memory(reg_sp - 16'd2, SS, WORD, reg_bp - 16'd2, 0);
                                 prepare_nesting_level <= prepare_nesting_level - 5'd1;
                                 if (prepare_nesting_level > 5'd2) exec_stage <= exec_stage; 
                             end else if (exec_stage == 2) begin
                                 reg_sp <= reg_sp - 16'd2;
-                                write_memory(reg_sp - 16'd2, SS, WORD, prepare_sp_save);
+                                write_memory(reg_sp - 16'd2, SS, WORD, prepare_sp_save, 0);
                             end else if (exec_stage == 3) begin
                                 reg_bp <= prepare_sp_save;
                                 reg_sp <= reg_sp - decoded.imm[15:0];
@@ -1105,7 +1081,7 @@ always_ff @(posedge clk) begin
                             working = exec_stage == 0;
                             if (exec_stage == 0) begin
                                 reg_sp <= reg_bp + 2;
-                                read_memory(reg_bp, SS, WORD);
+                                read_memory(reg_bp, SS, WORD, 0);
                             end else begin
                                 reg_bp <= dp_din;
                             end
@@ -1122,7 +1098,7 @@ always_ff @(posedge clk) begin
                         OP_TRANS: begin
                             working = exec_stage == 0;
                             if (exec_stage == 0) begin
-                                read_memory(reg_bw + { 8'd0, reg_aw[7:0]}, decoded.segment, BYTE);
+                                read_memory(reg_bw + { 8'd0, reg_aw[7:0]}, decoded.segment, BYTE, 0);
                             end else begin
                                 reg_aw[7:0] <= dp_din[7:0];
                             end
@@ -1155,12 +1131,12 @@ always_ff @(posedge clk) begin
                                 if (bcd_offset == reg_cw[7:1]) begin
                                     working = 0;
                                 end else begin
-                                    read_memory(reg_ix + {9'd0, bcd_offset}, decoded.segment, BYTE);
+                                    read_memory(reg_ix + {9'd0, bcd_offset}, decoded.segment, BYTE, 0);
                                 end
                             end else if (exec_stage == 2) begin
                                 bcd_src <= dp_din[7:0] + { 7'd0, flags.CY };
                                 flags.CY <= 0;
-                                read_memory(reg_iy + {9'd0, bcd_offset}, DS1, BYTE);
+                                read_memory(reg_iy + {9'd0, bcd_offset}, DS1, BYTE, 0);
                             end else if (exec_stage == 3) begin
                                 if (decoded.opcode == OP_ADD4S) begin
                                     bcd_acc_low  <= { 1'b0, dp_din[3:0] } + { 1'b0, bcd_src[3:0] };
@@ -1194,7 +1170,7 @@ always_ff @(posedge clk) begin
                             end else if (exec_stage == 5) begin
                                 if (|bcd_acc) flags.Z <= 0;
                                 if (decoded.opcode != OP_CMP4S) begin
-                                    write_memory(reg_iy + { 9'd0, bcd_offset}, DS1, BYTE, { 8'd0, bcd_acc });
+                                    write_memory(reg_iy + { 9'd0, bcd_offset}, DS1, BYTE, { 8'd0, bcd_acc }, 0);
                                 end
                                 bcd_offset <= bcd_offset + 7'd1;
                                 exec_stage <= 1; // loop                                
@@ -1297,7 +1273,7 @@ always_ff @(posedge clk) begin
                         if (decoded.mod == 2'b11) begin
                             set_reg16(reg16_index_e'(decoded.rm), dp_din);
                         end else begin
-                            write_memory(calculated_ea, decoded.segment, WORD, dp_din);
+                            write_memory(calculated_ea, decoded.segment, WORD, dp_din, 0);
                             mem_write = 1;
                         end
                     end
@@ -1322,10 +1298,10 @@ always_ff @(posedge clk) begin
                         state <= POP;
                     end else begin
                         if (skip_sp) begin
-                            read_memory(reg_sp + 16'd2, SS, WORD);
+                            read_memory(reg_sp + 16'd2, SS, WORD, 0);
                             reg_sp <= reg_sp + 16'd4;
                         end else begin
-                            read_memory(reg_sp, SS, WORD);
+                            read_memory(reg_sp, SS, WORD, 0);
                             reg_sp <= reg_sp + 16'd2;
                         end
                         state <= POP_WAIT;
@@ -1370,7 +1346,7 @@ always_ff @(posedge clk) begin
                 15: push_data = TA;
                 endcase
 
-                write_memory(reg_sp - 16'd2, SS, WORD, push_data);
+                write_memory(reg_sp - 16'd2, SS, WORD, push_data, 0);
 
                 list[push_idx] = 0;
                 push_list <= list;
@@ -1390,7 +1366,7 @@ always_ff @(posedge clk) begin
             end // PUSH
 
             POP: if (dp_ready & ce_1) begin
-                read_memory(reg_sp, SS, WORD);
+                read_memory(reg_sp, SS, WORD, 0);
                 reg_sp <= reg_sp + 16'd2;
 
                 state <= POP_WAIT;
@@ -1408,7 +1384,7 @@ always_ff @(posedge clk) begin
             STORE_MEMORY: begin
                 if (ce_1 & dp_ready) begin
                     result32 = use_alu_result ? alu_result : { 16'd0, op_result };
-                    write_memory(calculated_ea, store_decoded.segment, store_decoded.width, result32[15:0]);
+                    write_memory(calculated_ea, store_decoded.segment, store_decoded.width, result32[15:0], store_decoded.io);
                     state <= IDLE;
                     block_prefetch <= 0;
                 end

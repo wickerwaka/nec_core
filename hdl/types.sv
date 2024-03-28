@@ -31,7 +31,9 @@ package types;
 
         bit mem_read;
         bit mem_write;
+        bit io;
 
+        bit [2:0] disp_size;
         bit [15:0] disp;
         bit [31:0] imm;
         bit segment_override;

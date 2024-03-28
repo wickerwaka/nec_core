@@ -907,30 +907,28 @@ b11001001:
 # IO In/Out
 #
 b1110_010W:
-  desc: IN acc, imm8
-  src: IMM8
-  op: IN
-  cycles: 3
+  desc: IN acc, disp8
+  dst: ACC
+  src: IO_DIRECT
+  op: MOV
 
 b1110_110W:
   desc: IN acc, DW
-  src: REG_0
-  reg0: DW
-  op: IN
-  cycles: 3
+  dst: ACC
+  src: IO_INDIRECT
+  op: MOV
 
 b1110_011W:
-  desc: OUT imm8, acc
-  op: OUT
-  src: IMM8
-  cycles: 1
+  desc: OUT disp8, acc
+  op: MOV
+  src: ACC
+  dst: IO_DIRECT
 
 b1110_111W:
   desc: OUT DW, acc
-  op: OUT
-  src: REG_0
-  reg0: DW
-  cycles: 1
+  op: MOV
+  src: ACC
+  dst: IO_INDIRECT
 
 
 #

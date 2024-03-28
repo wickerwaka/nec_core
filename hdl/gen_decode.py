@@ -45,7 +45,7 @@ def is_ambiguous(case1, case2):
 
 def assign_src_dst(op_desc, assignments):
     def is_mem_type(x):
-        return x in [ 'MODRM', 'DMEM' ]
+        return x in [ 'MODRM', 'DMEM', 'IO_DIRECT', 'IO_INDIRECT' ]
     src = op_desc.get('src')
     src0 = op_desc.get('src0', 'NONE')
     src1 = op_desc.get('src1', 'NONE')
@@ -77,17 +77,28 @@ def assign_src_dst(op_desc, assignments):
         if found == 'DMEM':
             assignments["rm"] = "3'b110"
             assignments["mod"] = "2'b00"
+            assignments["disp_size"] = "calc_disp_size(3'b110, 2'b00)"
             found = 'MODRM'
             if found_dst:
                 assignments['mem_write'] = '1'
             if found_src:
                 assignments['mem_read'] = '1'
-        else:
+        elif found == 'MODRM':
             mod = assignments["mod"]
+            rm = assignments["rm"]
             if found_dst:
                 assignments['mem_write'] = f"{mod} != 2'b11"
             if found_src:
                 assignments['mem_read'] = f"{mod} != 2'b11"
+            assignments["disp_size"] = f"calc_disp_size({rm}, {mod})"
+        else:
+            if found_dst:
+                assignments['mem_write'] = "1"
+            if found_src:
+                assignments['mem_read'] = "1"
+            assignments['io'] = "1"
+            if found == "IO_DIRECT":
+                assignments["disp_size"] = "1"
 
         for k in list(mapping.keys()):
             if is_mem_type(mapping[k]):
