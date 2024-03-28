@@ -1,8 +1,9 @@
 BUILD_DIR = build
 VERILATOR = verilator
-VERILATOR_ARGS = --exe --cc --build -j 8 --trace --Mdir $(BUILD_DIR) -Ihdl --MMD --MP
+VERILATOR_ARGS = --exe --cc --build -j 8 --trace --Mdir $(BUILD_DIR) -Ihdl --MMD --MP $(VERILATOR_DEFINES)
 PYTHON = python3
 
+VERILATOR_DEFINES = -DFULL_OPERAND_FETCH
 
 HDL_SRC = hdl/types.sv \
 		  hdl/bus_control_unit.sv \
@@ -27,8 +28,11 @@ TIMING_TESTS = \
 				lock_add_2byte_to_mem \
 				add_3byte_from_mem \
 				add_3byte_to_mem \
-				branch_always
-
+				branch_always \
+				two_cycle_1 \
+				two_cycle_2 \
+				two_cycle_3 \
+				two_cycle_4
 
 TIMING_TEST_TRACES = $(patsubst %,traces/sim/%.txt,$(TIMING_TESTS))
 
@@ -38,7 +42,7 @@ all: $(TIMING_TEST_TRACES)
 
 m107: $(TIMING_TEST_TRACES_M107)
 
-$(BUILD_DIR)/v33: $(HDL_SRC) $(HDL_GEN) bench/main.cpp
+$(BUILD_DIR)/v33: $(HDL_SRC) $(HDL_GEN) bench/main.cpp Makefile
 	$(VERILATOR) $(VERILATOR_ARGS) --prefix v33 --top V33 $(HDL_SRC) bench/main.cpp
 
 hdl/opcodes%svh hdl/opcode_enums%yaml: hdl/opcodes.yaml hdl/gen_decode.py

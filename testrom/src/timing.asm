@@ -236,12 +236,61 @@ test_start lock_add_2byte_from_mem
     lock add ax, [bx]
 %endrep
 test_end
-
+ 
 test_start nop_loop
 %rep 32
     nop
 %endrep
 test_end
+
+test_start two_cycle_1
+%rep 32
+    inc ax
+%endrep
+
+    ror ax, cl
+
+%rep 32
+    inc ax
+%endrep
+test_end
+
+test_start two_cycle_2
+%rep 32
+    add ax, ax
+%endrep
+
+    ror ax, cl
+
+%rep 32
+    add ax, ax
+%endrep
+test_end
+
+test_start two_cycle_3
+%rep 32
+    add bx, 0x01
+%endrep
+
+    ror ax, cl
+
+%rep 32
+    add bl, 0x01
+%endrep
+test_end
+
+test_start two_cycle_4
+%rep 32
+    add bx, 0x1001
+%endrep
+
+    ror ax, cl
+
+%rep 32
+    add bx, 0x1001
+%endrep
+test_end
+
 
 test_start branch_always
     ror ax, cl

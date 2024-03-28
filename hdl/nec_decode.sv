@@ -116,7 +116,13 @@ wire [2:0] disp_size = calc_disp_size(d.rm, d.mod);
 wire [2:0] imm_size = calc_imm_size(d.width, d.source0, d.source1);
 
 reg decode_valid;
+
+`ifdef ONE_CYCLE_DECODE_DELAY
 wire decode_ready = state == TERMINAL && disp_size == disp_read && imm_size == imm_read && decode_valid;
+`else
+wire decode_ready = state == TERMINAL && disp_size == disp_read && imm_size == imm_read;
+`endif
+
 assign valid = decode_ready & ~set_pc;
 
 
@@ -135,22 +141,40 @@ always_ff @(posedge clk) begin
         end else if (ce_1) begin
             case(state)
                 TERMINAL: begin
-                    if (disp_read < disp_size) begin
+                    if (disp_read < disp_size || imm_read < imm_size) begin
+`ifndef OPERAND_DECODE_DELAY
                         decode_valid <= 1;
-                        if (avail > 0) begin
-                            d.disp[(disp_read*8) +: 8] <= q;
-                            pc <= pc + 16'd1;
-                            d.end_pc <= pc + 16'd1;
-                            disp_read <= disp_read + 3'd1;
+`endif
+`ifdef FULL_OPERAND_FETCH
+                        if (avail >= (disp_size + imm_size)) begin
+                            d.disp[7:0] <= ipq_byte(0);
+                            d.disp[15:8] <= ipq_byte(1);
+                            d.imm[7:0] <= ipq_byte(disp_size);
+                            d.imm[15:8] <= ipq_byte(disp_size + 1);
+                            d.imm[23:16] <= ipq_byte(disp_size + 2);
+                            d.imm[31:24] <= ipq_byte(disp_size + 3);
+                            pc <= pc + {13'd0, disp_size} + {13'd0, imm_size};
+                            d.end_pc <= pc + {13'd0, disp_size} + {13'd0, imm_size};
+                            disp_read <= disp_size;
+                            imm_read <= imm_size;
                         end
-                    end else if (imm_read < imm_size) begin
-                        decode_valid <= 1;
-                        if (avail > 0) begin
-                            d.imm[(imm_read*8) +: 8] <= q;
-                            pc <= pc + 16'd1;
-                            d.end_pc <= pc + 16'd1;
-                            imm_read <= imm_read + 3'd1;
+`else
+                        if (disp_read < disp_size) begin
+                            if (avail > 0) begin
+                                d.disp[(disp_read*8) +: 8] <= q;
+                                pc <= pc + 16'd1;
+                                d.end_pc <= pc + 16'd1;
+                                disp_read <= disp_read + 3'd1;
+                            end
+                        end else if (imm_read < imm_size) begin
+                            if (avail > 0) begin
+                                d.imm[(imm_read*8) +: 8] <= q;
+                                pc <= pc + 16'd1;
+                                d.end_pc <= pc + 16'd1;
+                                imm_read <= imm_read + 3'd1;
+                            end
                         end
+`endif
                     end else begin
                         decode_valid <= 1;
                         if (retire_op) begin
