@@ -426,7 +426,7 @@ reg [7:0] interrupt_vector;
 wire bcu_intreq;
 wire bcu_intack;
 wire [7:0] bcu_intvec;
-reg block_prefetch;
+wire block_prefetch;
 
 bus_control_unit BCU(
     .clk, .ce_1, .ce_2,
@@ -464,7 +464,8 @@ nec_decode nec_decode(
     .pc(cur_pc),
     .valid(next_decode_valid),
     .decoded(next_decode),
-    .retire_op
+    .retire_op,
+    .block_prefetch
 );
 
 alu_operation_e alu_operation;
@@ -594,7 +595,6 @@ always_ff @(posedge clk) begin
                 use_alu_result <= 0;
                 stack_modified_pc <= 0;
                 stack_modified_ps <= 0;
-                block_prefetch <= 0;
 
                 exec_stage <= 4'd0;
 
@@ -617,8 +617,6 @@ always_ff @(posedge clk) begin
                         if (next_decode.mem_read | next_decode.mem_write) begin
                             op_cycles <= next_decode.mem_cycles;
                         end
-
-                        //block_prefetch <= next_decode.opcode == OP_BR_ABS || next_decode.opcode == OP_BR_REL;
 
                         calculated_ea <= calc_ea(next_decode);
 
@@ -1386,7 +1384,6 @@ always_ff @(posedge clk) begin
                     result32 = use_alu_result ? alu_result : { 16'd0, op_result };
                     write_memory(calculated_ea, store_decoded.segment, store_decoded.width, result32[15:0], store_decoded.io);
                     state <= IDLE;
-                    block_prefetch <= 0;
                 end
             end
 

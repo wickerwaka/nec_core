@@ -21,6 +21,8 @@ module nec_decode(
 
     output logic valid,
 
+    output logic block_prefetch,
+
     output nec_decode_t decoded
 );
 
@@ -126,6 +128,11 @@ wire decode_ready = state == TERMINAL && d.disp_size == disp_read && imm_size ==
 
 assign valid = decode_ready & ~set_pc;
 
+`ifdef BRANCH_BLOCK_PREFETCH
+assign block_prefetch = state == TERMINAL && d.opclass == BRANCH && ipq_len > 3;
+`else
+assign block_prefetch = 0;
+`endif 
 
 always_ff @(posedge clk) begin
     bit [3:0] avail;
