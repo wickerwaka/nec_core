@@ -98,14 +98,14 @@ void tick(int count = 1)
 
         if (top->ce_1) tick_count++;
 
-        contextp->timeInc(1);
+        contextp->timeInc(18000);
         top->clk = 0;
 
         top->eval();
         tfp->dump(contextp->time());
         print_trace(top->rootp->V33);
 
-        contextp->timeInc(1);
+        contextp->timeInc(18000);
         top->clk = 1;
         top->ce_1 = (~top->ce_1) & 1;
         top->ce_2 = (~top->ce_2) & 1;
@@ -143,11 +143,15 @@ int main(int argc, char **argv)
     fclose(fp);
 
     contextp = new VerilatedContext;
+
     top = new v33{contextp};
 
     Verilated::traceEverOn(true);
     tfp = new VerilatedVcdC;
     top->trace(tfp, 99);
+
+    contextp->timeprecision(9);
+    contextp->timeunit(9);
 
     if (argc > 2)
     {
