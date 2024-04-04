@@ -196,6 +196,10 @@ always_ff @(posedge clk) begin
                     end
                 end
 
+                DELAY_3: state <= DELAY_2;
+                DELAY_2: state <= DELAY_1;
+                DELAY_1: state <= TERMINAL;
+
                 default: begin
                     if (avail > 0) begin
                         process_decode(q);

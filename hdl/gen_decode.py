@@ -123,7 +123,7 @@ def add_child(parent, match, assignments):
             raise "Oops"
         return existing
     
-    return Node(match, parent=parent, match=match, assignments=assignments, comment='', prefix=False)
+    return Node(match, parent=parent, match=match, assignments=assignments, comment='', prefix=False, decode_delay=0)
 
 def add_nodes(root: Node, k: str, op_desc: dict):
     if not k.startswith('b'):
@@ -202,6 +202,8 @@ def add_nodes(root: Node, k: str, op_desc: dict):
     if mem_cycles:
         assignments["mem_cycles"] = mem_cycles
 
+    decode_delay = op_desc.get('decode_delay', 0)
+    
     push = op_desc.get('push')
     if push:
         if not isinstance(push, list):
@@ -236,6 +238,7 @@ def add_nodes(root: Node, k: str, op_desc: dict):
 
     parent.comment = comment
     parent.is_prefix = prefix
+    parent.decode_delay = decode_delay
 
 def node_state_name(node: Node) -> str:
     if node.parent:
@@ -261,6 +264,10 @@ enums = {
         'values': [
             'INITIAL',
             'TERMINAL',
+            'DELAY_1',
+            'DELAY_2',
+            'DELAY_3',
+            'DELAY_4',
             'PREFIX_CONTINUE',
             'ILLEGAL'
         ] + state_names
@@ -285,7 +292,10 @@ for node in PostOrderIter(root, lambda x: not x.is_leaf):
         if child.is_leaf and child.is_prefix:
             fp.write( f"      state <= PREFIX_CONTINUE;\n" )
         elif child.is_leaf:
-            fp.write( f"      state <= TERMINAL;\n" )
+            if child.decode_delay > 0:
+                fp.write( f"      state <= DELAY_{child.decode_delay};\n" )
+            else:
+                fp.write( f"      state <= TERMINAL;\n" )
         else:
             fp.write( f"      state <= {node_state_name(child)};\n" )
         fp.write( f"    end\n" )

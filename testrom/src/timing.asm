@@ -12,6 +12,18 @@ align 16
 .inner_loop:
 %endmacro
 
+%macro test_start_cl 2
+align 256
+global %1
+%1:
+    mov bx, 0xfff0
+    mov dx, 0xdead
+    mov cl, %2
+    jmp .inner_loop
+align 16
+.inner_loop:
+%endmacro
+
 %macro test_end 0
     out dx, al
 
@@ -243,6 +255,19 @@ test_start nop_loop
 %endrep
 test_end
 
+test_start lock_nop_loop
+%rep 32
+    lock nop
+%endrep
+test_end
+
+test_start two_cycle_1_w_lock
+    lock inc ax
+%rep 32
+    inc ax
+%endrep
+test_end
+
 test_start two_cycle_1
 %rep 32
     inc ax
@@ -288,6 +313,36 @@ test_start two_cycle_4
 
 %rep 32
     add bx, 0x1001
+%endrep
+test_end
+
+test_start_cl rol_1, 1
+%rep 32
+    rol ax, cl
+%endrep
+test_end
+
+test_start_cl rol_2, 2
+%rep 32
+    rol ax, cl
+%endrep
+test_end
+
+test_start_cl rol_3, 3
+%rep 32
+    rol ax, cl
+%endrep
+test_end
+
+test_start_cl rol_4, 4
+%rep 32
+    rol ax, cl
+%endrep
+test_end
+
+test_start_cl rol_5, 5
+%rep 32
+    rol ax, cl
 %endrep
 test_end
 

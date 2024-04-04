@@ -2,6 +2,10 @@ decode_state_e:
   values:
   - INITIAL
   - TERMINAL
+  - DELAY_1
+  - DELAY_2
+  - DELAY_3
+  - DELAY_4
   - PREFIX_CONTINUE
   - ILLEGAL
   - ROOT_00xxx00x

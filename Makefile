@@ -32,7 +32,14 @@ TIMING_TESTS = \
 				two_cycle_1 \
 				two_cycle_2 \
 				two_cycle_3 \
-				two_cycle_4
+				two_cycle_4 \
+				rol_1 \
+				rol_2 \
+				rol_3 \
+				rol_4 \
+				rol_5 \
+				lock_nop_loop \
+				two_cycle_1_w_lock
 
 TIMING_TEST_TRACES = $(patsubst %,traces/sim/%.txt,$(TIMING_TESTS))
 
