@@ -36,11 +36,11 @@ void write_mem(uint32_t addr, bool ube, uint16_t dout)
     }
 }
 
-v33_types::cpu_state_e prev_state = v33_types::IDLE;
+uint16_t prev_pc = 0x0000;
 void print_trace(const v33_V33 *cpu)
 {
     static bool skip = true; // skip the first output because mame does
-    if( cpu->state != v33_types::IDLE && prev_state == v33_types::IDLE)
+    if( cpu->decoded.__PVT__pc != prev_pc)
     {
         if (!skip)
         {
@@ -63,7 +63,7 @@ void print_trace(const v33_V33 *cpu)
         }
         skip = false;
     }
-    prev_state = (v33_types::cpu_state_e)cpu->state;
+    prev_pc = cpu->decoded.__PVT__pc;
 }
 
 void tick(int count = 1)
@@ -151,9 +151,10 @@ int main(int argc, char **argv)
         top->rootp->V33->reg_ps = 0xf000;
         top->rootp->V33->next_pc = 0xfff0;
         top->rootp->V33->set_pc = 1;
+        tick(1);
     }
     
-    top->rootp->V33->set_pc = 1;
+    top->rootp->V33->set_pc = 0;
 
     while(true)
     {

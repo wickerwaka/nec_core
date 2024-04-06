@@ -328,7 +328,7 @@ task handle_branch(input nec_decode_t dec);
     case(dec.opcode)
         OP_B_COND: begin
             bit cond = 0;
-            case(decoded.cond)
+            case(dec.cond)
             4'b0000: cond = flags.V; /* V */
             4'b0001: cond = ~flags.V; /* NV */
             4'b0010: cond = flags.CY; /* C/L */
@@ -358,7 +358,7 @@ task handle_branch(input nec_decode_t dec);
 
         OP_B_CW_COND: begin
             bit cond = 0;
-            case(decoded.cond)
+            case(dec.cond)
             4'b0000: begin
                 reg_cw <= reg_cw - 16'd1;
                 cond = reg_cw != 16'd1 && ~flags.Z;
@@ -377,7 +377,7 @@ task handle_branch(input nec_decode_t dec);
             endcase
 
             if (cond) begin
-                next_pc <= dec.end_pc + get_operand(dec, dec.source0);
+                next_pc <= dec.end_pc + TA;
                 set_pc <= 1;
                 state <= IDLE;
             end else begin
@@ -386,7 +386,7 @@ task handle_branch(input nec_decode_t dec);
         end
 
         OP_BR_REL: begin
-            next_pc <= dec.end_pc + get_operand(dec, dec.source0);
+            next_pc <= dec.end_pc + TA;
             set_pc <= 1;
             state <= IDLE;
         end
@@ -395,11 +395,11 @@ task handle_branch(input nec_decode_t dec);
             if (dec.source0 == OPERAND_IMM && dec.width == DWORD) begin
                 next_pc <= dec.imm[15:0];
                 reg_ps <= dec.imm[31:16];
-            end else if (decoded.width == WORD) begin
-                next_pc <= get_operand(dec, dec.source0);
-            end else if (decoded.source0 == OPERAND_MODRM && decoded.width == DWORD) begin
+            end else if (dec.width == WORD) begin
                 next_pc <= TA;
-                reg_ps <= dp_din;
+            end else if (dec.source0 == OPERAND_MODRM && dec.width == DWORD) begin
+                next_pc <= TA;
+                reg_ps <= TB;
             end
             set_pc <= 1;
             state <= IDLE;
@@ -411,7 +411,8 @@ task handle_branch(input nec_decode_t dec);
         end
 
         OP_RET_POP_VALUE: begin
-            reg_sp <= reg_sp + get_operand(dec, dec.source0);
+            reg_sp <= reg_sp + TA;
+            set_pc <= 1;
             state <= IDLE;
         end
 
@@ -622,14 +623,14 @@ always_ff @(posedge clk) begin
 
                         load_operands(next_decode);
 
-                        if (next_decode.mem_read)
+                        if (next_decode.mem_read && next_decode.opcode != OP_LDEA)
                             state <= FETCH_OPERAND;
                         else if (next_decode.push != 16'd0)
                             state <= PUSH_STALL;
                         else if (next_decode.pop != 16'd0)
                             state <= POP;
                         else if (next_decode.opclass == BRANCH)
-                            handle_branch(next_decode);
+                            state <= BRANCHING;
                         else
                             state <= EXECUTE;
                         
@@ -658,7 +659,7 @@ always_ff @(posedge clk) begin
                     else if (pop_list != 16'd0)
                         state <= POP;
                     else if (decoded.opclass == BRANCH)
-                        handle_branch(decoded);
+                        state <= BRANCHING;
                     else if (decoded.opcode == OP_MOV)
                         state <= EXECUTE;
                     else
@@ -674,10 +675,14 @@ always_ff @(posedge clk) begin
                 else if (pop_list != 16'd0)
                     state <= POP;
                 else if (decoded.opclass == BRANCH)
-                    handle_branch(decoded);
+                    state <= BRANCHING;
                 else
                     state <= EXECUTE;
             end // WAIT_OPERAND2
+
+            BRANCHING: if (ce_2) begin
+                handle_branch(decoded);
+            end
 
             INT_ACK_WAIT: if (ce_1) begin
                 if (bcu_intack) begin
@@ -1287,7 +1292,7 @@ always_ff @(posedge clk) begin
                         state <= IDLE;
                         //retire_op <= 1;
                     end else if (decoded.opclass == BRANCH) begin
-                        handle_branch(decoded);
+                        state <= BRANCHING;
                     end else begin
                         state <= EXECUTE;
                     end
@@ -1354,9 +1359,8 @@ always_ff @(posedge clk) begin
                         state <= INT_FETCH_VEC;
                     end else if (decoded.opcode == OP_PUSH) begin
                         state <= IDLE;
-                        //retire_op <= 1;
                     end else if (decoded.opclass == BRANCH) begin
-                        handle_branch(decoded);
+                        state <= BRANCHING;
                     end else begin
                         state <= EXECUTE;
                     end

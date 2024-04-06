@@ -50,7 +50,10 @@ all: $(TIMING_TEST_TRACES)
 m107: $(TIMING_TEST_TRACES_M107)
 
 $(BUILD_DIR)/v33: $(HDL_SRC) $(HDL_GEN) bench/main.cpp Makefile
-	$(VERILATOR) $(VERILATOR_ARGS) --prefix v33 --top V33 $(HDL_SRC) bench/main.cpp
+	$(VERILATOR) $(VERILATOR_ARGS) -o v33 --prefix v33 --top V33 $(HDL_SRC) bench/main.cpp
+
+$(BUILD_DIR)/test_186: $(HDL_SRC) $(HDL_GEN) bench/test_186.cpp Makefile
+	$(VERILATOR) $(VERILATOR_ARGS) -o test_186 --prefix v33 --top V33 $(HDL_SRC) bench/test_186.cpp
 
 hdl/opcodes%svh hdl/opcode_enums%yaml: hdl/opcodes.yaml hdl/gen_decode.py
 	$(PYTHON) hdl/gen_decode.py
@@ -70,6 +73,10 @@ traces/sim/%.txt: traces/sim/%.vcd bench/extract_sim.py
 
 traces/m107/%.txt: traces/m107/%.vcd bench/extract_hw.py
 	$(PYTHON) bench/extract_hw.py $< $@
+
+80186: $(BUILD_DIR)/test_186
+	cd tests/80186 && ./run_tests.sh
+	
 
 .PHONY: ALWAYS
 

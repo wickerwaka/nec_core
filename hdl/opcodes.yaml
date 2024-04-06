@@ -542,11 +542,13 @@ b10010_GP0:
 b0111_COND:
   op: B_COND
   desc: B cond, disp
+  class: BRANCH
   src: IMM_EXT
   width: WORD
 
 b1110_COND:
   op: B_CW_COND
+  class: BRANCH
   src: IMM_EXT
   width: WORD
 

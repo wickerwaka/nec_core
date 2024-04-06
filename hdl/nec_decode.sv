@@ -103,6 +103,7 @@ task reset_decode();
     d.push <= 16'd0;
     d.pop <= 16'd0;
 
+    d.disp_size <= 3'd0;
     d.opclass <= MISC;
 
     d.cycles <= 0;
@@ -146,6 +147,7 @@ always_ff @(posedge clk) begin
         if (set_pc) begin
             pc <= new_pc;
             reset_decode();
+            d.pc <= new_pc;
         end else if (ce_1) begin
             case(state)
                 TERMINAL: begin
@@ -187,6 +189,7 @@ always_ff @(posedge clk) begin
                         decode_valid <= 1;
                         if (retire_op) begin
                             reset_decode();
+                            d.pc <= pc;
                             if (avail > 0) begin
                                 process_decode(q);
                                 pc <= pc + 16'd1;

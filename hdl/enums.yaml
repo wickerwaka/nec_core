@@ -164,6 +164,7 @@ width_e:
 cpu_state_e:
   values:
     - IDLE
+    - BRANCHING
     - FETCH_OPERAND
     - FETCH_OPERAND1
     - WAIT_OPERAND1

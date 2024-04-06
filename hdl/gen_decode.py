@@ -91,6 +91,7 @@ def assign_src_dst(op_desc, assignments):
             if found_src:
                 assignments['mem_read'] = f"{mod} != 2'b11"
             assignments["disp_size"] = f"calc_disp_size({rm}, {mod})"
+            assignments["segment"] = f"d.segment_override ? d.segment : calc_seg({rm}, {mod});"
         else:
             if found_dst:
                 assignments['mem_write'] = "1"
