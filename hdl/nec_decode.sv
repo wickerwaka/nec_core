@@ -26,12 +26,6 @@ module nec_decode(
     output nec_decode_t decoded
 );
 
-/* verilator lint_off CASEX */
-/* verilator lint_off CASEOVERLAP */
-`include "opcodes.svh"
-/* verilator lint_on CASEOVERLAP */
-/* verilator lint_on CASEX */
-
 function bit [7:0] ipq_byte(bit [2:0] ofs);
     return ipq[pc[2:0] + ofs[2:0]];
 endfunction
@@ -82,6 +76,12 @@ function sreg_index_e calc_seg(bit [2:0] mem, bit [1:0] mod);
 
     return seg;
 endfunction
+
+/* verilator lint_off CASEX */
+/* verilator lint_off CASEOVERLAP */
+`include "opcodes.svh"
+/* verilator lint_on CASEOVERLAP */
+/* verilator lint_on CASEX */
 
 reg [2:0] disp_read;
 reg [2:0] imm_read;
