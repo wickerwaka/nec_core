@@ -48,8 +48,6 @@ task process_ROOT_1000000x(input bit [7:0] q);
       d.rm <= q[2:0];
       d.opcode <= OP_ALU;
       d.alu_operation <= ALU_OP_CMP;
-      d.cycles <= 2;
-      d.mem_cycles <= 4;
       d.mem_read <= q[7:6] != 2'b11;
       d.disp_size <= calc_disp_size(q[2:0], q[7:6]);
       d.segment <= d.segment_override ? d.segment : calc_seg(q[2:0], q[7:6]);;
@@ -84,8 +82,6 @@ task process_ROOT_1000001x(input bit [7:0] q);
       d.rm <= q[2:0];
       d.opcode <= OP_ALU;
       d.alu_operation <= ALU_OP_CMP;
-      d.cycles <= 2;
-      d.mem_cycles <= 4;
       d.mem_read <= q[7:6] != 2'b11;
       d.disp_size <= calc_disp_size(q[2:0], q[7:6]);
       d.segment <= d.segment_override ? d.segment : calc_seg(q[2:0], q[7:6]);;
@@ -189,8 +185,6 @@ task process_ROOT_0011100x(input bit [7:0] q);
       d.reg0 <= q[5:3];
       d.opcode <= OP_ALU;
       d.alu_operation <= ALU_OP_CMP;
-      d.cycles <= 2;
-      d.mem_cycles <= 4;
       d.mem_read <= q[7:6] != 2'b11;
       d.disp_size <= calc_disp_size(q[2:0], q[7:6]);
       d.segment <= d.segment_override ? d.segment : calc_seg(q[2:0], q[7:6]);;
@@ -212,8 +206,6 @@ task process_ROOT_0011101x(input bit [7:0] q);
       d.reg0 <= q[5:3];
       d.opcode <= OP_ALU;
       d.alu_operation <= ALU_OP_CMP;
-      d.cycles <= 2;
-      d.mem_cycles <= 4;
       d.mem_read <= q[7:6] != 2'b11;
       d.disp_size <= calc_disp_size(q[2:0], q[7:6]);
       d.segment <= d.segment_override ? d.segment : calc_seg(q[2:0], q[7:6]);;
@@ -312,8 +304,6 @@ task process_ROOT_11111111(input bit [7:0] q);
       d.rm <= q[2:0];
       d.opcode <= OP_PUSH;
       d.width <= WORD;
-      d.cycles <= 1;
-      d.mem_cycles <= 1;
       d.push <= STACK_OPERAND;
       d.mem_read <= q[7:6] != 2'b11;
       d.disp_size <= calc_disp_size(q[2:0], q[7:6]);
@@ -371,8 +361,6 @@ task process_ROOT_1000010x(input bit [7:0] q);
       d.reg0 <= q[5:3];
       d.opcode <= OP_ALU;
       d.alu_operation <= ALU_OP_AND;
-      d.cycles <= 2;
-      d.mem_cycles <= 4;
       d.mem_read <= q[7:6] != 2'b11;
       d.disp_size <= calc_disp_size(q[2:0], q[7:6]);
       d.segment <= d.segment_override ? d.segment : calc_seg(q[2:0], q[7:6]);;
@@ -394,8 +382,6 @@ task process_ROOT_11110110(input bit [7:0] q);
       d.opcode <= OP_ALU;
       d.alu_operation <= ALU_OP_AND;
       d.width <= BYTE;
-      d.cycles <= 2;
-      d.mem_cycles <= 4;
       d.mem_read <= q[7:6] != 2'b11;
       d.disp_size <= calc_disp_size(q[2:0], q[7:6]);
       d.segment <= d.segment_override ? d.segment : calc_seg(q[2:0], q[7:6]);;
@@ -409,8 +395,6 @@ task process_ROOT_11110110(input bit [7:0] q);
       d.opcode <= OP_ALU;
       d.alu_operation <= ALU_OP_NOT;
       d.width <= BYTE;
-      d.cycles <= 2;
-      d.mem_cycles <= 5;
       d.mem_write <= q[7:6] != 2'b11;
       d.mem_read <= q[7:6] != 2'b11;
       d.disp_size <= calc_disp_size(q[2:0], q[7:6]);
@@ -425,8 +409,6 @@ task process_ROOT_11110110(input bit [7:0] q);
       d.opcode <= OP_ALU;
       d.alu_operation <= ALU_OP_NEG;
       d.width <= BYTE;
-      d.cycles <= 2;
-      d.mem_cycles <= 5;
       d.mem_write <= q[7:6] != 2'b11;
       d.mem_read <= q[7:6] != 2'b11;
       d.disp_size <= calc_disp_size(q[2:0], q[7:6]);
@@ -507,8 +489,6 @@ task process_ROOT_11110111(input bit [7:0] q);
       d.opcode <= OP_ALU;
       d.alu_operation <= ALU_OP_AND;
       d.width <= WORD;
-      d.cycles <= 2;
-      d.mem_cycles <= 4;
       d.mem_read <= q[7:6] != 2'b11;
       d.disp_size <= calc_disp_size(q[2:0], q[7:6]);
       d.segment <= d.segment_override ? d.segment : calc_seg(q[2:0], q[7:6]);;
@@ -522,8 +502,6 @@ task process_ROOT_11110111(input bit [7:0] q);
       d.opcode <= OP_ALU;
       d.alu_operation <= ALU_OP_NOT;
       d.width <= WORD;
-      d.cycles <= 2;
-      d.mem_cycles <= 5;
       d.mem_write <= q[7:6] != 2'b11;
       d.mem_read <= q[7:6] != 2'b11;
       d.disp_size <= calc_disp_size(q[2:0], q[7:6]);
@@ -538,8 +516,6 @@ task process_ROOT_11110111(input bit [7:0] q);
       d.opcode <= OP_ALU;
       d.alu_operation <= ALU_OP_NEG;
       d.width <= WORD;
-      d.cycles <= 2;
-      d.mem_cycles <= 5;
       d.mem_write <= q[7:6] != 2'b11;
       d.mem_read <= q[7:6] != 2'b11;
       d.disp_size <= calc_disp_size(q[2:0], q[7:6]);
@@ -857,8 +833,6 @@ task process_ROOT_10001111(input bit [7:0] q);
       d.rm <= q[2:0];
       d.opcode <= OP_POP;
       d.width <= WORD;
-      d.cycles <= 1;
-      d.mem_cycles <= 1;
       d.pop <= STACK_OPERAND;
       d.mem_write <= q[7:6] != 2'b11;
       d.disp_size <= calc_disp_size(q[2:0], q[7:6]);
@@ -1215,8 +1189,8 @@ task process_ROOT(input bit [7:0] q);
       d.alu_operation <= ALU_OP_ADJ4A;
       d.reg0 <= AW;
       d.width <= WORD;
-      d.cycles <= 2;
-      d.mem_cycles <= 2;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
       d.dest <= OPERAND_REG_0;
       d.source0 <= OPERAND_REG_0;
       state <= TERMINAL;
@@ -1226,8 +1200,8 @@ task process_ROOT(input bit [7:0] q);
       d.alu_operation <= ALU_OP_ADJ4S;
       d.reg0 <= AW;
       d.width <= WORD;
-      d.cycles <= 2;
-      d.mem_cycles <= 2;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
       d.dest <= OPERAND_REG_0;
       d.source0 <= OPERAND_REG_0;
       state <= TERMINAL;
@@ -1237,8 +1211,8 @@ task process_ROOT(input bit [7:0] q);
       d.alu_operation <= ALU_OP_ADJBA;
       d.reg0 <= AW;
       d.width <= WORD;
-      d.cycles <= 4;
-      d.mem_cycles <= 4;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
       d.dest <= OPERAND_REG_0;
       d.source0 <= OPERAND_REG_0;
       state <= TERMINAL;
@@ -1248,8 +1222,8 @@ task process_ROOT(input bit [7:0] q);
       d.alu_operation <= ALU_OP_ADJBS;
       d.reg0 <= AW;
       d.width <= WORD;
-      d.cycles <= 4;
-      d.mem_cycles <= 4;
+      d.cycles <= 3;
+      d.mem_cycles <= 3;
       d.dest <= OPERAND_REG_0;
       d.source0 <= OPERAND_REG_0;
       state <= TERMINAL;
@@ -1376,92 +1350,66 @@ task process_ROOT(input bit [7:0] q);
     end
     8'b01010000: begin
       d.opcode <= OP_PUSH;
-      d.cycles <= 1;
-      d.mem_cycles <= 1;
       d.push <= STACK_AW;
       state <= TERMINAL;
     end
     8'b01010001: begin
       d.opcode <= OP_PUSH;
-      d.cycles <= 1;
-      d.mem_cycles <= 1;
       d.push <= STACK_CW;
       state <= TERMINAL;
     end
     8'b01010010: begin
       d.opcode <= OP_PUSH;
-      d.cycles <= 1;
-      d.mem_cycles <= 1;
       d.push <= STACK_DW;
       state <= TERMINAL;
     end
     8'b01010011: begin
       d.opcode <= OP_PUSH;
-      d.cycles <= 1;
-      d.mem_cycles <= 1;
       d.push <= STACK_BW;
       state <= TERMINAL;
     end
     8'b01010100: begin
       d.opcode <= OP_PUSH;
-      d.cycles <= 1;
-      d.mem_cycles <= 1;
       d.push <= STACK_SP;
       state <= TERMINAL;
     end
     8'b01010101: begin
       d.opcode <= OP_PUSH;
-      d.cycles <= 1;
-      d.mem_cycles <= 1;
       d.push <= STACK_BP;
       state <= TERMINAL;
     end
     8'b01010110: begin
       d.opcode <= OP_PUSH;
-      d.cycles <= 1;
-      d.mem_cycles <= 1;
       d.push <= STACK_IX;
       state <= TERMINAL;
     end
     8'b01010111: begin
       d.opcode <= OP_PUSH;
-      d.cycles <= 1;
-      d.mem_cycles <= 1;
       d.push <= STACK_IY;
       state <= TERMINAL;
     end
     8'b00000110: begin
       d.opcode <= OP_PUSH;
-      d.cycles <= 1;
-      d.mem_cycles <= 1;
       d.push <= STACK_DS1;
       state <= TERMINAL;
     end
     8'b00001110: begin
       d.opcode <= OP_PUSH;
-      d.cycles <= 1;
-      d.mem_cycles <= 1;
       d.push <= STACK_PS;
       state <= TERMINAL;
     end
     8'b00010110: begin
       d.opcode <= OP_PUSH;
-      d.cycles <= 1;
-      d.mem_cycles <= 1;
       d.push <= STACK_SS;
       state <= TERMINAL;
     end
     8'b00011110: begin
       d.opcode <= OP_PUSH;
-      d.cycles <= 1;
-      d.mem_cycles <= 1;
       d.push <= STACK_DS0;
       state <= TERMINAL;
     end
     8'b10011100: begin
       d.opcode <= OP_PUSH;
-      d.cycles <= 1;
-      d.mem_cycles <= 1;
       d.push <= STACK_PSW;
       state <= TERMINAL;
     end
@@ -1475,8 +1423,6 @@ task process_ROOT(input bit [7:0] q);
     8'b01101010: begin
       d.opcode <= OP_PUSH;
       d.width <= BYTE;
-      d.cycles <= 1;
-      d.mem_cycles <= 1;
       d.push <= STACK_OPERAND;
       d.source0 <= OPERAND_IMM;
       state <= TERMINAL;
@@ -1484,8 +1430,6 @@ task process_ROOT(input bit [7:0] q);
     8'b01101000: begin
       d.opcode <= OP_PUSH;
       d.width <= WORD;
-      d.cycles <= 1;
-      d.mem_cycles <= 1;
       d.push <= STACK_OPERAND;
       d.source0 <= OPERAND_IMM;
       state <= TERMINAL;
@@ -1602,44 +1546,30 @@ task process_ROOT(input bit [7:0] q);
     end
     8'b11110101: begin
       d.opcode <= OP_NOT1_CY;
-      d.cycles <= 2;
-      d.mem_cycles <= 2;
       state <= TERMINAL;
     end
     8'b11111000: begin
       d.opcode <= OP_CLR1_CY;
-      d.cycles <= 2;
-      d.mem_cycles <= 2;
       state <= TERMINAL;
     end
     8'b11111001: begin
       d.opcode <= OP_SET1_CY;
-      d.cycles <= 2;
-      d.mem_cycles <= 2;
       state <= TERMINAL;
     end
     8'b11111010: begin
       d.opcode <= OP_DI;
-      d.cycles <= 2;
-      d.mem_cycles <= 2;
       state <= TERMINAL;
     end
     8'b11111011: begin
       d.opcode <= OP_EI;
-      d.cycles <= 2;
-      d.mem_cycles <= 2;
       state <= TERMINAL;
     end
     8'b11111100: begin
       d.opcode <= OP_CLR1_DIR;
-      d.cycles <= 2;
-      d.mem_cycles <= 2;
       state <= TERMINAL;
     end
     8'b11111101: begin
       d.opcode <= OP_SET1_DIR;
-      d.cycles <= 2;
-      d.mem_cycles <= 2;
       state <= TERMINAL;
     end
     8'b01100010: begin
@@ -1740,8 +1670,6 @@ task process_ROOT(input bit [7:0] q);
       d.width <= q[0] ? WORD : BYTE;
       d.opcode <= OP_ALU;
       d.alu_operation <= ALU_OP_CMP;
-      d.cycles <= 2;
-      d.mem_cycles <= 2;
       d.source0 <= OPERAND_ACC;
       d.source1 <= OPERAND_IMM;
       state <= TERMINAL;
@@ -1754,8 +1682,6 @@ task process_ROOT(input bit [7:0] q);
       d.width <= q[0] ? WORD : BYTE;
       d.opcode <= OP_ALU;
       d.alu_operation <= ALU_OP_AND;
-      d.cycles <= 2;
-      d.mem_cycles <= 2;
       d.source0 <= OPERAND_ACC;
       d.source1 <= OPERAND_IMM;
       state <= TERMINAL;

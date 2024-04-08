@@ -66,39 +66,77 @@ if __name__ == '__main__':
     start_start = False
     start_end = False
     cycles = 0
+    section_start = 0
+    section_cycles = []
+    kvp = {}
+    edge = {}
+    state = 'init'
     for time, clk_val in clk:
-        kvp = {}
         for name, ser in series.items():
-            val = get_value(ser, time)
-            kvp[name] = int(val)
-
-        if kvp['M/IO'] == 0 and not start_start:
-            start_start = True
-            continue
-
-        if kvp['M/IO'] == 1 and start_start and not start_end:
-            start_end = True
-        
-
-        if kvp['M/IO'] == 0 and start_start and start_end:
-            break
-
-        if not start_end:
-            continue
+            val = int(get_value(ser, time))
+            old_val = kvp.get(name, 0)
+            if val == old_val:
+                if val:
+                    edge[name] = 'H'
+                else:
+                    edge[name] = 'L'
+            elif val == 1:
+                edge[name] = 'R'
+            else:
+                edge[name] = 'F'
+            kvp[name] = val
 
         addr = 0
         for a in ['A7', 'A6', 'A5', 'A4', 'A3', 'A2', 'A1', 'A0']:
             addr = (addr * 2) + kvp[a]
         
-        line = f'{cycles:03d} CLK={clk_val}'
+        io_strobe = edge['M/IO'] == 'L' and edge['/DSTB'] == 'F'
 
-        for n in ['/DSTB', '/BCYST', 'BUSST0', 'BUSST1', 'M/IO', 'R/W', '/BUSLOCK']:
-            line += f' {n}={kvp[n]}'
+        if state == 'init':
+            if addr == 0xad and io_strobe:
+                state = 'wait'
+
+        if state == 'wait':
+            if edge['M/IO'] == 'R':
+                state = 'dump'
+
+        if state == 'dump':
+            if addr == 0xad and io_strobe:
+                state = 'exit'
         
-        line += f' A={addr:02x}\n'
+        if state == 'exit':
+            break
 
-        fp.write(line)
+        if state == 'dump':
+            if io_strobe and addr == 0xf2:
+                section_start = cycles
 
-        if clk_val == '2':
-            cycles += 1
+            if io_strobe and addr == 0xf4:
+                section_cycles.append(cycles - section_start)
+
+            line = f'CLK={clk_val}'
+
+            for n in ['/DSTB', '/BCYST', 'BUSST0', 'BUSST1', 'M/IO', 'R/W', '/BUSLOCK']:
+                line += f' {n}={kvp[n]}'
+            
+            line += f' A={addr:02x}\n'
+
+            fp.write(line)
+
+            if clk_val == '1':
+                cycles += 1
+
+    fp.close()
+
+    if len(section_cycles):
+        fp = None
+        if len(sys.argv) > 2:
+            fp = open(sys.argv[2] + ".cycles", 'wt')
+        else:
+            fp = sys.stdout
+        
+        fp.write("hw_cycles\n")
+        for c in section_cycles:
+            fp.write(f"{c}\n")
+        fp.close()
 

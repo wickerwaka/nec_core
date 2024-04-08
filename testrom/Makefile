@@ -13,7 +13,7 @@ endif
 
 C_SRCS = main.c comms.c interrupts_default.c init.c printf/printf.c
 ASM_SRCS = entry.S
-NASM_SRCS = tests.asm timing.asm
+NASM_SRCS = tests.asm timing.asm combined.asm
 
 BUILD_DIR = build/$(TARGET)
 ORIGINAL_DIR = original_roms

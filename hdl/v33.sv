@@ -626,7 +626,7 @@ always_ff @(posedge clk) begin
                         if (next_decode.mem_read && next_decode.opcode != OP_LDEA)
                             state <= FETCH_OPERAND;
                         else if (next_decode.push != 16'd0)
-                            state <= PUSH_STALL;
+                            state <= PUSH;
                         else if (next_decode.pop != 16'd0)
                             state <= POP;
                         else if (next_decode.opclass == BRANCH)
@@ -655,7 +655,7 @@ always_ff @(posedge clk) begin
                     state <= WAIT_OPERAND2;
                 end else begin
                     if (push_list != 16'd0)
-                        state <= PUSH_STALL;
+                        state <= PUSH;
                     else if (pop_list != 16'd0)
                         state <= POP;
                     else if (decoded.opclass == BRANCH)
@@ -671,7 +671,7 @@ always_ff @(posedge clk) begin
                 TB <= dp_din;
 
                 if (push_list != 16'd0)
-                    state <= PUSH_STALL;
+                    state <= PUSH;
                 else if (pop_list != 16'd0)
                     state <= POP;
                 else if (decoded.opclass == BRANCH)
