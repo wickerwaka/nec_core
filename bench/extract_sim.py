@@ -28,6 +28,7 @@ def read_vcd(name: str):
     vcd = VcdParser()
     vcd.parse(fp)
     vcd_obj = vcd.scope.toJson()
+    print("Done reading")
     return vcd_obj
 
 if __name__ == '__main__':

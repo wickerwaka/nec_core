@@ -1,28 +1,48 @@
 BITS 16
 
-%macro single_op 1
+%macro multi_op_begin 0
+    mov ax, ss
+    mov es, ax
+    mov ds, ax
+    mov ax, 0x8000
+    mov sp, ax
+    mov bp, ax
+    mov si, ax
+    mov di, ax
+    xor bx, bx
+
     align 2
     mov cl, 11 ; 2
     ror ax, cl ; 2
     in al, 0xf2 ; 2
+%endmacro
+
+%macro multi_op_end 0
+    in al, 0xf4
+%endmacro
+
+%macro single_op 1
+    multi_op_begin
     %rep 64
     %1
     %endrep
-    in al, 0xf4
+    multi_op_end
 %endmacro
+
+%macro block_op 1
+    multi_op_begin
+    %rep 8
+    mov cx, 256
+    rep %1
+    %endrep
+    multi_op_end
+%endmacro
+
 
 
 global combined_timing
 combined_timing:
     enter 4096, 0
-    mov ax, ss
-    mov es, ax
-    mov si, sp
-    mov di, sp
-
-    mov ax, 0xb000
-    mov ds, ax
-    xor bx, bx
 
 .start:
 
@@ -62,6 +82,24 @@ combined_timing:
     single_op { cmp cx, [bx] }
     single_op { cmp cx, [bx+0x02] }
     single_op { cmp cx, ss:[bx+0x02] }
+
+    single_op { stosb }
+    single_op { stosw }
+    single_op { lodsb }
+    single_op { lodsw }
+    single_op { movsb }
+    single_op { movsw }
+    single_op { cmpsb }
+    single_op { cmpsw }
+
+    block_op { stosb }
+    block_op { stosw }
+    block_op { lodsb }
+    block_op { lodsw }
+    block_op { movsb }
+    block_op { movsw }
+    block_op { cmpsb }
+    block_op { cmpsw }
 
     mov dx, 0xdead
     out dx, al
