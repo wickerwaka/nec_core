@@ -29,3 +29,19 @@ cmp cx, 0x0101
 cmp cx, [bx]
 cmp cx, [bx+0x02]
 cmp cx, ss:[bx+0x02]
+stosb
+stosw
+lodsb
+lodsw
+movsb
+movsw
+cmpsb
+cmpsw
+rep stosb
+rep stosw
+rep lodsb
+rep lodsw
+rep movsb
+rep movsw
+rep cmpsb
+rep cmpsw

@@ -538,6 +538,7 @@ reg stack_modified_pc, stack_modified_ps;
 
 reg [9:0] cycles;
 reg [9:0] op_cycles;
+reg [9:0] exec_delay;
 
 always_ff @(posedge clk) begin
     bit [15:0] addr;
@@ -598,6 +599,7 @@ always_ff @(posedge clk) begin
                 stack_modified_ps <= 0;
 
                 exec_stage <= 4'd0;
+                exec_delay <= 10'd0;
 
                 if (n_buslock | dp_ready) begin
                     op_cycles <= 10'd0;
@@ -626,7 +628,7 @@ always_ff @(posedge clk) begin
                         if (next_decode.mem_read && next_decode.opcode != OP_LDEA)
                             state <= FETCH_OPERAND;
                         else if (next_decode.push != 16'd0)
-                            state <= PUSH;
+                            state <= PUSH_STALL;
                         else if (next_decode.pop != 16'd0)
                             state <= POP;
                         else if (next_decode.opclass == BRANCH)
@@ -729,7 +731,9 @@ always_ff @(posedge clk) begin
                 bit working;
                 bit exception;
 
-                if (dp_ready & ce_1) begin
+                if (dp_ready & ce_1 & |exec_delay) begin
+                    exec_delay <= exec_delay - 10'd1;
+                end else if (dp_ready & ce_1) begin
                     working = 0;
                     exception = 0;
                     
@@ -827,6 +831,7 @@ always_ff @(posedge clk) begin
 
                         OP_STM: begin
                             bit do_work = 1;
+                            delay = 1;
                             if (decoded.rep != REPEAT_NONE) begin
                                 if (reg_cw == 16'd0) begin
                                     do_work = 0;
@@ -903,6 +908,8 @@ always_ff @(posedge clk) begin
                                 end
                                 exec_stage <= 0;
 
+                                delay = 2;
+
                                 if (decoded.rep != REPEAT_NONE) working = reg_cw != 16'd0;
                             end
                         end
@@ -941,6 +948,7 @@ always_ff @(posedge clk) begin
                                 working = 1;
                                 flags <= alu_flags_result;
                                 exec_stage <= 0;
+                                delay = 3;
                                 if (decoded.rep != REPEAT_NONE) begin
                                     if (reg_cw == 16'd0) working = 0;
                                     else if (decoded.rep == REPEAT_NZ) working = ~alu_flags_result.Z;
@@ -1218,6 +1226,8 @@ always_ff @(posedge clk) begin
                                 //block_prefetch <= decoded.mem_write;
                             end
                         end
+                    end else begin
+                        exec_delay <= delay;
                     end
                 end
             end // EXECUTE
@@ -1297,7 +1307,7 @@ always_ff @(posedge clk) begin
                         state <= EXECUTE;
                     end
                 end else begin
-                    if (mem_write) begin
+                    if (1) begin
                         state <= POP;
                     end else begin
                         if (skip_sp) begin
@@ -1378,8 +1388,6 @@ always_ff @(posedge clk) begin
                 if (~&cycles) cycles <= cycles + 10'd1;
                 if (cycles >= op_cycles) begin
                     state <= STORE_REGISTER;
-                    //block_prefetch <= decoded.mem_write;
-                    //retire_op <= 1;
                 end
             end
 
