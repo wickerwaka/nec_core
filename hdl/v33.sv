@@ -470,7 +470,7 @@ nec_decode nec_decode(
 );
 
 alu_operation_e alu_operation;
-wire [31:0] alu_result;
+wire [15:0] alu_result;
 flags_t alu_flags_result;
 reg use_alu_result;
 reg alu_wide;
@@ -516,6 +516,7 @@ assign bcu_intreq = state == INT_ACK_WAIT;
 
 reg [15:0] calculated_ea;
 reg [15:0] op_result;
+reg [15:0] op_result_high;
 
 reg [15:0] branch_new_pc;
 reg [15:0] branch_new_ps;
@@ -903,7 +904,6 @@ always_ff @(posedge clk) begin
                                     read_memory(reg_ix, decoded.segment, decoded.width, 0);
                                     working = 1;
                                 end
-                                delay = 1;
                             end else begin
                                 write_memory(reg_iy, DS1, decoded.width, dp_din, 0);
                                 if (flags.DIR) begin
@@ -915,13 +915,11 @@ always_ff @(posedge clk) begin
                                 end
                                 exec_stage <= 0;
 
-                                delay = 2;
-
                                 if (decoded.rep != REPEAT_NONE) begin
                                     working = reg_cw != 16'd0;
-                                    delay = 1;
-                                end else begin
                                     delay = 2;
+                                end else begin
+                                    delay = 3;
                                 end
                             end
                         end
@@ -1071,6 +1069,42 @@ always_ff @(posedge clk) begin
                                 end
                             end
                         end
+
+                        OP_MULU: begin
+                            flags.CY <= 0;
+                            flags.V <= 0;
+                            result32 = TA * TB;
+                            if (decoded.width == WORD) begin
+                                flags.CY <= |result32[31:16];
+                                flags.V <= |result32[31:16];
+                            end else begin
+                                flags.CY <= |result32[31:8];
+                                flags.V <= |result32[31:8];
+                            end
+                            op_result <= result32[15:0];
+                            op_result_high <= result32[31:16];
+                        end
+                        
+                        OP_MUL: begin 
+                            flags.CY <= 0;
+                            flags.V <= 0;
+
+                            if (decoded.width == WORD) begin
+                                result32 = $signed(TA) * $signed(TB);
+                                if (16'd0 != result32[31:16]) begin
+                                    flags.CY <= 1;
+                                    flags.V <= 1;
+                                end
+                            end else begin
+                                result32[15:0] = $signed(TA[7:0]) * $signed(TB[7:0]);
+                                if (8'd0 != result32[15:8]) begin
+                                    flags.CY <= 1;
+                                    flags.V <= 1;
+                                end
+                            end
+                            op_result <= result32[15:0];
+                            op_result_high <= result32[31:16];
+                        end                              
 
                         OP_PREPARE: begin
                             working = exec_stage != 3;
@@ -1406,7 +1440,7 @@ always_ff @(posedge clk) begin
 
             STORE_MEMORY: begin
                 if (ce_1 & dp_ready) begin
-                    result32 = use_alu_result ? alu_result : { 16'd0, op_result };
+                    result32 = use_alu_result ? { 16'd0, alu_result } : { op_result_high, op_result };
                     write_memory(calculated_ea, store_decoded.segment, store_decoded.width, result32[15:0], store_decoded.io);
                     state <= IDLE;
                 end
@@ -1415,8 +1449,7 @@ always_ff @(posedge clk) begin
             STORE_REGISTER: begin
                  if (ce_2) begin
                     if (1) begin
-                        result32 = use_alu_result ? alu_result : { 16'd0, op_result };
-
+                        result32 = use_alu_result ? { 16'd0, alu_result } : { op_result_high, op_result };
                         case(store_decoded.dest)
                         OPERAND_ACC: begin
                             if (store_decoded.width == BYTE)

@@ -11,7 +11,7 @@ module alu(
     input [15:0] ta,
     input [15:0] tb,
     input wide,
-    output [31:0] result,
+    output [15:0] result,
 
     output [9:0]  alu_cycles,
 
@@ -28,8 +28,6 @@ always_comb begin
     bit [16:0] temp17;
     bit [16:0] temp17_2;
     bit [8:0] temp9;
-    bit [31:0] result32;
-    bit use_result32;
     bit [17:0] sh18;
     bit [33:0] sh34;
     bit [5:0] sz;
@@ -42,8 +40,6 @@ always_comb begin
     calc_parity = 0;
     calc_sign = 0;
     calc_zero = 0;
-    use_result32 = 0;
-    result32 = 32'd0;
     res = 16'd0;
     temp17 = 17'd0;
     temp9 = 9'd0;
@@ -424,53 +420,14 @@ always_comb begin
         calc_parity = 1; calc_sign = 1; calc_zero = 1;
     end
 
-    ALU_OP_MULU: begin
-        flags.CY = 0;
-        flags.V = 0;
-        use_result32 = 1;
-        result32 = ta * tb;
-        if (wide) begin
-            flags.CY = |result32[31:16];
-            flags.V = |result32[31:16];
-        end else begin
-            flags.CY = |result32[31:8];
-            flags.V = |result32[31:8];
-        end
-    end
-    
-    ALU_OP_MUL: begin 
-        flags.CY = 0;
-        flags.V = 0;
-
-        use_result32 = 1;
-
-        if (wide) begin
-            result32 = $signed(ta) * $signed(tb);
-            if (16'd0 != result32[31:16]) begin
-                flags.CY = 1;
-                flags.V = 1;
-            end
-        end else begin
-            result32[15:0] = $signed(ta[7:0]) * $signed(tb[7:0]);
-            if (8'd0 != result32[15:8]) begin
-                flags.CY = 1;
-                flags.V = 1;
-            end
-        end
-    end                              
-
     default: begin end
     endcase
 
-    if (use_result32) begin
-        result = result32;
-    end else begin
-        if (calc_parity) flags.P = ~(res[0] ^ res[1] ^ res[2] ^ res[3] ^ res[4] ^ res[5] ^ res[6] ^ res[7]);
-        if (calc_sign) flags.S = wide ? res[15] : res[7];
-        if (calc_zero) flags.Z = wide ? res[15:0] == 16'd0 : res[7:0] == 8'd0;
+    if (calc_parity) flags.P = ~(res[0] ^ res[1] ^ res[2] ^ res[3] ^ res[4] ^ res[5] ^ res[6] ^ res[7]);
+    if (calc_sign) flags.S = wide ? res[15] : res[7];
+    if (calc_zero) flags.Z = wide ? res[15:0] == 16'd0 : res[7:0] == 8'd0;
 
-        result = { 16'd0, wide ? res[15:0] : { 8'd0, res[7:0] } };
-    end
+    result = wide ? res[15:0] : { 8'd0, res[7:0] };
 end
 
 endmodule

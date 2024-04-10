@@ -246,8 +246,7 @@ b11110111_MD_011_MEM:
 #
 b11110110_MD_100_MEM:
   desc: MULU mem/reg
-  op: ALU
-  alu: MULU
+  op: MULU
   dst: PRODUCT
   src0: ACC
   src1: MODRM
@@ -257,8 +256,7 @@ b11110110_MD_100_MEM:
 
 b11110110_MD_101_MEM:
   desc: MUL mem/reg
-  op: ALU
-  alu: MUL
+  op: MUL
   dst: PRODUCT
   src0: ACC
   src1: MODRM
@@ -268,8 +266,7 @@ b11110110_MD_101_MEM:
 
 b11110111_MD_100_MEM:
   desc: MULU mem/reg
-  op: ALU
-  alu: MULU
+  op: MULU
   dst: PRODUCT
   src0: ACC
   src1: MODRM
@@ -279,8 +276,7 @@ b11110111_MD_100_MEM:
 
 b11110111_MD_101_MEM:
   desc: MUL mem/reg
-  op: ALU
-  alu: MUL
+  op: MUL
   dst: PRODUCT
   src0: ACC
   src1: MODRM
@@ -290,8 +286,7 @@ b11110111_MD_101_MEM:
 
 b01101011_MD_GP0_MEM:
   desc: MUL reg, mem/reg, sext_imm8
-  op: ALU
-  alu: MUL
+  op: MUL
   dst: REG_0
   src0: MODRM
   src1: IMM_EXT
@@ -301,8 +296,7 @@ b01101011_MD_GP0_MEM:
 
 b01101001_MD_GP0_MEM:
   desc: MUL reg, mem/reg, imm16
-  op: ALU
-  alu: MUL
+  op: MUL
   dst: REG_0
   src0: MODRM
   src1: IMM

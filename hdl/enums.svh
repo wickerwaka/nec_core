@@ -79,20 +79,22 @@ typedef enum bit [5:0] {
     OP_CVTWL         = 6'b100110,
     OP_DIV           = 6'b100111,
     OP_DIVU          = 6'b101000,
-    OP_PREPARE       = 6'b101001,
-    OP_DISPOSE       = 6'b101010,
-    OP_CHKIND        = 6'b101011,
-    OP_TRANS         = 6'b101100,
-    OP_BRK3          = 6'b101101,
-    OP_BRK           = 6'b101110,
-    OP_BRKV          = 6'b101111,
-    OP_ADD4S         = 6'b110000,
-    OP_SUB4S         = 6'b110001,
-    OP_CMP4S         = 6'b110010,
-    OP_ROR4          = 6'b110011,
-    OP_ROL4          = 6'b110100,
-    OP_PUSH          = 6'b110101,
-    OP_POP           = 6'b110110
+    OP_MUL           = 6'b101001,
+    OP_MULU          = 6'b101010,
+    OP_PREPARE       = 6'b101011,
+    OP_DISPOSE       = 6'b101100,
+    OP_CHKIND        = 6'b101101,
+    OP_TRANS         = 6'b101110,
+    OP_BRK3          = 6'b101111,
+    OP_BRK           = 6'b110000,
+    OP_BRKV          = 6'b110001,
+    OP_ADD4S         = 6'b110010,
+    OP_SUB4S         = 6'b110011,
+    OP_CMP4S         = 6'b110100,
+    OP_ROR4          = 6'b110101,
+    OP_ROL4          = 6'b110110,
+    OP_PUSH          = 6'b110111,
+    OP_POP           = 6'b111000
 } opcode_e /* verilator public */;
 
 typedef enum bit [5:0] {
@@ -130,9 +132,7 @@ typedef enum bit [5:0] {
     ALU_OP_CLR1  = 6'b011111,
     ALU_OP_TEST1 = 6'b100000,
     ALU_OP_NOT1  = 6'b100001,
-    ALU_OP_MULU  = 6'b100010,
-    ALU_OP_MUL   = 6'b100011,
-    ALU_OP_NONE  = 6'b100100
+    ALU_OP_NONE  = 6'b100010
 } alu_operation_e /* verilator public */;
 
 typedef enum bit [3:0] {

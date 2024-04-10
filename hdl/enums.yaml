@@ -82,6 +82,8 @@ opcode_e:
     - CVTWL
     - DIV
     - DIVU
+    - MUL
+    - MULU
     - PREPARE
     - DISPOSE
     - CHKIND
@@ -134,8 +136,6 @@ alu_operation_e:
     - CLR1
     - TEST1
     - NOT1
-    - MULU
-    - MUL
     - NONE
 
 operand_e:

@@ -74,20 +74,22 @@
     <symbol name="CVTWL" value="100110" />
     <symbol name="DIV" value="100111" />
     <symbol name="DIVU" value="101000" />
-    <symbol name="PREPARE" value="101001" />
-    <symbol name="DISPOSE" value="101010" />
-    <symbol name="CHKIND" value="101011" />
-    <symbol name="TRANS" value="101100" />
-    <symbol name="BRK3" value="101101" />
-    <symbol name="BRK" value="101110" />
-    <symbol name="BRKV" value="101111" />
-    <symbol name="ADD4S" value="110000" />
-    <symbol name="SUB4S" value="110001" />
-    <symbol name="CMP4S" value="110010" />
-    <symbol name="ROR4" value="110011" />
-    <symbol name="ROL4" value="110100" />
-    <symbol name="PUSH" value="110101" />
-    <symbol name="POP" value="110110" />
+    <symbol name="MUL" value="101001" />
+    <symbol name="MULU" value="101010" />
+    <symbol name="PREPARE" value="101011" />
+    <symbol name="DISPOSE" value="101100" />
+    <symbol name="CHKIND" value="101101" />
+    <symbol name="TRANS" value="101110" />
+    <symbol name="BRK3" value="101111" />
+    <symbol name="BRK" value="110000" />
+    <symbol name="BRKV" value="110001" />
+    <symbol name="ADD4S" value="110010" />
+    <symbol name="SUB4S" value="110011" />
+    <symbol name="CMP4S" value="110100" />
+    <symbol name="ROR4" value="110101" />
+    <symbol name="ROL4" value="110110" />
+    <symbol name="PUSH" value="110111" />
+    <symbol name="POP" value="111000" />
   </table>
   <table name="alu_operation_e" width="6">
     <symbol name="ADD" value="000000" />
@@ -124,9 +126,7 @@
     <symbol name="CLR1" value="011111" />
     <symbol name="TEST1" value="100000" />
     <symbol name="NOT1" value="100001" />
-    <symbol name="MULU" value="100010" />
-    <symbol name="MUL" value="100011" />
-    <symbol name="NONE" value="100100" />
+    <symbol name="NONE" value="100010" />
   </table>
   <table name="operand_e" width="4">
     <symbol name="NONE" value="0000" />
