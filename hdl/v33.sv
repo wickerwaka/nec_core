@@ -628,7 +628,7 @@ always_ff @(posedge clk) begin
                         if (next_decode.mem_read && next_decode.opcode != OP_LDEA)
                             state <= FETCH_OPERAND;
                         else if (next_decode.push != 16'd0)
-                            state <= PUSH_STALL;
+                            state <= PUSH;
                         else if (next_decode.pop != 16'd0)
                             state <= POP;
                         else if (next_decode.opclass == BRANCH)
@@ -831,7 +831,6 @@ always_ff @(posedge clk) begin
 
                         OP_STM: begin
                             bit do_work = 1;
-                            delay = 1;
                             if (decoded.rep != REPEAT_NONE) begin
                                 if (reg_cw == 16'd0) begin
                                     do_work = 0;
@@ -839,6 +838,9 @@ always_ff @(posedge clk) begin
                                     reg_cw <= reg_cw - 16'd1;
                                     working = reg_cw == 16'd1 ? 0 : 1;
                                 end
+                                delay = 1;
+                            end else begin
+                                delay = 3;
                             end
 
                             if (do_work) begin
@@ -878,7 +880,11 @@ always_ff @(posedge clk) begin
                                 end
                                 exec_stage <= 0;
 
-                                if (decoded.rep != REPEAT_NONE) working = reg_cw != 16'd0;
+                                if (decoded.rep != REPEAT_NONE) begin
+                                    working = reg_cw != 16'd0;
+                                end else begin
+                                    delay = 2;
+                                end
                             end
                         end
 
@@ -897,6 +903,7 @@ always_ff @(posedge clk) begin
                                     read_memory(reg_ix, decoded.segment, decoded.width, 0);
                                     working = 1;
                                 end
+                                delay = 1;
                             end else begin
                                 write_memory(reg_iy, DS1, decoded.width, dp_din, 0);
                                 if (flags.DIR) begin
@@ -910,7 +917,12 @@ always_ff @(posedge clk) begin
 
                                 delay = 2;
 
-                                if (decoded.rep != REPEAT_NONE) working = reg_cw != 16'd0;
+                                if (decoded.rep != REPEAT_NONE) begin
+                                    working = reg_cw != 16'd0;
+                                    delay = 1;
+                                end else begin
+                                    delay = 2;
+                                end
                             end
                         end
                         OP_CMPBK: begin
@@ -948,14 +960,15 @@ always_ff @(posedge clk) begin
                                 working = 1;
                                 flags <= alu_flags_result;
                                 exec_stage <= 0;
-                                delay = 3;
                                 if (decoded.rep != REPEAT_NONE) begin
+                                    delay = 3;
                                     if (reg_cw == 16'd0) working = 0;
                                     else if (decoded.rep == REPEAT_NZ) working = ~alu_flags_result.Z;
                                     else if (decoded.rep == REPEAT_Z) working = alu_flags_result.Z;
                                     else if (decoded.rep == REPEAT_NC) working = ~alu_flags_result.CY;
                                     else if (decoded.rep == REPEAT_C) working = alu_flags_result.CY;
                                 end else begin
+                                    delay = 5;
                                     working = 0;
                                 end
                             end
@@ -1322,7 +1335,7 @@ always_ff @(posedge clk) begin
                 end
             end // POP_WAIT
 
-            PUSH_STALL: if (ce_1) begin
+            PUSH_STALL: if (dp_ready & ce_1) begin
                 state <= PUSH;
             end
 
@@ -1368,7 +1381,7 @@ always_ff @(posedge clk) begin
                     if (state == INT_PUSH) begin
                         state <= INT_FETCH_VEC;
                     end else if (decoded.opcode == OP_PUSH) begin
-                        state <= IDLE;
+                        state <= EXECUTE;
                     end else if (decoded.opclass == BRANCH) begin
                         state <= BRANCHING;
                     end else begin

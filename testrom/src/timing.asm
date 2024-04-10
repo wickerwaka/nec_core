@@ -372,6 +372,32 @@ align 2
 test_end
 
 
+align 256
+global push_ax
+push_ax:
+    mov dx, 0xdead
+    std
+    jmp .inner_loop
+align 16
+.inner_loop:
+    mov sp, 0x8000
+    %rep 32
+    push ax
+    %endrep
+test_end
+
+align 256
+global stosw_reverse
+stosw_reverse:
+    mov dx, 0xdead
+    std
+    jmp .inner_loop
+align 16
+.inner_loop:
+    mov di, 0x7ffe
+    %rep 32
+    stosw
+    %endrep
 test_end
 
 align 256

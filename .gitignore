@@ -2,3 +2,4 @@ build/
 .hdl_checker/
 *.bak
 .DS_Store
+**/combined_timing.txt

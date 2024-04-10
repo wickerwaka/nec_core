@@ -3,7 +3,7 @@ VERILATOR = verilator
 VERILATOR_ARGS = --exe --cc --build -j 8 --trace --Mdir $(BUILD_DIR) -Ihdl --MMD --MP $(VERILATOR_DEFINES)
 PYTHON = python3
 
-VERILATOR_DEFINES = # -DFULL_OPERAND_FETCH
+VERILATOR_DEFINES = #-DONE_CYCLE_DECODE_DELAY # -DFULL_OPERAND_FETCH
 
 HDL_SRC = hdl/types.sv \
 		  hdl/bus_control_unit.sv \
@@ -40,7 +40,9 @@ TIMING_TESTS = \
 				rol_5 \
 				lock_nop_loop \
 				two_cycle_1_w_lock \
-				combined_timing
+				combined_timing \
+				push_ax \
+				stosw_reverse
 
 TIMING_TEST_TRACES = $(patsubst %,traces/sim/%.txt,$(TIMING_TESTS))
 
