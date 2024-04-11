@@ -114,8 +114,8 @@ task process_ROOT_1101000x(input bit [7:0] q);
     8'bxxxxxxxx: begin
       d.mod <= q[7:6];
       d.rm <= q[2:0];
-      d.shift <= q[5:3];
-      d.opcode <= OP_SHIFT_1;
+      d.shift <= shift_operation_e'(q[5:3]);
+      d.opcode <= OP_SHIFT1;
       d.mem_write <= q[7:6] != 2'b11;
       d.mem_read <= q[7:6] != 2'b11;
       d.disp_size <= calc_disp_size(q[2:0], q[7:6]);
@@ -135,16 +135,16 @@ task process_ROOT_1101001x(input bit [7:0] q);
     8'bxxxxxxxx: begin
       d.mod <= q[7:6];
       d.rm <= q[2:0];
-      d.shift <= q[5:3];
-      d.opcode <= OP_SHIFT_CL;
-      d.cycles <= 2;
-      d.mem_cycles <= 2;
+      d.shift <= shift_operation_e'(q[5:3]);
+      d.opcode <= OP_SHIFT;
+      d.reg1 <= CW;
       d.mem_write <= q[7:6] != 2'b11;
       d.mem_read <= q[7:6] != 2'b11;
       d.disp_size <= calc_disp_size(q[2:0], q[7:6]);
       d.segment <= d.segment_override ? d.segment : calc_seg(q[2:0], q[7:6]);;
       d.dest <= OPERAND_MODRM;
       d.source0 <= OPERAND_MODRM;
+      d.source1 <= OPERAND_REG_1;
       state <= TERMINAL;
     end
     default: begin
@@ -158,10 +158,8 @@ task process_ROOT_1100000x(input bit [7:0] q);
     8'bxxxxxxxx: begin
       d.mod <= q[7:6];
       d.rm <= q[2:0];
-      d.shift <= q[5:3];
+      d.shift <= shift_operation_e'(q[5:3]);
       d.opcode <= OP_SHIFT;
-      d.cycles <= 3;
-      d.mem_cycles <= 3;
       d.mem_write <= q[7:6] != 2'b11;
       d.mem_read <= q[7:6] != 2'b11;
       d.disp_size <= calc_disp_size(q[2:0], q[7:6]);

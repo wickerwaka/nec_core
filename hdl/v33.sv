@@ -278,19 +278,6 @@ task load_operands(input nec_decode_t dec);
             alu_operation <= dec.alu_operation;
         end
 
-        OP_SHIFT_1: begin
-            alu_operation <= shift1_alu_op(dec.shift);
-        end
-
-        OP_SHIFT_CL: begin
-            TB <= {8'd0, reg_cw[7:0]};
-            alu_operation <= shift_alu_op(dec.shift);
-        end
-
-        OP_SHIFT: begin
-            alu_operation <= shift_alu_op(dec.shift);
-        end
-
         default: begin
             use_alu_result <= 0;
         end
@@ -298,31 +285,116 @@ task load_operands(input nec_decode_t dec);
 endtask
 
 
-function alu_operation_e shift_alu_op(bit [2:0] shift);
-    case(shift)
-    3'b000: return ALU_OP_ROL;
-    3'b001: return ALU_OP_ROR;
-    3'b010: return ALU_OP_ROLC;
-    3'b011: return ALU_OP_RORC;
-    3'b100: return ALU_OP_SHL;
-    3'b101: return ALU_OP_SHR;
-    3'b110: return ALU_OP_NONE;
-    3'b111: return ALU_OP_SHRA;
-    endcase
-endfunction
+task shifter(shift_operation_e op, bit wide, bit single);
+    bit calc_flags;
+    bit [15:0] res;
+    bit V;
 
-function alu_operation_e shift1_alu_op(bit [2:0] shift);
-    case(shift)
-    3'b000: return ALU_OP_ROL1;
-    3'b001: return ALU_OP_ROR1;
-    3'b010: return ALU_OP_ROLC1;
-    3'b011: return ALU_OP_RORC1;
-    3'b100: return ALU_OP_SHL1;
-    3'b101: return ALU_OP_SHR1;
-    3'b110: return ALU_OP_NONE;
-    3'b111: return ALU_OP_SHRA1;
+    calc_flags = 0;
+
+    V = flags.V;
+
+    case(op)
+        SHIFT_OP_ROL: begin
+            if (wide) begin
+                res = {TA[14:0], TA[15]};
+                flags.CY <= TA[15];
+                V = TA[15] ^ TA[14];
+            end else begin
+                res[7:0] = {TA[6:0], TA[7]};
+                flags.CY <= TA[7];
+                V = TA[7] ^ TA[6];
+            end
+        end
+
+        SHIFT_OP_ROLC: begin
+            if (wide) begin
+                res = {TA[14:0], flags.CY};
+                flags.CY <= TA[15];
+                V = TA[15] ^ TA[14];
+            end else begin
+                res[7:0] = {TA[6:0], flags.CY};
+                flags.CY <= TA[7];
+                V = TA[7] ^ TA[6];
+            end
+        end
+
+        SHIFT_OP_ROR: begin
+            flags.CY <= TA[0];
+            if (wide) begin
+                res = {TA[0], TA[15:1]};
+                V = TA[15] ^ TA[0];
+            end else begin
+                res[7:0] = {TA[0], TA[7:1]};
+                V = TA[7] ^ TA[0];
+            end
+        end
+
+        SHIFT_OP_RORC: begin
+            flags.CY <= TA[0];
+            if (wide) begin
+                res = {flags.CY, TA[15:1]};
+                V = TA[15] ^ flags.CY;
+            end else begin
+                res[7:0] = {flags.CY, TA[7:1]};
+                V = TA[7] ^ flags.CY;
+            end
+        end
+
+        SHIFT_OP_SHL: begin
+            if (wide) begin
+                flags.CY <= TA[15];
+                V = TA[15] ^ TA[14];
+                res = { TA[14:0], 1'b0 };
+            end else begin
+                flags.CY <= TA[7];
+                V = TA[7] ^ TA[6];
+                res[7:0] = { TA[6:0], 1'b0 };
+            end
+            calc_flags = 1;
+        end
+
+        SHIFT_OP_SHR: begin
+            if (wide) begin
+                flags.CY <= TA[0];
+                V = TA[15];
+                res = { 1'b0, TA[15:1] };
+            end else begin
+                flags.CY <= TA[0];
+                V = TA[7];
+                res[7:0] = { 1'b0, TA[7:1] };
+            end
+            calc_flags = 1;
+        end
+
+        SHIFT_OP_SHRA: begin
+            if (wide) begin
+                flags.CY <= TA[0];
+                V = 0;
+                res = { TA[15], TA[15:1] };
+            end else begin
+                flags.CY <= TA[0];
+                V = 0;
+                res[7:0] = { TA[7], TA[7:1] };
+            end
+            calc_flags = 1;
+        end
+
+        default: begin
+        end
     endcase
-endfunction
+
+    if (calc_flags) begin
+        flags.P <= ~(res[0] ^ res[1] ^ res[2] ^ res[3] ^ res[4] ^ res[5] ^ res[6] ^ res[7]);
+        flags.S <= wide ? res[15] : res[7];
+        flags.Z <= wide ? res[15:0] == 16'd0 : res[7:0] == 8'd0;
+    end
+
+    if (single) flags.V <= V;
+
+    op_result <= res;
+    TA <= res;
+endtask
 
 task handle_branch(input nec_decode_t dec);
     case(dec.opcode)
@@ -474,7 +546,6 @@ wire [15:0] alu_result;
 flags_t alu_flags_result;
 reg use_alu_result;
 reg alu_wide;
-wire [9:0] alu_cycles;
 
 alu ALU(
     .clk,
@@ -484,8 +555,6 @@ alu ALU(
     .tb(TB),
     .result(alu_result),
     .wide(alu_wide),
-
-    .alu_cycles,
 
     .flags_in(flags),
     .flags(alu_flags_result)
@@ -522,6 +591,7 @@ reg [15:0] branch_new_pc;
 reg [15:0] branch_new_ps;
 
 reg [3:0] exec_stage;
+reg [7:0] shift_count;
 
 reg [15:0] push_list;
 reg [15:0] pop_list;
@@ -601,6 +671,7 @@ always_ff @(posedge clk) begin
 
                 exec_stage <= 4'd0;
                 exec_delay <= 10'd0;
+                shift_count <= 8'd0;
 
                 if (n_buslock | dp_ready) begin
                     op_cycles <= 10'd0;
@@ -824,10 +895,7 @@ always_ff @(posedge clk) begin
                             end
                         end
 
-                        OP_ALU,
-                        OP_SHIFT_1,
-                        OP_SHIFT_CL,
-                        OP_SHIFT: begin
+                        OP_ALU: begin
                         end
 
                         OP_STM: begin
@@ -1013,6 +1081,19 @@ always_ff @(posedge clk) begin
                                 end
                             end
                         end
+
+                        OP_SHIFT: begin
+                            if (shift_count != TB[7:0]) begin
+                                shifter(decoded.shift, decoded.width == WORD, 0);
+                                shift_count <= shift_count + 8'd1;
+                                working = 1;
+                            end
+                        end
+
+                        OP_SHIFT1: begin
+                            shifter(decoded.shift, decoded.width == WORD, 1);
+                        end
+
 
                         // TODO OUTM, INM
                         
@@ -1252,13 +1333,8 @@ always_ff @(posedge clk) begin
 
                     if (~working) begin
                         bit need_delay;
-                        if (use_alu_result) begin
-                            op_cycles <= op_cycles + delay + alu_cycles;
-                            need_delay = op_cycles > 0 || delay > 0 || alu_cycles > 0;
-                        end else begin
-                            op_cycles <= op_cycles + delay;
-                            need_delay = op_cycles > 0 || delay > 0;
-                        end
+                        op_cycles <= op_cycles + delay;
+                        need_delay = op_cycles > 0 || delay > 0;
 
                         if (exception) begin
                             state <= INT_INITIATE;

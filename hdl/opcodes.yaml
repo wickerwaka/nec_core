@@ -58,16 +58,18 @@ b1000001W_MD_ALU_MEM:
 #
 b1101000W_MD_SFT_MEM:
   desc: SHIFT mem/reg, 1
-  op: SHIFT_1
+  op: SHIFT1
   dst: MODRM
   src: MODRM
 
 b1101001W_MD_SFT_MEM:
   desc: SHIFT mem/reg, CL
-  op: SHIFT_CL
+  op: SHIFT
   dst: MODRM
-  src: MODRM
-  cycles: 2
+  src0: MODRM
+  src1: REG_1
+  reg1: CW
+
 
 b1100000W_MD_SFT_MEM:
   desc: SHIFT mem/reg, imm
@@ -75,7 +77,6 @@ b1100000W_MD_SFT_MEM:
   dst: MODRM
   src0: MODRM
   src1: IMM8
-  cycles: 3
 
 #
 # CMP

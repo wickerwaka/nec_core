@@ -48,7 +48,7 @@ package types;
         bit [1:0] sreg;
 
         bit [3:0] cond;
-        bit [2:0] shift;
+        shift_operation_e shift;
 
         width_e width;
 

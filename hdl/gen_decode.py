@@ -31,7 +31,8 @@ placeholders = {
         'transform': lambda x: f"alu_operation_e'({x})"
     },
     'SFT': {
-        'signal': 'shift'
+        'signal': 'shift',
+        'transform': lambda x: f"shift_operation_e'({x})"
     }
 }
 

@@ -73,8 +73,7 @@ opcode_e:
     - SET1_DIR
     - HALT
     - SHIFT
-    - SHIFT_1
-    - SHIFT_CL
+    - SHIFT1
     - LDEA
     - CVTDB
     - CVTBD
@@ -114,20 +113,6 @@ alu_operation_e:
     - NEG
     - INC
     - DEC
-    - ROL
-    - ROR
-    - ROLC
-    - RORC
-    - SHL
-    - SHR
-    - SHRA
-    - ROL1
-    - ROR1
-    - ROLC1
-    - RORC1
-    - SHL1
-    - SHR1
-    - SHRA1
     - ADJ4S
     - ADJ4A
     - ADJBS
@@ -137,6 +122,18 @@ alu_operation_e:
     - TEST1
     - NOT1
     - NONE
+
+shift_operation_e:
+  prefix: SHIFT_OP_
+  values: 
+    ROL: 0b000
+    ROR: 0b001
+    ROLC: 0b010
+    RORC: 0b011
+    SHL: 0b100
+    SHR: 0b101
+    NONE: 0b110
+    SHRA: 0b111
 
 operand_e:
   prefix: OPERAND_

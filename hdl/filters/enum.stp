@@ -65,68 +65,63 @@
     <symbol name="SET1_DIR" value="011101" />
     <symbol name="HALT" value="011110" />
     <symbol name="SHIFT" value="011111" />
-    <symbol name="SHIFT_1" value="100000" />
-    <symbol name="SHIFT_CL" value="100001" />
-    <symbol name="LDEA" value="100010" />
-    <symbol name="CVTDB" value="100011" />
-    <symbol name="CVTBD" value="100100" />
-    <symbol name="CVTBW" value="100101" />
-    <symbol name="CVTWL" value="100110" />
-    <symbol name="DIV" value="100111" />
-    <symbol name="DIVU" value="101000" />
-    <symbol name="MUL" value="101001" />
-    <symbol name="MULU" value="101010" />
-    <symbol name="PREPARE" value="101011" />
-    <symbol name="DISPOSE" value="101100" />
-    <symbol name="CHKIND" value="101101" />
-    <symbol name="TRANS" value="101110" />
-    <symbol name="BRK3" value="101111" />
-    <symbol name="BRK" value="110000" />
-    <symbol name="BRKV" value="110001" />
-    <symbol name="ADD4S" value="110010" />
-    <symbol name="SUB4S" value="110011" />
-    <symbol name="CMP4S" value="110100" />
-    <symbol name="ROR4" value="110101" />
-    <symbol name="ROL4" value="110110" />
-    <symbol name="PUSH" value="110111" />
-    <symbol name="POP" value="111000" />
+    <symbol name="SHIFT1" value="100000" />
+    <symbol name="LDEA" value="100001" />
+    <symbol name="CVTDB" value="100010" />
+    <symbol name="CVTBD" value="100011" />
+    <symbol name="CVTBW" value="100100" />
+    <symbol name="CVTWL" value="100101" />
+    <symbol name="DIV" value="100110" />
+    <symbol name="DIVU" value="100111" />
+    <symbol name="MUL" value="101000" />
+    <symbol name="MULU" value="101001" />
+    <symbol name="PREPARE" value="101010" />
+    <symbol name="DISPOSE" value="101011" />
+    <symbol name="CHKIND" value="101100" />
+    <symbol name="TRANS" value="101101" />
+    <symbol name="BRK3" value="101110" />
+    <symbol name="BRK" value="101111" />
+    <symbol name="BRKV" value="110000" />
+    <symbol name="ADD4S" value="110001" />
+    <symbol name="SUB4S" value="110010" />
+    <symbol name="CMP4S" value="110011" />
+    <symbol name="ROR4" value="110100" />
+    <symbol name="ROL4" value="110101" />
+    <symbol name="PUSH" value="110110" />
+    <symbol name="POP" value="110111" />
   </table>
-  <table name="alu_operation_e" width="6">
-    <symbol name="ADD" value="000000" />
-    <symbol name="OR" value="000001" />
-    <symbol name="ADDC" value="000010" />
-    <symbol name="SUBC" value="000011" />
-    <symbol name="AND" value="000100" />
-    <symbol name="SUB" value="000101" />
-    <symbol name="XOR" value="000110" />
-    <symbol name="CMP" value="000111" />
-    <symbol name="NOT" value="001000" />
-    <symbol name="NEG" value="001001" />
-    <symbol name="INC" value="001010" />
-    <symbol name="DEC" value="001011" />
-    <symbol name="ROL" value="001100" />
-    <symbol name="ROR" value="001101" />
-    <symbol name="ROLC" value="001110" />
-    <symbol name="RORC" value="001111" />
-    <symbol name="SHL" value="010000" />
-    <symbol name="SHR" value="010001" />
-    <symbol name="SHRA" value="010010" />
-    <symbol name="ROL1" value="010011" />
-    <symbol name="ROR1" value="010100" />
-    <symbol name="ROLC1" value="010101" />
-    <symbol name="RORC1" value="010110" />
-    <symbol name="SHL1" value="010111" />
-    <symbol name="SHR1" value="011000" />
-    <symbol name="SHRA1" value="011001" />
-    <symbol name="ADJ4S" value="011010" />
-    <symbol name="ADJ4A" value="011011" />
-    <symbol name="ADJBS" value="011100" />
-    <symbol name="ADJBA" value="011101" />
-    <symbol name="SET1" value="011110" />
-    <symbol name="CLR1" value="011111" />
-    <symbol name="TEST1" value="100000" />
-    <symbol name="NOT1" value="100001" />
-    <symbol name="NONE" value="100010" />
+  <table name="alu_operation_e" width="5">
+    <symbol name="ADD" value="00000" />
+    <symbol name="OR" value="00001" />
+    <symbol name="ADDC" value="00010" />
+    <symbol name="SUBC" value="00011" />
+    <symbol name="AND" value="00100" />
+    <symbol name="SUB" value="00101" />
+    <symbol name="XOR" value="00110" />
+    <symbol name="CMP" value="00111" />
+    <symbol name="NOT" value="01000" />
+    <symbol name="NEG" value="01001" />
+    <symbol name="INC" value="01010" />
+    <symbol name="DEC" value="01011" />
+    <symbol name="ADJ4S" value="01100" />
+    <symbol name="ADJ4A" value="01101" />
+    <symbol name="ADJBS" value="01110" />
+    <symbol name="ADJBA" value="01111" />
+    <symbol name="SET1" value="10000" />
+    <symbol name="CLR1" value="10001" />
+    <symbol name="TEST1" value="10010" />
+    <symbol name="NOT1" value="10011" />
+    <symbol name="NONE" value="10100" />
+  </table>
+  <table name="shift_operation_e" width="3">
+    <symbol name="ROL" value="000" />
+    <symbol name="ROR" value="001" />
+    <symbol name="ROLC" value="010" />
+    <symbol name="RORC" value="011" />
+    <symbol name="SHL" value="100" />
+    <symbol name="SHR" value="101" />
+    <symbol name="NONE" value="110" />
+    <symbol name="SHRA" value="111" />
   </table>
   <table name="operand_e" width="4">
     <symbol name="NONE" value="0000" />
