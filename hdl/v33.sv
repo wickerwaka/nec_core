@@ -852,7 +852,6 @@ always_ff @(posedge clk) begin
                             end
                         end
 
-                        // TODO verify
                         OP_CVTDB: begin
                             temp8 = reg_aw[7:0] + (reg_aw[15:8] * 8'd10);
                             flags.Z <= ~|temp8;
@@ -1106,20 +1105,24 @@ always_ff @(posedge clk) begin
                                 div_start <= 1;
                                 if (decoded.opcode == OP_DIVU) begin
                                     if (decoded.width == BYTE) begin
+                                        delay = 11;
                                         div_wide <= 0;
                                         div_num <= { 17'd0, reg_aw };
                                         div_denom <= { 25'd0, operand[7:0] };
                                     end else begin
+                                        delay = 19;
                                         div_wide <= 1;
                                         div_num <= { 1'd0, reg_dw, reg_aw };
                                         div_denom <= { 17'd0, operand[15:0] };
                                     end
                                 end else begin
                                     if (decoded.width == BYTE) begin
+                                        delay = 15;
                                         div_wide <= 0;
                                         div_num <= { {17{reg_aw[15]}}, reg_aw };
                                         div_denom <= { {25{operand[7]}}, operand[7:0] };
                                     end else begin
+                                        delay = 23;
                                         div_wide <= 1;
                                         div_num <= { reg_dw[15], reg_dw, reg_aw };
                                         div_denom <= { {17{operand[15]}}, operand[15:0] };
@@ -1158,9 +1161,11 @@ always_ff @(posedge clk) begin
                             if (decoded.width == WORD) begin
                                 flags.CY <= |result32[31:16];
                                 flags.V <= |result32[31:16];
+                                delay = 12;
                             end else begin
                                 flags.CY <= |result32[31:8];
                                 flags.V <= |result32[31:8];
+                                delay = 8;
                             end
                             op_result <= result32[15:0];
                             op_result_high <= result32[31:16];
@@ -1176,12 +1181,14 @@ always_ff @(posedge clk) begin
                                     flags.CY <= 1;
                                     flags.V <= 1;
                                 end
+                                delay = 12;
                             end else begin
                                 result32[15:0] = $signed(TA[7:0]) * $signed(TB[7:0]);
                                 if (8'd0 != result32[15:8]) begin
                                     flags.CY <= 1;
                                     flags.V <= 1;
                                 end
+                                delay = 8;
                             end
                             op_result <= result32[15:0];
                             op_result_high <= result32[31:16];

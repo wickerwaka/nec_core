@@ -252,8 +252,6 @@ b11110110_MD_100_MEM:
   src0: ACC
   src1: MODRM
   width: BYTE
-  cycles: 8
-  mem_cycles: 10
 
 b11110110_MD_101_MEM:
   desc: MUL mem/reg
@@ -262,8 +260,6 @@ b11110110_MD_101_MEM:
   src0: ACC
   src1: MODRM
   width: BYTE
-  cycles: 8
-  mem_cycles: 10
 
 b11110111_MD_100_MEM:
   desc: MULU mem/reg
@@ -272,8 +268,6 @@ b11110111_MD_100_MEM:
   src0: ACC
   src1: MODRM
   width: WORD
-  cycles: 12
-  mem_cycles: 14
 
 b11110111_MD_101_MEM:
   desc: MUL mem/reg
@@ -282,8 +276,6 @@ b11110111_MD_101_MEM:
   src0: ACC
   src1: MODRM
   width: WORD
-  cycles: 12
-  mem_cycles: 14
 
 b01101011_MD_GP0_MEM:
   desc: MUL reg, mem/reg, sext_imm8
@@ -292,8 +284,6 @@ b01101011_MD_GP0_MEM:
   src0: MODRM
   src1: IMM_EXT
   width: WORD
-  cycles: 12
-  mem_cycles: 14
 
 b01101001_MD_GP0_MEM:
   desc: MUL reg, mem/reg, imm16
@@ -302,8 +292,6 @@ b01101001_MD_GP0_MEM:
   src0: MODRM
   src1: IMM
   width: WORD
-  cycles: 12
-  mem_cycles: 14
 
 #
 # DIV
@@ -313,32 +301,24 @@ b11110110_MD_110_MEM:
   op: DIVU
   src: MODRM
   width: BYTE
-  cycles: 11
-  mem_cycles: 14
 
 b11110110_MD_111_MEM:
   desc: DIV mem/reg
   op: DIV
   src: MODRM
   width: BYTE
-  cycles: 17
-  mem_cycles: 18
 
 b11110111_MD_110_MEM:
   desc: DIVU mem/reg
   op: DIVU
   src: MODRM
   width: WORD
-  cycles: 19
-  mem_cycles: 21
 
 b11110111_MD_111_MEM:
   desc: DIV mem/reg
   op: DIV
   src: MODRM
   width: WORD
-  cycles: 24
-  mem_cycles: 26
 
 
 #

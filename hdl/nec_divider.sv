@@ -44,8 +44,8 @@ end
 // calculation control
 always_ff @(posedge clk) begin
     if (ce) begin
-        done <= 0;
         if (start) begin
+            done <= 0;
             overflow <= 0;
             i <= 0;
             if (b == 0) begin  // catch divide by zero

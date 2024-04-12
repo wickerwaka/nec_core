@@ -1,29 +1,35 @@
 #! /usr/bin/env python3
 
 import sys
+import os.path
 from termcolor import colored
 
-def read_cycles(name):
+def read_cycles(name, p):
     cycles = []
-    with open(name, 'rt') as fp:
+    with open(os.path.join(p, name + '.txt.cycles'), 'rt') as fp:
         lines = fp.readlines()
         for line in lines[1:]:
             line = line.strip()
             cycles.append(int(line))
     return cycles
 
-def read_names(name):
+def read_names(test_name, p):
     names = []
-    with open(name, 'rt') as fp:
+    with open(p, 'rt') as fp:
         lines = fp.readlines()
         for line in lines:
             line = line.strip()
-            names.append(line)
+            if line:
+                a, _, b = line.partition(',')
+                if a == test_name:
+                    names.append(b)
     return names
 
-m107 = read_cycles(sys.argv[1])
-sim = read_cycles(sys.argv[2])
-names = read_names(sys.argv[3])
+test_name = sys.argv[1]
+
+m107 = read_cycles(test_name, sys.argv[2])
+sim = read_cycles(test_name, sys.argv[3])
+names = read_names(test_name, sys.argv[4])
 
 name_len = max([len(x) for x in names])
 

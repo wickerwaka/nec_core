@@ -40,9 +40,15 @@ TIMING_TESTS = \
 				rol_5 \
 				lock_nop_loop \
 				two_cycle_1_w_lock \
-				combined_timing \
 				push_ax \
-				stosw_reverse
+				stosw_reverse \
+				alu_timing \
+				block_timing \
+				mov_timing \
+				stack_timing \
+				misc_timing \
+				shift_timing \
+				mul_timing
 
 TIMING_TEST_TRACES = $(patsubst %,traces/sim/%.txt,$(TIMING_TESTS))
 
@@ -80,8 +86,8 @@ traces/m107/%.txt: traces/m107/%.vcd bench/extract_hw.py
 80186: $(BUILD_DIR)/test_186
 	cd tests/80186 && ./run_tests.sh
 
-cycles: traces/m107/combined_timing.txt traces/sim/combined_timing.txt traces/cycle_names.txt bench/compare_cycles.py
-	bench/compare_cycles.py traces/m107/combined_timing.txt.cycles traces/sim/combined_timing.txt.cycles traces/cycle_names.txt
+cycles/%: traces/m107/%.txt traces/sim/%.txt traces/cycle_names.txt bench/compare_cycles.py
+	bench/compare_cycles.py $* traces/m107/ traces/sim/ traces/cycle_names.txt
 	
 
 .PHONY: ALWAYS cycles 80186 m107

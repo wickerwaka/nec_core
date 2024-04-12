@@ -91,7 +91,7 @@ $(BUILD_DIR)/%.o: src/%.S $(GLOBAL_DEPS) | $(BUILD_DIRS)
 
 $(BUILD_DIR)/%.o: src/%.asm $(GLOBAL_DEPS) | $(BUILD_DIRS)
 	@echo $@
-	@$(NASM) -MD $($@:o=d) -o $@ -f elf -w-prefix-lock -D_TEXT=.text -D_BSS=.bss -D_DATA=.data $<
+	@$(NASM) -MD $($@:o=d) -o $@ -f elf -w-prefix-lock -D_TEXT=.text -D_BSS=.bss -D_DATA=.data $(DEFINES) $<
 
 $(BUILD_DIR)/cpu.elf: $(OBJS) linker/$(GAME).ld
 	@echo $@
