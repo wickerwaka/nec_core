@@ -1086,6 +1086,8 @@ always_ff @(posedge clk) begin
                                 shifter(decoded.shift, decoded.width == WORD, 0);
                                 shift_count <= shift_count + 8'd1;
                                 working = 1;
+                            end else begin
+                                delay = 2;
                             end
                         end
 
