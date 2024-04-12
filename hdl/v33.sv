@@ -1276,7 +1276,9 @@ always_ff @(posedge clk) begin
                             end else if (exec_stage == 1) begin
                                 if (bcd_offset == reg_cw[7:1]) begin
                                     working = 0;
+                                    delay = 1;
                                 end else begin
+                                    delay = 17;
                                     read_memory(reg_ix + {9'd0, bcd_offset}, decoded.segment, BYTE, 0);
                                 end
                             end else if (exec_stage == 2) begin
@@ -1317,6 +1319,8 @@ always_ff @(posedge clk) begin
                                 if (|bcd_acc) flags.Z <= 0;
                                 if (decoded.opcode != OP_CMP4S) begin
                                     write_memory(reg_iy + { 9'd0, bcd_offset}, DS1, BYTE, { 8'd0, bcd_acc }, 0);
+                                end else begin
+                                    delay = 1;
                                 end
                                 bcd_offset <= bcd_offset + 7'd1;
                                 exec_stage <= 1; // loop                                
