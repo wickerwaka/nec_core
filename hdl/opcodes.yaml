@@ -332,7 +332,6 @@ b00100111:
   src: REG_0
   reg0: AW
   width: WORD
-  cycles: 3
 
 b00101111:
   desc: ADJ4S
@@ -342,7 +341,6 @@ b00101111:
   src: REG_0
   reg0: AW
   width: WORD
-  cycles: 3
 
 b00110111:
   desc: ADJBA
@@ -352,7 +350,6 @@ b00110111:
   src: REG_0
   reg0: AW
   width: WORD
-  cycles: 3
 
 b00111111:
   desc: ADJBS
@@ -362,29 +359,24 @@ b00111111:
   src: REG_0
   reg0: AW
   width: WORD
-  cycles: 3
 
 b11010101:
   desc: CVTDB
   op: CVTDB
   src: IMM8 # unused
-  cycles: 8
 
 b11010100:
   desc: CVTBD
   op: CVTBD
   src: IMM8 #unused
-  cycles: 12
 
 b10011000:
   desc: CVTBW
   op: CVTBW
-  cycles: 2
 
 b10011001:
   desc: CVTWL
   op: CVTWL
-  cycles: 2
 
 #
 # LDEA
@@ -395,7 +387,6 @@ b10001101_MD_GP0_MEM:
   width: WORD
   dst: REG_0
   src: MODRM
-  cycles: 2
 
 #
 # MOV
@@ -712,7 +703,6 @@ b01100000:
     - BP
     - IX
     - IY
-  cycles: 4
 
 b01101010:
   desc: PUSH imm8

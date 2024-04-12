@@ -887,6 +887,7 @@ always_ff @(posedge clk) begin
 
                         OP_XCH: begin
                             op_result <= TA;
+                            delay = decoded.mem_read ? 3 : 1;
                             if (decoded.width == BYTE) begin
                                 set_reg8(reg8_index_e'(decoded.reg0), TB[7:0]);
                             end else begin

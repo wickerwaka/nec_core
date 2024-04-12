@@ -618,8 +618,6 @@ task process_ROOT_10001101(input bit [7:0] q);
       d.reg0 <= q[5:3];
       d.opcode <= OP_LDEA;
       d.width <= WORD;
-      d.cycles <= 2;
-      d.mem_cycles <= 2;
       d.mem_read <= q[7:6] != 2'b11;
       d.disp_size <= calc_disp_size(q[2:0], q[7:6]);
       d.segment <= d.segment_override ? d.segment : calc_seg(q[2:0], q[7:6]);;
@@ -1161,8 +1159,6 @@ task process_ROOT(input bit [7:0] q);
       d.alu_operation <= ALU_OP_ADJ4A;
       d.reg0 <= AW;
       d.width <= WORD;
-      d.cycles <= 3;
-      d.mem_cycles <= 3;
       d.dest <= OPERAND_REG_0;
       d.source0 <= OPERAND_REG_0;
       state <= TERMINAL;
@@ -1172,8 +1168,6 @@ task process_ROOT(input bit [7:0] q);
       d.alu_operation <= ALU_OP_ADJ4S;
       d.reg0 <= AW;
       d.width <= WORD;
-      d.cycles <= 3;
-      d.mem_cycles <= 3;
       d.dest <= OPERAND_REG_0;
       d.source0 <= OPERAND_REG_0;
       state <= TERMINAL;
@@ -1183,8 +1177,6 @@ task process_ROOT(input bit [7:0] q);
       d.alu_operation <= ALU_OP_ADJBA;
       d.reg0 <= AW;
       d.width <= WORD;
-      d.cycles <= 3;
-      d.mem_cycles <= 3;
       d.dest <= OPERAND_REG_0;
       d.source0 <= OPERAND_REG_0;
       state <= TERMINAL;
@@ -1194,36 +1186,26 @@ task process_ROOT(input bit [7:0] q);
       d.alu_operation <= ALU_OP_ADJBS;
       d.reg0 <= AW;
       d.width <= WORD;
-      d.cycles <= 3;
-      d.mem_cycles <= 3;
       d.dest <= OPERAND_REG_0;
       d.source0 <= OPERAND_REG_0;
       state <= TERMINAL;
     end
     8'b11010101: begin
       d.opcode <= OP_CVTDB;
-      d.cycles <= 8;
-      d.mem_cycles <= 8;
       d.source0 <= OPERAND_IMM8;
       state <= TERMINAL;
     end
     8'b11010100: begin
       d.opcode <= OP_CVTBD;
-      d.cycles <= 12;
-      d.mem_cycles <= 12;
       d.source0 <= OPERAND_IMM8;
       state <= TERMINAL;
     end
     8'b10011000: begin
       d.opcode <= OP_CVTBW;
-      d.cycles <= 2;
-      d.mem_cycles <= 2;
       state <= TERMINAL;
     end
     8'b10011001: begin
       d.opcode <= OP_CVTWL;
-      d.cycles <= 2;
-      d.mem_cycles <= 2;
       state <= TERMINAL;
     end
     8'b10001101: begin
@@ -1387,8 +1369,6 @@ task process_ROOT(input bit [7:0] q);
     end
     8'b01100000: begin
       d.opcode <= OP_PUSH;
-      d.cycles <= 4;
-      d.mem_cycles <= 4;
       d.push <= STACK_AW | STACK_CW | STACK_DW | STACK_BW | STACK_SP | STACK_BP | STACK_IX | STACK_IY;
       state <= TERMINAL;
     end
