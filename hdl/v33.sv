@@ -270,6 +270,7 @@ task load_operands(input nec_decode_t dec);
     TA <= get_operand(dec, dec.source0);
     TB <= get_operand(dec, dec.source1);
 
+    alu_operation <= ALU_OP_NONE;
     alu_wide <= dec.width == WORD;
     use_alu_result <= 1;
 
@@ -546,6 +547,7 @@ wire [15:0] alu_result;
 flags_t alu_flags_result;
 reg use_alu_result;
 reg alu_wide;
+wire [9:0] alu_delay;
 
 alu ALU(
     .clk,
@@ -555,6 +557,8 @@ alu ALU(
     .tb(TB),
     .result(alu_result),
     .wide(alu_wide),
+
+    .delay(alu_delay),
 
     .flags_in(flags),
     .flags(alu_flags_result)
@@ -608,7 +612,7 @@ reg [4:0] bcd_result_high, bcd_result_low;
 reg stack_modified_pc, stack_modified_ps;
 
 reg [9:0] cycles;
-reg [9:0] op_cycles;
+reg [9:0] op_delay;
 reg [9:0] exec_delay;
 
 always_ff @(posedge clk) begin
@@ -674,7 +678,7 @@ always_ff @(posedge clk) begin
                 shift_count <= 8'd0;
 
                 if (n_buslock | dp_ready) begin
-                    op_cycles <= 10'd0;
+                    op_delay <= 10'd0;
                     cycles <= 10'd0;
 
                     if (intreq & flags.IE) begin
@@ -687,11 +691,6 @@ always_ff @(posedge clk) begin
                         pop_list <= next_decode.pop;
 
                         next_pc <= cur_pc;
-
-                        op_cycles <= next_decode.cycles;
-                        if (next_decode.mem_read | next_decode.mem_write) begin
-                            op_cycles <= next_decode.mem_cycles;
-                        end
 
                         calculated_ea <= calc_ea(next_decode);
 
@@ -1347,8 +1346,8 @@ always_ff @(posedge clk) begin
 
                     if (~working) begin
                         bit need_delay;
-                        op_cycles <= op_cycles + delay;
-                        need_delay = op_cycles > 0 || delay > 0;
+                        op_delay <= delay + alu_delay;
+                        need_delay = delay > 0 || alu_delay > 0;
 
                         if (exception) begin
                             state <= INT_INITIATE;
@@ -1523,7 +1522,7 @@ always_ff @(posedge clk) begin
 
             STORE_DELAY: if (ce_1) begin
                 if (~&cycles) cycles <= cycles + 10'd1;
-                if (cycles >= op_cycles) begin
+                if (cycles >= op_delay) begin
                     state <= STORE_REGISTER;
                 end
             end

@@ -13,6 +13,8 @@ module alu(
     input wide,
     output [15:0] result,
 
+    output [9:0] delay,
+
     input flags_t flags_in,
     output flags_t flags
 );
@@ -26,10 +28,6 @@ always_comb begin
     bit [16:0] temp17;
     bit [16:0] temp17_2;
     bit [8:0] temp9;
-    bit [17:0] sh18;
-    bit [33:0] sh34;
-    bit [5:0] sz;
-    bit [5:0] sz_inv;
 
     bit [15:0] bit_shift_mask;
     
@@ -42,10 +40,8 @@ always_comb begin
     temp17 = 17'd0;
     temp9 = 9'd0;
     temp17_2 = 17'd0;
-    sz = 6'd0;
-    sz_inv = 6'd0;
-    sh18 = 18'd0;
-    sh34 = 34'd0;
+
+    delay = 10'd0;
 
     flags = flags_in;
 
@@ -177,6 +173,7 @@ always_comb begin
         end
         res = { 8'd0, temp9[7:0] };
         calc_parity = 1; calc_sign = 1; calc_zero = 1;
+        delay = 10'd3;
     end
 
     ALU_OP_ADJ4S: begin 
@@ -199,6 +196,7 @@ always_comb begin
         end
         res = { 8'd0, temp9[7:0] };
         calc_parity = 1; calc_sign = 1; calc_zero = 1;
+        delay = 10'd3;
     end
 
     ALU_OP_ADJBA: begin
@@ -212,6 +210,7 @@ always_comb begin
             flags.CY = 0;
         end
         res[7:4] = 4'd0;
+        delay = 10'd3;
     end 
 
     ALU_OP_ADJBS: begin
@@ -226,6 +225,7 @@ always_comb begin
             flags.CY = 0;
         end
         res[7:4] = 4'd0;
+        delay = 10'd3;
     end 
 
     default: begin end
