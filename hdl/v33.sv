@@ -852,10 +852,12 @@ always_ff @(posedge clk) begin
                         OP_CVTBD: begin
                             if (exec_stage == 0) begin
                                 div_signed <= 0;
+                                div_wide <= 0;
                                 div_start <= 1;
                                 div_num <= { 25'd0, reg_aw[7:0] };
                                 div_denom <= 33'd10;
                                 working = 1;
+                                delay = 11;
                             end else begin
                                 if (div_done) begin
                                     reg_aw[15:8] <= div_quot[7:0];
@@ -876,6 +878,7 @@ always_ff @(posedge clk) begin
                             flags.S <= temp8[7];
                             flags.P <= ~(^temp8);
                             reg_aw <= { 8'd0, temp8 };
+                            delay = 8;
                         end
 
                         OP_MOV: begin
