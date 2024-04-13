@@ -93,7 +93,9 @@ typedef enum bit [5:0] {
     OP_ROR4          = 6'b110100,
     OP_ROL4          = 6'b110101,
     OP_PUSH          = 6'b110110,
-    OP_POP           = 6'b110111
+    OP_PUSHR         = 6'b110111,
+    OP_POP           = 6'b111000,
+    OP_POPR          = 6'b111001
 } opcode_e /* verilator public */;
 
 typedef enum bit [4:0] {
@@ -161,20 +163,22 @@ typedef enum bit [4:0] {
     WAIT_OPERAND1   = 5'b00100,
     WAIT_OPERAND2   = 5'b00101,
     PUSH            = 5'b00110,
-    PUSH_STALL      = 5'b00111,
+    PUSH_WRITE      = 5'b00111,
     POP             = 5'b01000,
     POP_WAIT        = 5'b01001,
-    EXECUTE_STALL   = 5'b01010,
-    EXECUTE         = 5'b01011,
-    STORE_DELAY     = 5'b01100,
-    STORE_REGISTER  = 5'b01101,
-    STORE_MEMORY    = 5'b01110,
-    INT_ACK_WAIT    = 5'b01111,
-    INT_INITIATE    = 5'b10000,
-    INT_FETCH_VEC   = 5'b10001,
-    INT_FETCH_WAIT1 = 5'b10010,
-    INT_FETCH_WAIT2 = 5'b10011,
-    INT_PUSH        = 5'b10100
+    POP_STORE       = 5'b01010,
+    POP_CHECK       = 5'b01011,
+    POP_STALL       = 5'b01100,
+    EXECUTE_STALL   = 5'b01101,
+    EXECUTE         = 5'b01110,
+    STORE_DELAY     = 5'b01111,
+    STORE_REGISTER  = 5'b10000,
+    STORE_MEMORY    = 5'b10001,
+    INT_ACK_WAIT    = 5'b10010,
+    INT_INITIATE    = 5'b10011,
+    INT_FETCH_VEC   = 5'b10100,
+    INT_FETCH_WAIT1 = 5'b10101,
+    INT_FETCH_WAIT2 = 5'b10110
 } cpu_state_e /* verilator public */;
 
 typedef enum bit [3:0] {

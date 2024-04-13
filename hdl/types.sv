@@ -6,7 +6,7 @@ package types;
     const bit [15:0] STACK_DW         = 16'h0004;
     const bit [15:0] STACK_BW         = 16'h0008;
     const bit [15:0] STACK_SP         = 16'h0010;
-    const bit [15:0] STACK_BP_SKIP_SP = 16'h0020;
+    const bit [15:0] STACK_SKIP_SP    = 16'h0020;
     const bit [15:0] STACK_BP         = 16'h0040;
     const bit [15:0] STACK_IX         = 16'h0080;
     const bit [15:0] STACK_IY         = 16'h0100;

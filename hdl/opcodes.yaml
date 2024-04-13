@@ -693,7 +693,7 @@ b10011100:
 
 b01100000:
   desc: PUSH R
-  op: PUSH
+  op: PUSHR
   push:
     - AW
     - CW
@@ -729,86 +729,74 @@ b0101_1000:
   desc: POP AW
   op: POP
   pop: AW
-  cycles: 3
 
 b0101_1001:
   desc: POP CW
   op: POP
   pop: CW
-  cycles: 3
 
 b0101_1010:
   desc: POP DW
   op: POP
   pop: DW
-  cycles: 3
 
 b0101_1011:
   desc: POP BW
   op: POP
   pop: BW
-  cycles: 3
 
 b0101_1100:
   desc: POP SP
   op: POP
   pop: SP
-  cycles: 3
 
 b0101_1101:
   desc: POP BP
   op: POP
   pop: BP
-  cycles: 3
 
 b0101_1110:
   desc: POP IX
   op: POP
   pop: IX
-  cycles: 3
 
 b0101_1111:
   desc: POP IY
   op: POP
   pop: IY
-  cycles: 3
 
 b000_00_111:
   desc: POP DS1
   op: POP
   pop: DS1
-  cycles: 3
 
 b000_10_111:
   desc: POP SS
   op: POP
   pop: SS
-  cycles: 3
 
 b000_11_111:
   desc: POP DS0
   op: POP
   pop: DS0
-  cycles: 3
 
 b10011101:
   desc: POP PSW
   op: POP
   pop: PSW
-  cycles: 3
 
 b01100001:
   desc: POP R
-  op: POP
+  op: POPR
   pop:
     - AW
     - CW
     - DW
     - BW
-    - BP_SKIP_SP
+    - SKIP_SP
+    - BP
     - IX
     - IY
-  cycles: 8
 
 b10001111_MD_000_MEM:
   desc: POP reg16/mem16
@@ -820,12 +808,10 @@ b10001111_MD_000_MEM:
 b11001000:
   desc: PREPARE imm16, imm8
   op: PREPARE
-  cycles: 13 # TODO need to account for imm8
 
 b11001001:
   desc: DISPOSE
   op: DISPOSE
-  cycles: 4
 
 #
 # IO In/Out

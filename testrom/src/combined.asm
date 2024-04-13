@@ -111,6 +111,9 @@ stack_timing:
 
     single_op { push ax }
     single_op { pop ax }
+    single_op { push word [bx] }
+    single_op { pop word [bx] }
+    single_op { push 0xf00d }
     single_op { pusha }
     single_op { popa }
 

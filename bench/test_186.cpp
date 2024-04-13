@@ -36,11 +36,11 @@ void write_mem(uint32_t addr, bool ube, uint16_t dout)
     }
 }
 
-uint16_t prev_pc = 0x0000;
+uint16_t prev_state = 0x0000;
 void print_trace(const v33_V33 *cpu)
 {
-    static bool skip = true; // skip the first output because mame does
-    if( cpu->decoded.__PVT__pc != prev_pc)
+    static bool skip = false; //true; // skip the first output because mame does
+    if( cpu->state == 0 && cpu->state != prev_state)
     {
         if (!skip)
         {
@@ -58,12 +58,12 @@ void print_trace(const v33_V33 *cpu)
                 cpu->reg_ps,
                 cpu->reg_ss,
                 cpu->reg_ds0,
-                (cpu->reg_ps << 4) + cpu->decoded.__PVT__pc
+                (cpu->reg_ps << 4) + cpu->next_pc
             );
         }
         skip = false;
     }
-    prev_pc = cpu->decoded.__PVT__pc;
+    prev_state = cpu->state;
 }
 
 void tick(int count = 1)

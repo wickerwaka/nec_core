@@ -88,7 +88,9 @@
     <symbol name="ROR4" value="110100" />
     <symbol name="ROL4" value="110101" />
     <symbol name="PUSH" value="110110" />
-    <symbol name="POP" value="110111" />
+    <symbol name="PUSHR" value="110111" />
+    <symbol name="POP" value="111000" />
+    <symbol name="POPR" value="111001" />
   </table>
   <table name="alu_operation_e" width="5">
     <symbol name="ADD" value="00000" />
@@ -151,20 +153,22 @@
     <symbol name="WAIT_OPERAND1" value="00100" />
     <symbol name="WAIT_OPERAND2" value="00101" />
     <symbol name="PUSH" value="00110" />
-    <symbol name="PUSH_STALL" value="00111" />
+    <symbol name="PUSH_WRITE" value="00111" />
     <symbol name="POP" value="01000" />
     <symbol name="POP_WAIT" value="01001" />
-    <symbol name="EXECUTE_STALL" value="01010" />
-    <symbol name="EXECUTE" value="01011" />
-    <symbol name="STORE_DELAY" value="01100" />
-    <symbol name="STORE_REGISTER" value="01101" />
-    <symbol name="STORE_MEMORY" value="01110" />
-    <symbol name="INT_ACK_WAIT" value="01111" />
-    <symbol name="INT_INITIATE" value="10000" />
-    <symbol name="INT_FETCH_VEC" value="10001" />
-    <symbol name="INT_FETCH_WAIT1" value="10010" />
-    <symbol name="INT_FETCH_WAIT2" value="10011" />
-    <symbol name="INT_PUSH" value="10100" />
+    <symbol name="POP_STORE" value="01010" />
+    <symbol name="POP_CHECK" value="01011" />
+    <symbol name="POP_STALL" value="01100" />
+    <symbol name="EXECUTE_STALL" value="01101" />
+    <symbol name="EXECUTE" value="01110" />
+    <symbol name="STORE_DELAY" value="01111" />
+    <symbol name="STORE_REGISTER" value="10000" />
+    <symbol name="STORE_MEMORY" value="10001" />
+    <symbol name="INT_ACK_WAIT" value="10010" />
+    <symbol name="INT_INITIATE" value="10011" />
+    <symbol name="INT_FETCH_VEC" value="10100" />
+    <symbol name="INT_FETCH_WAIT1" value="10101" />
+    <symbol name="INT_FETCH_WAIT2" value="10110" />
   </table>
   <table name="decode_stage_e" width="4">
     <symbol name="INVALID" value="0000" />

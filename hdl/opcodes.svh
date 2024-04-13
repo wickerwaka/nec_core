@@ -1368,7 +1368,7 @@ task process_ROOT(input bit [7:0] q);
       state <= TERMINAL;
     end
     8'b01100000: begin
-      d.opcode <= OP_PUSH;
+      d.opcode <= OP_PUSHR;
       d.push <= STACK_AW | STACK_CW | STACK_DW | STACK_BW | STACK_SP | STACK_BP | STACK_IX | STACK_IY;
       state <= TERMINAL;
     end
@@ -1388,93 +1388,67 @@ task process_ROOT(input bit [7:0] q);
     end
     8'b01011000: begin
       d.opcode <= OP_POP;
-      d.cycles <= 3;
-      d.mem_cycles <= 3;
       d.pop <= STACK_AW;
       state <= TERMINAL;
     end
     8'b01011001: begin
       d.opcode <= OP_POP;
-      d.cycles <= 3;
-      d.mem_cycles <= 3;
       d.pop <= STACK_CW;
       state <= TERMINAL;
     end
     8'b01011010: begin
       d.opcode <= OP_POP;
-      d.cycles <= 3;
-      d.mem_cycles <= 3;
       d.pop <= STACK_DW;
       state <= TERMINAL;
     end
     8'b01011011: begin
       d.opcode <= OP_POP;
-      d.cycles <= 3;
-      d.mem_cycles <= 3;
       d.pop <= STACK_BW;
       state <= TERMINAL;
     end
     8'b01011100: begin
       d.opcode <= OP_POP;
-      d.cycles <= 3;
-      d.mem_cycles <= 3;
       d.pop <= STACK_SP;
       state <= TERMINAL;
     end
     8'b01011101: begin
       d.opcode <= OP_POP;
-      d.cycles <= 3;
-      d.mem_cycles <= 3;
       d.pop <= STACK_BP;
       state <= TERMINAL;
     end
     8'b01011110: begin
       d.opcode <= OP_POP;
-      d.cycles <= 3;
-      d.mem_cycles <= 3;
       d.pop <= STACK_IX;
       state <= TERMINAL;
     end
     8'b01011111: begin
       d.opcode <= OP_POP;
-      d.cycles <= 3;
-      d.mem_cycles <= 3;
       d.pop <= STACK_IY;
       state <= TERMINAL;
     end
     8'b00000111: begin
       d.opcode <= OP_POP;
-      d.cycles <= 3;
-      d.mem_cycles <= 3;
       d.pop <= STACK_DS1;
       state <= TERMINAL;
     end
     8'b00010111: begin
       d.opcode <= OP_POP;
-      d.cycles <= 3;
-      d.mem_cycles <= 3;
       d.pop <= STACK_SS;
       state <= TERMINAL;
     end
     8'b00011111: begin
       d.opcode <= OP_POP;
-      d.cycles <= 3;
-      d.mem_cycles <= 3;
       d.pop <= STACK_DS0;
       state <= TERMINAL;
     end
     8'b10011101: begin
       d.opcode <= OP_POP;
-      d.cycles <= 3;
-      d.mem_cycles <= 3;
       d.pop <= STACK_PSW;
       state <= TERMINAL;
     end
     8'b01100001: begin
-      d.opcode <= OP_POP;
-      d.cycles <= 8;
-      d.mem_cycles <= 8;
-      d.pop <= STACK_AW | STACK_CW | STACK_DW | STACK_BW | STACK_BP_SKIP_SP | STACK_IX | STACK_IY;
+      d.opcode <= OP_POPR;
+      d.pop <= STACK_AW | STACK_CW | STACK_DW | STACK_BW | STACK_SKIP_SP | STACK_BP | STACK_IX | STACK_IY;
       state <= TERMINAL;
     end
     8'b10001111: begin
@@ -1482,14 +1456,10 @@ task process_ROOT(input bit [7:0] q);
     end
     8'b11001000: begin
       d.opcode <= OP_PREPARE;
-      d.cycles <= 13;
-      d.mem_cycles <= 13;
       state <= TERMINAL;
     end
     8'b11001001: begin
       d.opcode <= OP_DISPOSE;
-      d.cycles <= 4;
-      d.mem_cycles <= 4;
       state <= TERMINAL;
     end
     8'b11110100: begin

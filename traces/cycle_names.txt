@@ -19,6 +19,9 @@ alu_timing,cmp cx, ss:[bx+0x02]
 
 stack_timing,push ax
 stack_timing,pop ax
+stack_timing,push word [bx]
+stack_timing,pop word [bx]
+stack_timing,push 0xf00d
 stack_timing,pusha
 stack_timing,popa
 

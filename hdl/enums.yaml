@@ -96,7 +96,9 @@ opcode_e:
     - ROR4
     - ROL4
     - PUSH
+    - PUSHR
     - POP
+    - POPR
 
 alu_operation_e:
   prefix: ALU_OP_
@@ -167,9 +169,12 @@ cpu_state_e:
     - WAIT_OPERAND1
     - WAIT_OPERAND2
     - PUSH
-    - PUSH_STALL
+    - PUSH_WRITE
     - POP
     - POP_WAIT
+    - POP_STORE
+    - POP_CHECK
+    - POP_STALL
     - EXECUTE_STALL
     - EXECUTE
     - STORE_DELAY
@@ -180,7 +185,6 @@ cpu_state_e:
     - INT_FETCH_VEC
     - INT_FETCH_WAIT1
     - INT_FETCH_WAIT2
-    - INT_PUSH
 
 decode_stage_e:
   values:

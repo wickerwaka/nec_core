@@ -587,6 +587,7 @@ cpu_state_e state /* verilator public */;
 
 assign bcu_intreq = state == INT_ACK_WAIT;
 
+reg int_processing;
 reg [15:0] calculated_ea;
 reg [15:0] op_result;
 reg [15:0] op_result_high;
@@ -600,6 +601,7 @@ reg [7:0] shift_count;
 reg [15:0] push_list;
 reg [15:0] pop_list;
 reg [15:0] push_sp_save;
+reg pop_store;
 
 reg [4:0] prepare_nesting_level;
 reg [15:0] prepare_sp_save;
@@ -655,6 +657,7 @@ always_ff @(posedge clk) begin
         flags.BRK <= 0;
 
         state <= IDLE;
+        int_processing <= 0;
         use_alu_result <= 0;
 
         stack_modified_pc <= 0;
@@ -700,9 +703,15 @@ always_ff @(posedge clk) begin
                             state <= FETCH_OPERAND;
                         else if (next_decode.push != 16'd0)
                             state <= PUSH;
-                        else if (next_decode.pop != 16'd0)
-                            state <= POP;
-                        else if (next_decode.opclass == BRANCH)
+                        else if (next_decode.pop != 16'd0) begin
+                            if (dp_ready) begin
+                                read_memory(reg_sp, SS, WORD, 0);
+                                reg_sp <= reg_sp + 16'd2;
+                                state <= POP_WAIT;
+                            end else begin
+                                state <= POP;
+                            end
+                        end else if (next_decode.opclass == BRANCH)
                             state <= BRANCHING;
                         else
                             state <= EXECUTE;
@@ -766,7 +775,8 @@ always_ff @(posedge clk) begin
 
             INT_INITIATE: if (ce_1) begin
                 push_list <= STACK_PC | STACK_PS | STACK_PSW;
-                state <= INT_PUSH;
+                state <= PUSH;
+                int_processing <= 1;
             end
 
             INT_FETCH_VEC: if (dp_ready & ce_1) begin
@@ -791,6 +801,7 @@ always_ff @(posedge clk) begin
             INT_FETCH_WAIT2: if (dp_ready & ce_1) begin
                 reg_ps <= dp_din;
                 set_pc <= 1;
+                int_processing <= 0;
                 state <= IDLE;
             end
 
@@ -811,8 +822,16 @@ always_ff @(posedge clk) begin
                     exec_stage <= exec_stage + 4'd1;
 
                     case(decoded.opcode)
-                        OP_NOP,
+                        OP_NOP: begin
+                            delay = 1;
+                        end
+
+                        OP_POPR: begin
+                            delay = 1;
+                        end
+
                         OP_PUSH,
+                        OP_PUSHR,
                         OP_POP,
                         OP_B_COND,
                         OP_B_CW_COND: begin
@@ -1368,14 +1387,94 @@ always_ff @(posedge clk) begin
                 end
             end // EXECUTE
 
-            POP_WAIT: if (dp_ready & ce_1) begin
+            PUSH: if (ce_1) begin
+                if (push_list == 16'd0) begin
+                    if (int_processing) begin
+                        state <= INT_FETCH_VEC;
+                    end else if (decoded.opcode == OP_PUSH) begin
+                        state <= IDLE;
+                    end else if (decoded.opclass == BRANCH) begin
+                        state <= BRANCHING;
+                    end else begin
+                        state <= EXECUTE;
+                    end
+                end else if (dp_ready) begin
+                    reg_sp <= reg_sp - 16'd2;
+                    state <= PUSH_WRITE;
+                end
+            end
+
+            PUSH_WRITE: if (dp_ready & ce_1) begin
+                bit [15:0] push_data;
+                bit [15:0] list;
+                int push_idx;
+
+                push_idx = 0;
+                list = push_list;
+                for (int i = 15; i >= 0; i = i - 1) begin
+                    if (list[i]) push_idx = i;
+                end
+
+                case(push_idx)
+                0:  push_data = reg_aw;
+                1:  push_data = reg_cw;
+                2:  push_data = reg_dw;
+                3:  push_data = reg_bw;
+                4:  push_data = push_sp_save;
+                5:  push_data = push_sp_save; // DISCARD
+                6:  push_data = reg_bp;
+                7:  push_data = reg_ix;
+                8:  push_data = reg_iy;
+                9:  push_data = reg_ds1;
+                10: push_data = reg_psw;
+                11: push_data = reg_ps;
+                12: push_data = reg_ss;
+                13: push_data = reg_ds0;
+                14: push_data = next_pc;
+                15: push_data = TA;
+                endcase
+
+                write_memory(reg_sp, SS, WORD, push_data, 0);
+
+                list[push_idx] = 0;
+                push_list <= list;
+
+                state <= PUSH;
+            end // PUSH
+
+            POP_STORE: if (ce_1 & dp_ready) begin
+                if (pop_store) begin
+                    write_memory(calculated_ea, decoded.segment, WORD, TA, 0);
+                end
+                state <= POP_CHECK;
+            end
+
+            POP_CHECK: if (ce_1 & dp_ready) begin
+                if (pop_list == 16'd0) begin
+                    if (decoded.opcode == OP_POP) begin
+                        state <= IDLE;
+                    end else if (decoded.opclass == BRANCH) begin
+                        state <= BRANCHING;
+                    end else begin
+                        state <= EXECUTE;
+                    end
+                end else begin
+                    state <= POP;
+                end            
+            end
+
+            POP: if (dp_ready & ce_1) begin
+                read_memory(reg_sp, SS, WORD, 0);
+                reg_sp <= reg_sp + 16'd2;
+
+                state <= POP_WAIT;
+            end // POP
+
+            POP_WAIT: if (ce_1 & dp_ready) begin
                 bit [15:0] list;
                 int pop_idx = 0;
-                bit skip_sp;
-                bit mem_write;
 
-                skip_sp = 0;
-                mem_write = 0;
+                pop_store <= 0;
 
                 list = pop_list;
                 for (int i = 0; i < 16; i = i + 1) begin
@@ -1388,11 +1487,8 @@ always_ff @(posedge clk) begin
                     2:  reg_dw <= dp_din;
                     3:  reg_bw <= dp_din;
                     4:  reg_sp <= dp_din;
-                    5:  begin
-                        reg_bp <= dp_din;
-                        skip_sp = 1;
-                    end
-                    6:  reg_bp <= dp_din;
+                    5:  reg_bp <= dp_din;
+                    6:  begin end // skip
                     7:  reg_ix <= dp_din;
                     8:  reg_iy <= dp_din;
                     9:  reg_ds1 <= dp_din;
@@ -1422,103 +1518,16 @@ always_ff @(posedge clk) begin
                         if (decoded.mod == 2'b11) begin
                             set_reg16(reg16_index_e'(decoded.rm), dp_din);
                         end else begin
-                            write_memory(calculated_ea, decoded.segment, WORD, dp_din, 0);
-                            mem_write = 1;
+                            TA <= dp_din;
+                            pop_store <= 1;
                         end
                     end
                 endcase
 
                 list[pop_idx] = 0;
                 pop_list <= list;
-
-                if (skip_sp) reg_sp <= reg_sp + 16'd2;
-
-                if (list == 16'd0) begin
-                    if (decoded.opcode == OP_POP) begin
-                        state <= IDLE;
-                        //retire_op <= 1;
-                    end else if (decoded.opclass == BRANCH) begin
-                        state <= BRANCHING;
-                    end else begin
-                        state <= EXECUTE;
-                    end
-                end else begin
-                    if (1) begin
-                        state <= POP;
-                    end else begin
-                        if (skip_sp) begin
-                            read_memory(reg_sp + 16'd2, SS, WORD, 0);
-                            reg_sp <= reg_sp + 16'd4;
-                        end else begin
-                            read_memory(reg_sp, SS, WORD, 0);
-                            reg_sp <= reg_sp + 16'd2;
-                        end
-                        state <= POP_WAIT;
-                    end
-                end
+                state <= POP_STORE;
             end // POP_WAIT
-
-            PUSH_STALL: if (dp_ready & ce_1) begin
-                state <= PUSH;
-            end
-
-            INT_PUSH,
-            PUSH: if (dp_ready & ce_1) begin
-                bit [15:0] push_data;
-                bit [15:0] list;
-                int push_idx;
-
-                push_idx = 0;
-                list = push_list;
-                for (int i = 15; i >= 0; i = i - 1) begin
-                    if (list[i]) push_idx = i;
-                end
-
-                reg_sp <= reg_sp - 16'd2;
-
-                case(push_idx)
-                0:  push_data = reg_aw;
-                1:  push_data = reg_cw;
-                2:  push_data = reg_dw;
-                3:  push_data = reg_bw;
-                4:  push_data = push_sp_save;
-                5:  push_data = push_sp_save; // DISCARD
-                6:  push_data = reg_bp;
-                7:  push_data = reg_ix;
-                8:  push_data = reg_iy;
-                9:  push_data = reg_ds1;
-                10: push_data = reg_psw;
-                11: push_data = reg_ps;
-                12: push_data = reg_ss;
-                13: push_data = reg_ds0;
-                14: push_data = next_pc;
-                15: push_data = TA;
-                endcase
-
-                write_memory(reg_sp - 16'd2, SS, WORD, push_data, 0);
-
-                list[push_idx] = 0;
-                push_list <= list;
-
-                if (list == 16'd0) begin
-                    if (state == INT_PUSH) begin
-                        state <= INT_FETCH_VEC;
-                    end else if (decoded.opcode == OP_PUSH) begin
-                        state <= EXECUTE;
-                    end else if (decoded.opclass == BRANCH) begin
-                        state <= BRANCHING;
-                    end else begin
-                        state <= EXECUTE;
-                    end
-                end 
-            end // PUSH
-
-            POP: if (dp_ready & ce_1) begin
-                read_memory(reg_sp, SS, WORD, 0);
-                reg_sp <= reg_sp + 16'd2;
-
-                state <= POP_WAIT;
-            end // POP
 
             STORE_DELAY: if (ce_1) begin
                 if (~&cycles) cycles <= cycles + 10'd1;
