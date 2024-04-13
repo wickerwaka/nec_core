@@ -196,14 +196,6 @@ def add_nodes(root: Node, k: str, op_desc: dict):
     if width:
         assignments["width"] = width
 
-    cycles = op_desc.get('cycles', 0)
-    if cycles:
-        assignments["cycles"] = cycles
-
-    mem_cycles = op_desc.get('mem_cycles', cycles)
-    if mem_cycles:
-        assignments["mem_cycles"] = mem_cycles
-
     decode_delay = op_desc.get('decode_delay', 0)
     
     push = op_desc.get('push')

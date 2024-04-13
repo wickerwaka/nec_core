@@ -103,7 +103,6 @@ reg set_pc /*verilator public*/;
 wire [7:0] ipq[8];
 wire [3:0] ipq_len;
 
-nec_decode_t store_decoded;
 nec_decode_t decoded /*verilator public*/;
 opcode_e cur_opcode;
 
@@ -666,7 +665,6 @@ always_ff @(posedge clk) begin
         halt <= 0;
     end else if (ce_1 | ce_2) begin
         div_start <= 0;
-        //if (ce_1) retire_op <= 0;
         set_pc <= 0;
         dp_req <= 0;
 
@@ -715,15 +713,9 @@ always_ff @(posedge clk) begin
                             state <= BRANCHING;
                         else
                             state <= EXECUTE;
-                        
-                        //retire_op <= 1;
                     end
                 end
             end // IDLE
-
-            /*FETCH_OPERAND: if (ce_1) begin
-                state <= FETCH_OPERAND1;
-            end*/
 
             FETCH_OPERAND: if (ce_1 & dp_ready) begin
                 read_memory(calculated_ea, decoded.segment, decoded.width, decoded.io);
@@ -813,7 +805,7 @@ always_ff @(posedge clk) begin
                 bit working;
                 bit exception;
 
-                if (dp_ready & ce_1 & |exec_delay) begin
+                if (dp_ready & ce_1 & |exec_delay & ~turbo) begin
                     exec_delay <= exec_delay - 10'd1;
                 end else if (dp_ready & ce_1) begin
                     working = 0;
@@ -1375,14 +1367,11 @@ always_ff @(posedge clk) begin
                         if (exception) begin
                             state <= INT_INITIATE;
                         end else begin
-                            store_decoded <= decoded;
-                            if (need_delay) begin
+                            if (need_delay & ~turbo) begin
                                 state <= STORE_DELAY;
                                 cycles <= 10'd1;
                             end else begin
-                                //retire_op <= 1;
                                 state <= STORE_REGISTER;
-                                //block_prefetch <= decoded.mem_write;
                             end
                         end
                     end else begin
@@ -1543,7 +1532,7 @@ always_ff @(posedge clk) begin
             STORE_MEMORY: begin
                 if (ce_1 & dp_ready) begin
                     result32 = use_alu_result ? { 16'd0, alu_result } : { op_result_high, op_result };
-                    write_memory(calculated_ea, store_decoded.segment, store_decoded.width, result32[15:0], store_decoded.io);
+                    write_memory(calculated_ea, decoded.segment, decoded.width, result32[15:0], decoded.io);
                     state <= IDLE;
                 end
             end
@@ -1552,38 +1541,38 @@ always_ff @(posedge clk) begin
                  if (ce_2) begin
                     if (1) begin
                         result32 = use_alu_result ? { 16'd0, alu_result } : { op_result_high, op_result };
-                        case(store_decoded.dest)
+                        case(decoded.dest)
                         OPERAND_ACC: begin
-                            if (store_decoded.width == BYTE)
+                            if (decoded.width == BYTE)
                                 reg_aw[7:0] <= result32[7:0];
                             else
                                 reg_aw <= result32[15:0];
                         end
                         OPERAND_MODRM: begin
-                            if (store_decoded.mod == 2'b11) begin
-                                if (store_decoded.width == BYTE)
-                                    set_reg8(reg8_index_e'(store_decoded.rm), result32[7:0]);
+                            if (decoded.mod == 2'b11) begin
+                                if (decoded.width == BYTE)
+                                    set_reg8(reg8_index_e'(decoded.rm), result32[7:0]);
                                 else
-                                    set_reg16(reg16_index_e'(store_decoded.rm), result32[15:0]);
+                                    set_reg16(reg16_index_e'(decoded.rm), result32[15:0]);
                             end
                         end
                         OPERAND_SREG: begin
-                            set_sreg(sreg_index_e'(store_decoded.sreg), result32[15:0]);
+                            set_sreg(sreg_index_e'(decoded.sreg), result32[15:0]);
                         end
                         OPERAND_REG_0: begin
-                            if (store_decoded.width == BYTE)
-                                set_reg8(reg8_index_e'(store_decoded.reg0), result32[7:0]);
+                            if (decoded.width == BYTE)
+                                set_reg8(reg8_index_e'(decoded.reg0), result32[7:0]);
                             else
-                                set_reg16(reg16_index_e'(store_decoded.reg0), result32[15:0]);
+                                set_reg16(reg16_index_e'(decoded.reg0), result32[15:0]);
                         end
                         OPERAND_REG_1: begin
-                            if (store_decoded.width == BYTE)
-                                set_reg8(reg8_index_e'(store_decoded.reg1), result32[7:0]);
+                            if (decoded.width == BYTE)
+                                set_reg8(reg8_index_e'(decoded.reg1), result32[7:0]);
                             else
-                                set_reg16(reg16_index_e'(store_decoded.reg1), result32[15:0]);
+                                set_reg16(reg16_index_e'(decoded.reg1), result32[15:0]);
                         end
                         OPERAND_PRODUCT: begin
-                            if (store_decoded.width == WORD) reg_dw <= result32[31:16];
+                            if (decoded.width == WORD) reg_dw <= result32[31:16];
                             reg_aw <= result32[15:0];
                         end
                         default: begin end
@@ -1593,7 +1582,7 @@ always_ff @(posedge clk) begin
                             flags <= alu_flags_result;
                         end
 
-                        if (store_decoded.mem_write) begin
+                        if (decoded.mem_write) begin
                             state <= STORE_MEMORY;
                         end else begin
                             state <= IDLE;

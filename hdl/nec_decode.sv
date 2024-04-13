@@ -106,9 +106,6 @@ task reset_decode();
     d.disp_size <= 3'd0;
     d.opclass <= MISC;
 
-    d.cycles <= 0;
-    d.mem_cycles <= 0;
-
     decode_valid <= 0;
     disp_read <= 3'd0;
     imm_read <= 3'd0;
