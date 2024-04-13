@@ -900,6 +900,7 @@ always_ff @(posedge clk) begin
                         end
 
                         OP_LDEA: begin
+                            delay = 1;
                             op_result <= calculated_ea;
                         end
 
