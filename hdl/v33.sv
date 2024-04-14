@@ -1480,8 +1480,8 @@ always_ff @(posedge clk) begin
                     2:  reg_dw <= dp_din;
                     3:  reg_bw <= dp_din;
                     4:  reg_sp <= dp_din;
-                    5:  reg_bp <= dp_din;
-                    6:  begin end // skip
+                    5:  begin end // skip
+                    6:  reg_bp <= dp_din;
                     7:  reg_ix <= dp_din;
                     8:  reg_iy <= dp_din;
                     9:  reg_ds1 <= dp_din;
