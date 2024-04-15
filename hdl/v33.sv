@@ -230,6 +230,8 @@ function bit [15:0] get_operand(nec_decode_t dec, operand_e operand);
             else
                 return { 8'd0, dp_din[7:0] };
         end
+        OPERAND_IO_DIRECT,
+        OPERAND_IO_INDIRECT: return { 8'd0, dp_din[7:0] };
         OPERAND_REG_0: return { 8'd0, get_reg8(reg8_index_e'(dec.reg0)) };
         OPERAND_REG_1: return { 8'd0, get_reg8(reg8_index_e'(dec.reg1)) };
         OPERAND_CL: return { 8'd0, reg_cw[7:0] };
@@ -247,6 +249,8 @@ function bit [15:0] get_operand(nec_decode_t dec, operand_e operand);
             else
                 return dp_din;
         end
+        OPERAND_IO_DIRECT,
+        OPERAND_IO_INDIRECT: return { dp_din[15:0] };
         OPERAND_SREG: begin
             case(dec.sreg)
             DS0: return reg_ds0;
