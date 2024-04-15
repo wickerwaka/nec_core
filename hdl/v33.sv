@@ -1025,7 +1025,7 @@ always_ff @(posedge clk) begin
                                     working = 1;
                                 end
                             end else if (exec_stage == 1) begin
-                                TA <= dp_din;
+                                TA <= decoded.width == WORD ? dp_din : { 8'd0, dp_din[7:0] };
                                 read_memory(reg_iy, DS1, decoded.width, 0);
                                 working = 1;
                                 if (flags.DIR) begin
@@ -1036,7 +1036,7 @@ always_ff @(posedge clk) begin
                                     reg_ix <= reg_ix + ( decoded.width == BYTE ? 16'd1 : 16'd2 );
                                 end
                             end else if (exec_stage == 2) begin
-                                TB <= dp_din;
+                                TB <= decoded.width == WORD ? dp_din : { 8'd0, dp_din[7:0] };
                                 alu_operation <= ALU_OP_CMP;
                                 alu_wide <= decoded.width == WORD ? 1 : 0;
                                 working = 1;
@@ -1074,8 +1074,8 @@ always_ff @(posedge clk) begin
                                     working = 1;
                                 end
                             end else if (exec_stage == 1) begin
-                                TA <= reg_aw;
-                                TB <= dp_din;
+                                TA <= decoded.width == WORD ? reg_aw : { 8'd0, reg_aw[7:0] };
+                                TB <= decoded.width == WORD ? dp_din : { 8'd0, dp_din[7:0] };;
                                 alu_operation <= ALU_OP_CMP;
                                 alu_wide <= decoded.width == WORD ? 1 : 0;
                                 working = 1;

@@ -82,7 +82,7 @@ always_comb begin
         res = temp17_2[15:0];
 
         if (operation != ALU_OP_DEC)
-            flags.CY = temp17 > {1'b0, ta} ? 1 : 0;
+            flags.CY = wide ? temp17_2[16] : temp17_2[8];
 
         flags.AC = temp17_2[3:0] > ta[3:0] ? 1 : 0;
 
