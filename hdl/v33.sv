@@ -1299,7 +1299,6 @@ always_ff @(posedge clk) begin
                                     working = 0;
                                     delay = 1;
                                 end else begin
-                                    delay = 17;
                                     read_memory(reg_ix + {9'd0, bcd_offset}, decoded.segment, BYTE, 0);
                                 end
                             end else if (exec_stage == 2) begin
@@ -1336,6 +1335,7 @@ always_ff @(posedge clk) begin
                                     flags.CY <= 1;
                                 end
                                 bcd_acc <= { bcd_result_high[3:0], bcd_result_low[3:0] };
+                                delay = 17;
                             end else if (exec_stage == 5) begin
                                 if (|bcd_acc) flags.Z <= 0;
                                 if (decoded.opcode != OP_CMP4S) begin
@@ -1535,17 +1535,22 @@ always_ff @(posedge clk) begin
 
             STORE_MEMORY: begin
                 if (ce_1 & dp_ready) begin
-                    result32 = use_alu_result ? { 16'd0, alu_result } : { op_result_high, op_result };
-                    write_memory(calculated_ea, decoded.segment, decoded.width, result32[15:0], decoded.io);
+                    write_memory(calculated_ea, decoded.segment, decoded.width, op_result, decoded.io);
                     state <= IDLE;
                 end
             end
 
             STORE_REGISTER: begin
                  if (ce_2) begin
-                    if (1) begin
-                        result32 = use_alu_result ? { 16'd0, alu_result } : { op_result_high, op_result };
-                        case(decoded.dest)
+                    if (use_alu_result) begin
+                        result32 = { 16'd0, alu_result };
+                        op_result <= alu_result; // for STORE_MEMORY
+                        flags <= alu_flags_result;
+                    end else begin
+                        result32 = { op_result_high, op_result };
+                    end
+
+                    case(decoded.dest)
                         OPERAND_ACC: begin
                             if (decoded.width == BYTE)
                                 reg_aw[7:0] <= result32[7:0];
@@ -1580,17 +1585,12 @@ always_ff @(posedge clk) begin
                             reg_aw <= result32[15:0];
                         end
                         default: begin end
-                        endcase
+                    endcase
 
-                        if (use_alu_result) begin
-                            flags <= alu_flags_result;
-                        end
-
-                        if (decoded.mem_write) begin
-                            state <= STORE_MEMORY;
-                        end else begin
-                            state <= IDLE;
-                        end
+                    if (decoded.mem_write) begin
+                        state <= STORE_MEMORY;
+                    end else begin
+                        state <= IDLE;
                     end
                 end
             end // STORE_REGISTER
