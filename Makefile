@@ -49,7 +49,9 @@ TIMING_TESTS = \
 				misc_timing \
 				shift_timing \
 				mul_timing \
-				div_timing
+				div_timing \
+				nec_timing \
+				branch_timing
 
 TIMING_TEST_TRACES = $(patsubst %,traces/sim/%.txt,$(TIMING_TESTS))
 

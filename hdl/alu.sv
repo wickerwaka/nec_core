@@ -135,9 +135,12 @@ always_comb begin
 
     ALU_OP_SET1: begin
         res = ta | bit_shift_mask;
+        delay = 10'd3;
     end
+
     ALU_OP_CLR1: begin
         res = ta & ~bit_shift_mask;
+        delay = 10'd3;
     end
 
     ALU_OP_TEST1: begin
@@ -146,11 +149,14 @@ always_comb begin
         flags.CY = 0;
         flags.V = 0;
 
+        delay = 10'd3;
+
         calc_zero = 1;
     end
 
     ALU_OP_NOT1: begin
         res = ta ^ bit_shift_mask;
+        delay = 10'd3;
     end
     
     ALU_OP_ADJ4A: begin 

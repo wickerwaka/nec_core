@@ -864,6 +864,13 @@ b1010010W:
   desc: MOVBK
   op: MOVBK
 
+b0110110W:
+  desc: INM
+  op: INM
+
+b011011W:
+  desc: OUTM
+  op: OUTM
 
 #
 # CPU Control

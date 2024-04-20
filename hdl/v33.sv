@@ -886,6 +886,7 @@ always_ff @(posedge clk) begin
                         OP_MOV_SEG: begin
                             set_reg16(reg16_index_e'(decoded.reg0), TA);
                             set_sreg(sreg_index_e'(decoded.sreg), TB);
+                            delay = 10'd2;
                         end
 
                         OP_MOV_PSW_AH: begin
@@ -946,20 +947,19 @@ always_ff @(posedge clk) begin
 
                         OP_LDM: begin
                             if (exec_stage == 0) begin
-                                bit do_work = 1;
+                                working = 1;
                                 if (decoded.rep != REPEAT_NONE) begin
                                     if (reg_cw == 16'd0) begin
-                                        do_work = 0;
+                                        working = 0;
                                     end else begin
                                         reg_cw <= reg_cw - 16'd1;
                                     end
                                 end
-
-                                if (do_work) begin
-                                    read_memory(reg_ix, decoded.segment, decoded.width, 0);
-                                    working = 1;
-                                end
+                            end else if (exec_stage == 1) begin
+                                read_memory(reg_ix, decoded.segment, decoded.width, 0);
+                                working = 1;
                             end else begin
+                                working = 1;
                                 if (decoded.width == BYTE)
                                     reg_aw[7:0] <= dp_din[7:0];
                                 else
@@ -970,13 +970,19 @@ always_ff @(posedge clk) begin
                                 end else begin
                                     reg_ix <= reg_ix + ( decoded.width == BYTE ? 16'd1 : 16'd2 );
                                 end
-                                exec_stage <= 0;
+                                exec_stage <= 1;
 
                                 if (decoded.rep != REPEAT_NONE) begin
-                                    working = reg_cw != 16'd0;
+                                    if (reg_cw == 16'd0) begin
+                                        working = 0;
+                                        delay = 3;
+                                    end else begin
+                                        reg_cw <= reg_cw - 16'd1;
+                                    end
                                     check_interrupt = 1;
                                 end else begin
                                     delay = 2;
+                                    working = 0;
                                 end
                             end
                         end
@@ -1105,6 +1111,53 @@ always_ff @(posedge clk) begin
                                     check_interrupt = 1;
                                 end else begin
                                     working = 0;
+                                end
+                            end
+                        end
+
+                        OP_INM,
+                        OP_OUTM: begin
+                            if (exec_stage == 0) begin
+                                bit do_work = 1;
+                                if (decoded.rep != REPEAT_NONE) begin
+                                    if (reg_cw == 16'd0) begin
+                                        do_work = 0;
+                                    end else begin
+                                        reg_cw <= reg_cw - 16'd1;
+                                    end
+                                end
+
+                                if (do_work) begin
+                                    if (decoded.opcode == OP_INM)
+                                        read_memory(reg_dw, decoded.segment, decoded.width, 1);
+                                    else
+                                        read_memory(reg_ix, decoded.segment, decoded.width, 0);
+                                    working = 1;
+                                end
+                            end else begin
+                                if (decoded.opcode == OP_INM) begin
+                                    write_memory(reg_iy, DS1, decoded.width, dp_din, 0);
+                                    if (flags.DIR) begin
+                                        reg_iy <= reg_iy - ( decoded.width == BYTE ? 16'd1 : 16'd2 );
+                                    end else begin
+                                        reg_iy <= reg_iy + ( decoded.width == BYTE ? 16'd1 : 16'd2 );
+                                    end
+                                end else begin
+                                    write_memory(reg_dw, DS1, decoded.width, dp_din, 1);
+                                    if (flags.DIR) begin
+                                        reg_ix <= reg_ix - ( decoded.width == BYTE ? 16'd1 : 16'd2 );
+                                    end else begin
+                                        reg_ix <= reg_ix + ( decoded.width == BYTE ? 16'd1 : 16'd2 );
+                                    end
+                                end
+                                exec_stage <= 0;
+
+                                if (decoded.rep != REPEAT_NONE) begin
+                                    working = reg_cw != 16'd0;
+                                    check_interrupt = 1;
+                                    delay = 7;
+                                end else begin
+                                    delay = 8;
                                 end
                             end
                         end
@@ -1265,6 +1318,7 @@ always_ff @(posedge clk) begin
 
                         OP_CHKIND: begin
                             temp = get_reg16(reg16_index_e'(decoded.reg0));
+                            delay = 10'd9;
                             if (TA > temp || TB < temp) begin
                                 interrupt_vector <= 8'd5;
                                 exception = 1;
@@ -1272,10 +1326,10 @@ always_ff @(posedge clk) begin
                         end
 
                         OP_TRANS: begin
-                            working = exec_stage == 0;
-                            if (exec_stage == 0) begin
+                            working = exec_stage != 2;
+                            if (exec_stage == 1) begin
                                 read_memory(reg_bw + { 8'd0, reg_aw[7:0]}, decoded.segment, BYTE, 0);
-                            end else begin
+                            end else if (exec_stage == 2) begin
                                 reg_aw[7:0] <= dp_din[7:0];
                             end
                         end
@@ -1306,7 +1360,7 @@ always_ff @(posedge clk) begin
                             end else if (exec_stage == 1) begin
                                 if (bcd_offset == reg_cw[7:1]) begin
                                     working = 0;
-                                    delay = 1;
+                                    delay = 0;
                                 end else begin
                                     read_memory(reg_ix + {9'd0, bcd_offset}, decoded.segment, BYTE, 0);
                                 end
@@ -1344,7 +1398,7 @@ always_ff @(posedge clk) begin
                                     flags.CY <= 1;
                                 end
                                 bcd_acc <= { bcd_result_high[3:0], bcd_result_low[3:0] };
-                                delay = 17;
+                                delay = 13;
                             end else if (exec_stage == 5) begin
                                 if (|bcd_acc) flags.Z <= 0;
                                 if (decoded.opcode != OP_CMP4S) begin
@@ -1360,11 +1414,13 @@ always_ff @(posedge clk) begin
                         OP_ROL4: begin
                             reg_aw[3:0] <= TA[7:4];
                             op_result <= { 8'd0, TA[3:0], reg_aw[3:0] };
+                            delay = 10'd8;
                         end
 
                         OP_ROR4: begin
                             reg_aw[3:0] <= TA[3:0];
                             op_result <= { 8'd0, reg_aw[3:0], TA[7:4] };
+                            delay = 10'd8;
                         end
 
                         default: begin // TODO exception
@@ -1392,9 +1448,8 @@ always_ff @(posedge clk) begin
                             state <= INT_ACK_WAIT;
                             next_pc <= decoded.pc;
                         end
-                    end else begin
-                        exec_delay <= delay;
                     end
+                    exec_delay <= delay;
                 end
             end // EXECUTE
 

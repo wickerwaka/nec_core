@@ -1,6 +1,6 @@
 BITS 16
 
-%macro multi_op_begin 0
+%macro multi_op_init 0
     mov ax, ss
     mov es, ax
     mov ds, ax
@@ -13,7 +13,15 @@ BITS 16
     align 2
     mov cl, 11 ; 2
     ror ax, cl ; 2
+%endmacro
+
+%macro multi_op_start 0
     in al, 0xf2 ; 2
+%endmacro
+
+%macro multi_op_begin 0
+    multi_op_init
+    multi_op_start
 %endmacro
 
 %macro multi_op_end 0
@@ -82,9 +90,14 @@ block_timing:
     single_op { movsw }
     single_op { cmpsb }
     single_op { cmpsw }
-    single_op { db 0x0f, 0x20 } ; add4s
-    single_op { db 0x0f, 0x22 } ; sub4s
-    single_op { db 0x0f, 0x26 } ; cmp4s
+
+    mov dx, 0x60
+    single_op { insb }
+    single_op { insw }
+    single_op { outsb }
+    single_op { outsw }
+
+
 
     block_op { stosb }
     block_op { stosw }
@@ -94,9 +107,12 @@ block_timing:
     block_op { movsw }
     block_op { cmpsb }
     block_op { cmpsw }
-    block_op { db 0x0f, 0x20 } ; add4s
-    block_op { db 0x0f, 0x22 } ; sub4s
-    block_op { db 0x0f, 0x26 } ; cmp4s
+
+    mov dx, 0x60
+    block_op { insb }
+    block_op { insw }
+    block_op { outsb }
+    block_op { outsw }
 
     mov dx, 0xdead
     out dx, al
@@ -116,6 +132,13 @@ stack_timing:
     single_op { push 0xf00d }
     single_op { pusha }
     single_op { popa }
+
+    single_op { leave }
+    single_op { enter 16, 0 }
+    single_op { enter 16, 1 }
+    single_op { enter 16, 2 }
+    single_op { enter 16, 3 }
+    single_op { enter 16, 4 }
 
     mov dx, 0xdead
     out dx, al
@@ -143,6 +166,12 @@ mov_timing:
 
     single_op { lea ax, [bx] }
     single_op { lea ax, [bx+0x400] }
+
+    single_op { les ax, [bx] }
+    single_op { lds ax, [bx+0x400] }
+
+    single_op { xlatb }
+    single_op { lahf }
 
     mov dx, 0xdead
     out dx, al
@@ -204,6 +233,74 @@ misc_timing:
     single_op { aad }
     single_op { cbw }
     single_op { cwd }
+
+    mov word [bx], 0x0000
+    mov word [bx+2], 0x7fff
+    single_op { bound bx, [bx] }
+
+    mov dx, 0xdead
+    out dx, al
+    jmp .start
+%endif
+
+%ifidni TEST_NAME,nec_timing
+global nec_timing
+nec_timing:
+.start:
+    single_op { db 0x0f, 0x11, 0xc0 } ;       test1 al, cl
+    single_op { db 0x0f, 0x11, 0x07 } ;       test1 [bx], cl
+
+    single_op { db 0x0f, 0x13, 0xc0 } ;       clr1 al, cl
+    single_op { db 0x0f, 0x13, 0x07 } ;       clr1 [bx], cl
+
+    single_op { db 0x0f, 0x15, 0xc0 } ;       set1 al, cl
+    single_op { db 0x0f, 0x15, 0x07 } ;       set1 [bx], cl
+
+    single_op { db 0x0f, 0x17, 0xc0 } ;       not1 al, cl
+    single_op { db 0x0f, 0x17, 0x07 } ;       not1 [bx], cl
+
+    single_op { db 0x0f, 0x19, 0xc0, 0x03 } ; test1 al, 3
+    single_op { db 0x0f, 0x19, 0x07, 0x03 } ; test1 [bx], 3
+
+    single_op { db 0x0f, 0x1b, 0xc0, 0x03 } ; clr1 al, 3
+    single_op { db 0x0f, 0x1b, 0x07, 0x03 } ; clr1 [bx], 3
+
+    single_op { db 0x0f, 0x1d, 0xc0, 0x03 } ; set1 al, 3
+    single_op { db 0x0f, 0x1d, 0x07, 0x03 } ; set1 [bx], 3
+
+    single_op { db 0x0f, 0x1f, 0xc0, 0x03 } ; not1 al, 3
+    single_op { db 0x0f, 0x1f, 0x07, 0x03 } ; not1 [bx], 3
+
+    multi_op_begin
+    mov cl, 8
+    %rep 64
+    db 0x0f, 0x20 ; add4s
+    %endrep
+    multi_op_end
+
+    multi_op_begin
+    mov cl, 18
+    %rep 64
+    db 0x0f, 0x20 ; add4s
+    %endrep
+    multi_op_end
+
+    multi_op_begin
+    mov cl, 8
+    %rep 64
+    db 0x0f, 0x26 ; cmp4s
+    %endrep
+    multi_op_end
+
+    multi_op_begin
+    mov cl, 18
+    %rep 64
+    db 0x0f, 0x26 ; cmp4s
+    %endrep
+    multi_op_end
+
+    single_op { db 0x0f, 0x28, 0xc0 } ; rol4 al
+    single_op { db 0x0f, 0x28, 0x07 } ; rol4 [bx]
 
     mov dx, 0xdead
     out dx, al
@@ -311,4 +408,122 @@ div_timing:
     mov dx, 0xdead
     out dx, al
     jmp .start
+%endif
+
+%ifidni TEST_NAME,branch_timing
+global branch_timing
+branch_timing:
+.start:
+
+    single_op { db 0x73, 0x00 } ; bnc
+    single_op { db 0x72, 0x00 } ; bc
+    single_op { db 0xe9, 0x00, 0x00 } ; br near-label
+    single_op { db 0xeb, 0x00 } ; br short-label
+
+    multi_op_begin
+    %rep 64
+    mov cx, 15
+    db 0xe2, -2 ; loop/dbnz
+    %endrep
+    multi_op_end
+
+    multi_op_begin
+    mov cx, 256
+    mov word [bx], .ind_dest
+    .ind_loop:
+    jmp [bx]
+    .ind_dest:
+    loop .ind_loop
+    multi_op_end
+
+    multi_op_begin
+    mov cx, 256
+    mov word [bx], .ind32_dest
+    mov word [bx + 2], 0x0
+    .ind32_loop:
+    jmp far [bx]
+    .ind32_dest:
+    loop .ind32_loop
+    multi_op_end
+
+    multi_op_begin
+    mov cx, 256
+    .far_loop:
+    jmp 0x0:.far_dest
+    .far_dest:
+    loop .far_loop
+    multi_op_end
+
+    multi_op_init
+    push .ret_end
+    %rep 64
+    push .ret_loop
+    %endrep
+    multi_op_start
+    .ret_loop:
+    ret
+    .ret_end:
+    multi_op_end
+
+    multi_op_init
+    push cs
+    push .retf_end
+    %rep 64
+    push cs
+    push .retf_loop
+    %endrep
+    multi_op_start
+    .retf_loop:
+    retf
+    .retf_end:
+    multi_op_end
+
+    multi_op_begin
+    mov cx, 256
+    .call_near_loop:
+    call .call_near_dest
+    .call_near_dest:
+    loop .call_near_loop
+    multi_op_end
+
+    multi_op_begin
+    mov cx, 256
+    .call_far_loop:
+    call 0x0:.call_far_dest
+    .call_far_dest:
+    loop .call_far_loop
+    multi_op_end
+
+    multi_op_begin
+    mov cx, 256
+    mov word bx, .call_reg_dest
+    .call_reg_loop:
+    call bx
+    .call_reg_dest:
+    loop .call_reg_loop
+    multi_op_end
+
+    multi_op_begin
+    mov cx, 256
+    mov word [bx], .call_ind_dest
+    .call_ind_loop:
+    call [bx]
+    .call_ind_dest:
+    loop .call_ind_loop
+    multi_op_end
+
+    multi_op_begin
+    mov cx, 256
+    mov word [bx], .call_ind32_dest
+    mov word [bx + 2], 0x0
+    .call_ind32_loop:
+    call far [bx]
+    .call_ind32_dest:
+    loop .call_ind32_loop
+    multi_op_end
+
+    mov dx, 0xdead
+    out dx, al
+    jmp .start
+
 %endif

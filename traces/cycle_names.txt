@@ -24,6 +24,12 @@ stack_timing,pop word [bx]
 stack_timing,push 0xf00d
 stack_timing,pusha
 stack_timing,popa
+stack_timing,leave
+stack_timing,enter 16, 0
+stack_timing,enter 16, 1
+stack_timing,enter 16, 2
+stack_timing,enter 16, 3
+stack_timing,enter 16, 4
 
 mov_timing,mov cx, bx
 mov_timing,mov cx, 0x01
@@ -39,6 +45,10 @@ mov_timing,xchg cx, [bx]
 mov_timing,xchg [bx], di
 mov_timing,lea ax, [bx]
 mov_timing,lea ax, [bx+0x400]
+mov_timing,les ax, [bx]
+mov_timing,lds ax, [bx+0x400]
+mov_timing,xlatb
+mov_timing,lahf
 
 
 block_timing,stosb
@@ -49,9 +59,10 @@ block_timing,movsb
 block_timing,movsw
 block_timing,cmpsb
 block_timing,cmpsw
-block_timing,add4s
-block_timing,sub4s
-block_timing,cmp4s
+block_timing,insb
+block_timing,insw
+block_timing,outsb
+block_timing,outsw
 block_timing,rep stosb
 block_timing,rep stosw
 block_timing,rep lodsb
@@ -60,15 +71,18 @@ block_timing,rep movsb
 block_timing,rep movsw
 block_timing,rep cmpsb
 block_timing,rep cmpsw
-block_timing,rep add4s
-block_timing,rep sub4s
-block_timing,rep cmp4s
+block_timing,rep insb
+block_timing,rep insw
+block_timing,rep outsb
+block_timing,rep outsw
 
 misc_timing,nop
 misc_timing,aam
 misc_timing,aad
 misc_timing,cbw
 misc_timing,cwd
+misc_timing,bound bx, [bx]
+
 
 shift_timing,ror ax, 1
 shift_timing,ror ax, 2
@@ -101,3 +115,42 @@ div_timing,idiv cl
 div_timing,idiv byte [bx]
 div_timing,idiv cx
 div_timing,idiv word [bx]
+
+branch_timing,bnc
+branch_timing,bc
+branch_timing,br near-label
+branch_timing,br short-label
+branch_timing,loop
+branch_timing,br [bx]
+branch_timing,br far [bx]
+branch_timing,br far
+branch_timing,ret
+branch_timing,retf
+branch_timing,call near
+branch_timing,call far
+branch_timing,call bx
+branch_timing,call [bx]
+branch_timing,call far [bx]
+
+nec_timing,test1 al, cl
+nec_timing,test1 [bx], cl
+nec_timing,clr1 al, cl
+nec_timing,clr1 [bx], cl
+nec_timing,set1 al, cl
+nec_timing,set1 [bx], cl
+nec_timing,not1 al, cl
+nec_timing,not1 [bx], cl
+nec_timing,test1 al, 3
+nec_timing,test1 [bx], 3
+nec_timing,clr1 al, 3
+nec_timing,clr1 [bx], 3
+nec_timing,set1 al, 3
+nec_timing,set1 [bx], 3
+nec_timing,not1 al, 3
+nec_timing,not1 [bx], 3
+nec_timing,add4s cl=8
+nec_timing,add4s cl=18
+nec_timing,cmp4s cl=8
+nec_timing,cmp4s cl=18
+nec_timing,rol4 al
+nec_timing,rol4 [bx]

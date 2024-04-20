@@ -1685,6 +1685,16 @@ task process_ROOT(input bit [7:0] q);
       d.opcode <= OP_MOVBK;
       state <= TERMINAL;
     end
+    8'b0110110x: begin
+      d.width <= q[0] ? WORD : BYTE;
+      d.opcode <= OP_INM;
+      state <= TERMINAL;
+    end
+    8'b011011xx: begin
+      d.width <= q[1] ? WORD : BYTE;
+      d.opcode <= OP_OUTM;
+      state <= TERMINAL;
+    end
     8'b01001xxx: begin
       d.reg0 <= q[2:0];
       d.opcode <= OP_ALU;
