@@ -808,12 +808,14 @@ always_ff @(posedge clk) begin
             EXECUTE: begin
                 bit working;
                 bit exception;
+                bit check_interrupt;
 
                 if (dp_ready & ce_1 & |exec_delay & ~turbo) begin
                     exec_delay <= exec_delay - 10'd1;
                 end else if (dp_ready & ce_1) begin
                     working = 0;
                     exception = 0;
+                    check_interrupt = 0;
                     
                     exec_stage <= exec_stage + 4'd1;
 
@@ -924,6 +926,7 @@ always_ff @(posedge clk) begin
                                 end else begin
                                     reg_cw <= reg_cw - 16'd1;
                                     working = reg_cw == 16'd1 ? 0 : 1;
+                                    check_interrupt = 1;
                                 end
                                 delay = 1;
                             end else begin
@@ -937,6 +940,8 @@ always_ff @(posedge clk) begin
                                 else
                                     reg_iy <= reg_iy + ( decoded.width == BYTE ? 16'd1 : 16'd2 );
                             end
+
+
                         end
 
                         OP_LDM: begin
@@ -969,6 +974,7 @@ always_ff @(posedge clk) begin
 
                                 if (decoded.rep != REPEAT_NONE) begin
                                     working = reg_cw != 16'd0;
+                                    check_interrupt = 1;
                                 end else begin
                                     delay = 2;
                                 end
@@ -1003,6 +1009,7 @@ always_ff @(posedge clk) begin
 
                                 if (decoded.rep != REPEAT_NONE) begin
                                     working = reg_cw != 16'd0;
+                                    check_interrupt = 1;
                                     delay = 2;
                                 end else begin
                                     delay = 3;
@@ -1051,6 +1058,7 @@ always_ff @(posedge clk) begin
                                     else if (decoded.rep == REPEAT_Z) working = alu_flags_result.Z;
                                     else if (decoded.rep == REPEAT_NC) working = ~alu_flags_result.CY;
                                     else if (decoded.rep == REPEAT_C) working = alu_flags_result.CY;
+                                    check_interrupt = 1;
                                 end else begin
                                     delay = 5;
                                     working = 0;
@@ -1094,6 +1102,7 @@ always_ff @(posedge clk) begin
                                     else if (decoded.rep == REPEAT_Z) working = alu_flags_result.Z;
                                     else if (decoded.rep == REPEAT_NC) working = ~alu_flags_result.CY;
                                     else if (decoded.rep == REPEAT_C) working = alu_flags_result.CY;
+                                    check_interrupt = 1;
                                 end else begin
                                     working = 0;
                                 end
@@ -1377,6 +1386,11 @@ always_ff @(posedge clk) begin
                             end else begin
                                 state <= STORE_REGISTER;
                             end
+                        end
+                    end else if (check_interrupt) begin
+                        if (intreq & flags.IE) begin
+                            state <= INT_ACK_WAIT;
+                            next_pc <= decoded.pc;
                         end
                     end else begin
                         exec_delay <= delay;
