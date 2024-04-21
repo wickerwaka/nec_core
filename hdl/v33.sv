@@ -1285,7 +1285,7 @@ always_ff @(posedge clk) begin
                                 prepare_sp_save <= reg_sp - 16'd2;
                                 write_memory(reg_sp - 16'd2, SS, WORD, reg_bp, 0);
                                 working = 1;
-
+                                delay = 10'd6;
                                 case(decoded.imm[20:16])
                                 5'd0: exec_stage <= 3;
                                 5'd1: exec_stage <= 2;
@@ -1296,10 +1296,14 @@ always_ff @(posedge clk) begin
                                 reg_bp <= reg_bp - 16'd2;
                                 write_memory(reg_sp - 16'd2, SS, WORD, reg_bp - 16'd2, 0);
                                 prepare_nesting_level <= prepare_nesting_level - 5'd1;
-                                if (prepare_nesting_level > 5'd2) exec_stage <= exec_stage; 
+                                if (prepare_nesting_level > 5'd2) begin
+                                    exec_stage <= exec_stage;
+                                    delay = 10'd7;
+                                end
                             end else if (exec_stage == 2) begin
                                 reg_sp <= reg_sp - 16'd2;
                                 write_memory(reg_sp - 16'd2, SS, WORD, prepare_sp_save, 0);
+                                delay = 10'd3;
                             end else if (exec_stage == 3) begin
                                 reg_bp <= prepare_sp_save;
                                 reg_sp <= reg_sp - decoded.imm[15:0];
@@ -1313,6 +1317,7 @@ always_ff @(posedge clk) begin
                                 read_memory(reg_bp, SS, WORD, 0);
                             end else begin
                                 reg_bp <= dp_din;
+                                delay = 10'd4;
                             end
                         end
 

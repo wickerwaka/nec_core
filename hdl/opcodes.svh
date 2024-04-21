@@ -1434,6 +1434,8 @@ task process_ROOT(input bit [7:0] q);
     end
     8'b11001000: begin
       d.opcode <= OP_PREPARE;
+      d.width <= TRIPLE;
+      d.source0 <= OPERAND_IMM;
       state <= TERMINAL;
     end
     8'b11001001: begin

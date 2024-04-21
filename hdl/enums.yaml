@@ -156,9 +156,10 @@ operand_e:
 
 width_e:
   values:
-    - BYTE
-    - WORD
-    - DWORD
+    - BYTE: 0
+    - WORD: 1
+    - TRIPLE: 2
+    - DWORD: 3
 
 cpu_state_e:
   values:

@@ -808,6 +808,8 @@ b10001111_MD_000_MEM:
 b11001000:
   desc: PREPARE imm16, imm8
   op: PREPARE
+  src: IMM
+  width: TRIPLE
 
 b11001001:
   desc: DISPOSE

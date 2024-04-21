@@ -37,14 +37,14 @@ assign decoded = d;
 
 function bit [2:0] calc_imm_size(width_e width, operand_e s0, operand_e s1);
     case(s0)
-    OPERAND_IMM: return width == DWORD ? 3'd4 : width == WORD ? 3'd2 : 3'd1;
+    OPERAND_IMM: return { 1'd0, width } + 3'd1;
     OPERAND_IMM8: return 3'd1;
     OPERAND_IMM_EXT: return 3'd1;
     default: begin end
     endcase
 
     case(s1)
-    OPERAND_IMM: return width == DWORD ? 3'd4 : width == WORD ? 3'd2 : 3'd1;
+    OPERAND_IMM: return { 1'd0, width } + 3'd1;
     OPERAND_IMM8: return 3'd1;
     OPERAND_IMM_EXT: return 3'd1;
     default: begin end

@@ -150,9 +150,10 @@ typedef enum bit [3:0] {
 } operand_e /* verilator public */;
 
 typedef enum bit [1:0] {
-    BYTE  = 2'b00,
-    WORD  = 2'b01,
-    DWORD = 2'b10
+    BYTE = 2'b00,
+    WORD = 2'b01,
+    TRIPLE = 2'b10,
+    DWORD = 2'b11
 } width_e /* verilator public */;
 
 typedef enum bit [4:0] {
