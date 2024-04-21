@@ -36,11 +36,11 @@ BITS 16
     multi_op_end
 %endmacro
 
-%macro block_op 1
+%macro block_op 2
     multi_op_begin
     %rep 8
-    mov cx, 256
-    rep %1
+    mov cx, %1
+    rep %2
     %endrep
     multi_op_end
 %endmacro
@@ -99,20 +99,20 @@ block_timing:
 
 
 
-    block_op { stosb }
-    block_op { stosw }
-    block_op { lodsb }
-    block_op { lodsw }
-    block_op { movsb }
-    block_op { movsw }
-    block_op { cmpsb }
-    block_op { cmpsw }
+    block_op 253, { stosb }
+    block_op 143, { stosw }
+    block_op 253, { lodsb }
+    block_op 143, { lodsw }
+    block_op 253, { movsb }
+    block_op 143, { movsw }
+    block_op 253, { cmpsb }
+    block_op 143, { cmpsw }
 
     mov dx, 0x60
-    block_op { insb }
-    block_op { insw }
-    block_op { outsb }
-    block_op { outsw }
+    block_op 253, { insb }
+    block_op 143, { insw }
+    block_op 253, { outsb }
+    block_op 143, { outsw }
 
     mov dx, 0xdead
     out dx, al

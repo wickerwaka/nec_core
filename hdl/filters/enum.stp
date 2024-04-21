@@ -143,7 +143,8 @@
   <table name="width_e" width="2">
     <symbol name="BYTE" value="00" />
     <symbol name="WORD" value="01" />
-    <symbol name="DWORD" value="10" />
+    <symbol name="TRIPLE" value="10" />
+    <symbol name="DWORD" value="11" />
   </table>
   <table name="cpu_state_e" width="5">
     <symbol name="IDLE" value="00000" />
