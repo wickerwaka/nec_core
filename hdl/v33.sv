@@ -830,9 +830,12 @@ always_ff @(posedge clk) begin
 
                         OP_PUSH,
                         OP_PUSHR,
-                        OP_POP,
+                        OP_POP: begin
+                        end
+
                         OP_B_COND,
                         OP_B_CW_COND: begin
+                            delay = 1;
                         end
 
                         OP_NOT1_CY:  flags.CY <= ~flags.CY;
