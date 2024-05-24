@@ -154,3 +154,4 @@ nec_timing,cmp4s cl=8
 nec_timing,cmp4s cl=18
 nec_timing,rol4 al
 nec_timing,rol4 [bx]
+nec_timing,ins
