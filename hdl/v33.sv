@@ -620,6 +620,13 @@ reg [9:0] cycles;
 reg [9:0] op_delay;
 reg [9:0] exec_delay;
 
+// EXT and INS storage
+reg [15:0] bitfield_addr;
+reg [15:0] bitfield_mask;
+reg [15:0] bitfield_out;
+width_e bitfield_width;
+reg [2:0] bitfield_shift;
+
 always_ff @(posedge clk) begin
     bit [15:0] addr;
     bit [31:0] result32;
@@ -1429,6 +1436,71 @@ always_ff @(posedge clk) begin
                             reg_aw[3:0] <= TA[3:0];
                             op_result <= { 8'd0, reg_aw[3:0], TA[7:4] };
                             delay = 10'd8;
+                        end
+
+                        OP_EXT: begin
+                            working = 1;
+                            // TA = bit offset
+                            // TB = width
+                            case(exec_stage)
+                                0: begin
+                                    bit [16:0] mask17;
+                                    bitfield_addr <= reg_ix + { 14'd0, TA[4:3] };
+                                    bitfield_width <= ( { 2'd0, TA[2:0] } + { 1'd0, TB[3:0] } ) < 5'd7 ? WORD : BYTE;
+                                    mask17 = (17'd2 << TB[3:0]) - 17'd1;
+                                    bitfield_mask <= mask17[15:0];
+                                    bitfield_shift <= TA[2:0];
+                                end
+                                1: begin
+                                    read_memory(bitfield_addr, decoded.segment, bitfield_width, 0);
+                                end
+                                2: begin
+                                    bit [7:0] new_offset;
+                                    new_offset = TA[7:0] + { 4'd0, TB[3:0] } + 8'd1;
+                                    if (new_offset > 8'd15) begin
+                                        op_result <= {8'd0, new_offset - 8'd16};
+                                        reg_ix <= reg_ix + 16'd2;
+                                    end else begin
+                                        op_result <= {8'd0, new_offset};
+                                    end
+                                    reg_aw <= ( dp_din >> bitfield_shift ) & bitfield_mask;
+                                    working = 0;
+                                end
+                            endcase
+                        end
+
+                        OP_INS: begin
+                            working = 1;
+                            case(exec_stage)
+                                0: begin
+                                    bit [16:0] mask17;
+                                    bitfield_addr <= reg_iy + { 14'd0, TA[4:3] };
+                                    bitfield_width <= ( { 2'd0, TA[2:0] } + { 1'd0, TB[3:0] } ) < 5'd7 ? WORD : BYTE;
+                                    mask17 = (17'd2 << TB[3:0]) - 17'd1;
+                                    bitfield_mask <= mask17[15:0] << TA[2:0];
+                                    bitfield_shift <= TA[2:0];
+                                end
+                                1: begin
+                                    read_memory(bitfield_addr, DS1, bitfield_width, 0);
+                                end
+                                2: begin
+                                    bitfield_out <= (dp_din & ~bitfield_mask) | ((reg_aw << bitfield_shift) & bitfield_mask);
+                                end
+                                3: begin
+                                    write_memory(bitfield_addr, DS1, bitfield_width, bitfield_out, 0);
+                                end
+                                4: begin
+                                    bit [7:0] new_offset;
+                                    new_offset = TA[7:0] + { 4'd0, TB[3:0] } + 8'd1;
+                                    if (new_offset > 8'd15) begin
+                                        op_result <= {8'd0, new_offset - 8'd16};
+                                        reg_iy <= reg_iy + 16'd2;
+                                    end else begin
+                                        op_result <= {8'd0, new_offset};
+                                    end
+                                    working = 0;
+                                end
+                            endcase
                         end
 
                         default: begin // TODO exception

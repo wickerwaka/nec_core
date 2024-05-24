@@ -4,7 +4,6 @@
 b10010000:
   desc: NOP
   op: NOP
-  cycles: 1
 
 #
 # ALU Generic
@@ -330,8 +329,8 @@ b00100111:
   alu: ADJ4A
   dst: REG_0
   src: REG_0
-  reg0: AW
-  width: WORD
+  reg0: AL
+  width: BYTE
 
 b00101111:
   desc: ADJ4S
@@ -339,8 +338,8 @@ b00101111:
   alu: ADJ4S
   dst: REG_0
   src: REG_0
-  reg0: AW
-  width: WORD
+  reg0: AL
+  width: BYTE
 
 b00110111:
   desc: ADJBA
@@ -943,9 +942,6 @@ b11001110:
 b11010111:
   desc: TRANS
   op: TRANS
-  cycles: 3
-
-
 
 
 #
@@ -957,8 +953,6 @@ b00001111_0001000W_MD_000_MEM:
   alu: TEST1
   src0: MODRM
   src1: CL
-  cycles: 4
-  mem_cycles: 6
 
 b00001111_0001100W_MD_000_MEM:
   desc: TEST1 reg, imm
@@ -966,8 +960,6 @@ b00001111_0001100W_MD_000_MEM:
   alu: TEST1
   src0: MODRM
   src1: IMM8
-  cycles: 4
-  mem_cycles: 6
 
 b00001111_0001001W_MD_000_MEM:
   desc: CLR1 reg, CL
@@ -976,8 +968,6 @@ b00001111_0001001W_MD_000_MEM:
   dst: MODRM
   src0: MODRM
   src1: CL
-  cycles: 4
-  mem_cycles: 5
 
 b00001111_0001101W_MD_000_MEM:
   desc: CLR1 reg, imm
@@ -986,8 +976,6 @@ b00001111_0001101W_MD_000_MEM:
   dst: MODRM
   src0: MODRM
   src1: IMM8
-  cycles: 4
-  mem_cycles: 5
 
 b00001111_0001010W_MD_000_MEM:
   desc: SET1 reg, CL
@@ -996,8 +984,6 @@ b00001111_0001010W_MD_000_MEM:
   dst: MODRM
   src0: MODRM
   src1: CL
-  cycles: 4
-  mem_cycles: 5
 
 b00001111_0001110W_MD_000_MEM:
   desc: SET1 reg, imm
@@ -1006,8 +992,6 @@ b00001111_0001110W_MD_000_MEM:
   dst: MODRM
   src0: MODRM
   src1: IMM8
-  cycles: 4
-  mem_cycles: 5
 
 b00001111_0001011W_MD_000_MEM:
   desc: NOT1 reg, CL
@@ -1016,8 +1000,6 @@ b00001111_0001011W_MD_000_MEM:
   dst: MODRM
   src0: MODRM
   src1: CL
-  cycles: 4
-  mem_cycles: 5
 
 b00001111_0001111W_MD_000_MEM:
   desc: NOT1 reg, imm
@@ -1026,8 +1008,6 @@ b00001111_0001111W_MD_000_MEM:
   dst: MODRM
   src0: MODRM
   src1: IMM8
-  cycles: 4
-  mem_cycles: 5
 
 b00001111_00100000:
   desc: ADD4S
@@ -1047,8 +1027,6 @@ b00001111_00101010_MD_000_MEM:
   dst: MODRM
   src: MODRM
   width: BYTE
-  cycles: 13
-  mem_cycles: 15
 
 b00001111_00101000_MD_000_MEM:
   desc: ROL4 reg8/mem8
@@ -1056,11 +1034,45 @@ b00001111_00101000_MD_000_MEM:
   dst: MODRM
   src: MODRM
   width: BYTE
-  cycles: 13
-  mem_cycles: 15
+
+b00001111_00110011_11_GP1_GP0:
+  desc: EXT reg8, reg8
+  op: EXT
+  dst: REG_0
+  src0: REG_0
+  src1: REG_1
+  width: BYTE
+
+b00001111_00110011_11_000_GP0:
+  desc: EXT reg8, reg8
+  op: EXT
+  dst: REG_0
+  src0: REG_0
+  src1: IMM
+  width: BYTE
+
+b00001111_00110001_11_GP1_GP0:
+  desc: INS reg8, reg8
+  op: EXT
+  dst: REG_0
+  src0: REG_0
+  src1: REG_1
+  width: BYTE
+
+b00001111_00111001_11_000_GP0:
+  desc: INS reg8, imm8
+  op: INS
+  dst: REG_0
+  src0: REG_0
+  src1: IMM
+  width: BYTE
 
 
 
+
+
+#
+# Prefixes
 b00100110:
   desc: DS1
   segment: DS1

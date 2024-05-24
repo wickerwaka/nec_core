@@ -91,6 +91,8 @@
     <symbol name="PUSHR" value="110111" />
     <symbol name="POP" value="111000" />
     <symbol name="POPR" value="111001" />
+    <symbol name="INS" value="111010" />
+    <symbol name="EXT" value="111011" />
   </table>
   <table name="alu_operation_e" width="5">
     <symbol name="ADD" value="00000" />
@@ -252,7 +254,10 @@
     <symbol name="ROOT_00001111_0001111x" value="101010" />
     <symbol name="ROOT_00001111_00101010" value="101011" />
     <symbol name="ROOT_00001111_00101000" value="101100" />
-    <symbol name="ROOT_00001111" value="101101" />
+    <symbol name="ROOT_00001111_00110011" value="101101" />
+    <symbol name="ROOT_00001111_00110001" value="101110" />
+    <symbol name="ROOT_00001111_00111001" value="101111" />
+    <symbol name="ROOT_00001111" value="110000" />
   </table>
 </mnemonics>
 </session>

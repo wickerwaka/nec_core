@@ -99,6 +99,8 @@ opcode_e:
     - PUSHR
     - POP
     - POPR
+    - INS
+    - EXT
 
 alu_operation_e:
   prefix: ALU_OP_

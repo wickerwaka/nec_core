@@ -1050,6 +1050,68 @@ task process_ROOT_00001111_00101000(input bit [7:0] q);
   endcase
 endtask
 
+task process_ROOT_00001111_00110011(input bit [7:0] q);
+  casex(q)
+    8'b11000xxx: begin
+      d.reg0 <= q[2:0];
+      d.opcode <= OP_EXT;
+      d.width <= BYTE;
+      d.dest <= OPERAND_REG_0;
+      d.source0 <= OPERAND_REG_0;
+      d.source1 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    8'b11xxxxxx: begin
+      d.reg0 <= q[2:0];
+      d.reg1 <= q[5:3];
+      d.opcode <= OP_EXT;
+      d.width <= BYTE;
+      d.dest <= OPERAND_REG_0;
+      d.source0 <= OPERAND_REG_0;
+      d.source1 <= OPERAND_REG_1;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_00001111_00110001(input bit [7:0] q);
+  casex(q)
+    8'b11xxxxxx: begin
+      d.reg0 <= q[2:0];
+      d.reg1 <= q[5:3];
+      d.opcode <= OP_EXT;
+      d.width <= BYTE;
+      d.dest <= OPERAND_REG_0;
+      d.source0 <= OPERAND_REG_0;
+      d.source1 <= OPERAND_REG_1;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_00001111_00111001(input bit [7:0] q);
+  casex(q)
+    8'b11000xxx: begin
+      d.reg0 <= q[2:0];
+      d.opcode <= OP_INS;
+      d.width <= BYTE;
+      d.dest <= OPERAND_REG_0;
+      d.source0 <= OPERAND_REG_0;
+      d.source1 <= OPERAND_IMM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
 task process_ROOT_00001111(input bit [7:0] q);
   casex(q)
     8'b00100000: begin
@@ -1069,6 +1131,15 @@ task process_ROOT_00001111(input bit [7:0] q);
     end
     8'b00101000: begin
       state <= ROOT_00001111_00101000;
+    end
+    8'b00110011: begin
+      state <= ROOT_00001111_00110011;
+    end
+    8'b00110001: begin
+      state <= ROOT_00001111_00110001;
+    end
+    8'b00111001: begin
+      state <= ROOT_00001111_00111001;
     end
     8'b0001000x: begin
       d.width <= q[0] ? WORD : BYTE;
@@ -1135,8 +1206,8 @@ task process_ROOT(input bit [7:0] q);
     8'b00100111: begin
       d.opcode <= OP_ALU;
       d.alu_operation <= ALU_OP_ADJ4A;
-      d.reg0 <= AW;
-      d.width <= WORD;
+      d.reg0 <= AL;
+      d.width <= BYTE;
       d.dest <= OPERAND_REG_0;
       d.source0 <= OPERAND_REG_0;
       state <= TERMINAL;
@@ -1144,8 +1215,8 @@ task process_ROOT(input bit [7:0] q);
     8'b00101111: begin
       d.opcode <= OP_ALU;
       d.alu_operation <= ALU_OP_ADJ4S;
-      d.reg0 <= AW;
-      d.width <= WORD;
+      d.reg0 <= AL;
+      d.width <= BYTE;
       d.dest <= OPERAND_REG_0;
       d.source0 <= OPERAND_REG_0;
       state <= TERMINAL;
@@ -1813,6 +1884,9 @@ task process_decode(input bit [7:0] q);
     ROOT_00001111_0001111x: process_ROOT_00001111_0001111x(q);
     ROOT_00001111_00101010: process_ROOT_00001111_00101010(q);
     ROOT_00001111_00101000: process_ROOT_00001111_00101000(q);
+    ROOT_00001111_00110011: process_ROOT_00001111_00110011(q);
+    ROOT_00001111_00110001: process_ROOT_00001111_00110001(q);
+    ROOT_00001111_00111001: process_ROOT_00001111_00111001(q);
     ROOT_00001111: process_ROOT_00001111(q);
     default: process_ROOT(q);
   endcase

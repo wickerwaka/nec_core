@@ -95,7 +95,9 @@ typedef enum bit [5:0] {
     OP_PUSH          = 6'b110110,
     OP_PUSHR         = 6'b110111,
     OP_POP           = 6'b111000,
-    OP_POPR          = 6'b111001
+    OP_POPR          = 6'b111001,
+    OP_INS           = 6'b111010,
+    OP_EXT           = 6'b111011
 } opcode_e /* verilator public */;
 
 typedef enum bit [4:0] {
@@ -267,6 +269,9 @@ typedef enum bit [5:0] {
     ROOT_00001111_0001111x = 6'b101010,
     ROOT_00001111_00101010 = 6'b101011,
     ROOT_00001111_00101000 = 6'b101100,
-    ROOT_00001111          = 6'b101101
+    ROOT_00001111_00110011 = 6'b101101,
+    ROOT_00001111_00110001 = 6'b101110,
+    ROOT_00001111_00111001 = 6'b101111,
+    ROOT_00001111          = 6'b110000
 } decode_state_e /* verilator public */;
 
