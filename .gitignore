@@ -3,3 +3,6 @@ build/
 *.bak
 .DS_Store
 **/combined_timing.txt
+traces/m107/*.txt
+traces/sim/*.txt
+**/*.txt.cycles
