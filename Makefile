@@ -6,7 +6,7 @@ PYTHON = python3
 VERILATOR_DEFINES = #-DONE_CYCLE_DECODE_DELAY # -DFULL_OPERAND_FETCH
 
 HDL_SRC = hdl/types.sv \
-		  hdl/bus_control_unit.sv \
+		  hdl/bus_control_unit_v35.sv \
 		  hdl/nec_divider.sv \
 		  hdl/v33.sv \
 		  hdl/nec_decode.sv \
@@ -66,6 +66,9 @@ $(BUILD_DIR)/v33: $(HDL_SRC) $(HDL_GEN) bench/main.cpp Makefile
 
 $(BUILD_DIR)/test_186: $(HDL_SRC) $(HDL_GEN) bench/test_186.cpp Makefile
 	$(VERILATOR) $(VERILATOR_ARGS) -o test_186 --prefix v33 --top V33 $(HDL_SRC) bench/test_186.cpp
+
+$(BUILD_DIR)/bcu: $(HDL_SRC) $(HDL_GEN) bench/bcu.cpp Makefile
+	$(VERILATOR) $(VERILATOR_ARGS) -o bcu --prefix bus_control_unit --top bus_control_unit_v35 $(HDL_SRC) bench/bcu.cpp
 
 hdl/opcodes%svh hdl/opcode_enums%yaml: hdl/opcodes.yaml hdl/gen_decode.py
 	$(PYTHON) hdl/gen_decode.py

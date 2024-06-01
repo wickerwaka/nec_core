@@ -209,7 +209,8 @@ typedef enum bit [2:0] {
 typedef enum bit [1:0] {
     T_1    = 2'b00,
     T_2    = 2'b01,
-    T_IDLE = 2'b10
+    T_3    = 2'b10,
+    T_IDLE = 2'b11
 } bcu_t_state_e /* verilator public */;
 
 typedef enum bit [2:0] {

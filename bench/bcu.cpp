@@ -43,6 +43,7 @@ int main(int argc, char **argv)
     top->trace(tfp, 99);
     tfp->open("bus_control.vcd");
 
+    top->ready = 1;
     top->reg_ps = 0xffff;
     top->reg_ds0 = 0x1000;
     top->ipq_head = 0x0000;
@@ -64,16 +65,24 @@ int main(int argc, char **argv)
     top->dp_wide = 1;
     top->dp_sreg = 3;
 
-    tick(10);
+    tick(1);
 
     top->dp_req = 0;
+
+    tick(9);
+
+    top->dp_req = 1;
     top->dp_addr = 0x101;
     top->dp_io = 0;
     top->dp_write = 0;
     top->dp_wide = 1;
     top->dp_sreg = 3;
 
-    tick(10);
+    tick(1);
+    
+    top->dp_req = 0;
+
+    tick(9);
     tick_ce();
     top->ipq_head += 3;
     tick(20);

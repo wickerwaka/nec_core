@@ -216,6 +216,7 @@ bcu_t_state_e:
   values:
     - T_1
     - T_2
+    - T_3
     - T_IDLE
 
 bcu_cycle_type_e:

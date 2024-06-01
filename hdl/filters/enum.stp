@@ -196,7 +196,8 @@
   <table name="bcu_t_state_e" width="2">
     <symbol name="T_1" value="00" />
     <symbol name="T_2" value="01" />
-    <symbol name="T_IDLE" value="10" />
+    <symbol name="T_3" value="10" />
+    <symbol name="T_IDLE" value="11" />
   </table>
   <table name="bcu_cycle_type_e" width="3">
     <symbol name="INT_ACK1" value="000" />
