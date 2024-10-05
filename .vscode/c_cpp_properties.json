@@ -1,0 +1,57 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "macFrameworkPath": [
+                "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "macos-clang-arm64",
+            "configurationProvider": "ms-vscode.makefile-tools"
+        },
+        {
+            "name": "Verilator",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/opt/homebrew/Cellar/verilator/5.018/share/verilator/include",
+                "/opt/homebrew/Cellar/verilator/5.018/share/verilator/include/vltstd"
+            ],
+            "defines": [
+                "VM_COVERAGE=0",
+                "VM_SC=0",
+                "VM_TRACE=1",
+                "VM_TRACE_FST=0",
+                "VM_TRACE_VCD=1"
+            ],
+            "macFrameworkPath": [
+                "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "macos-clang-arm64",
+            "compilerArgs": [
+                "-Wno-bool-operation",
+                "-Wno-c++11-narrowing",
+                "-Wno-constant-logical-operand",
+                "-Wno-non-pod-varargs",
+                "-Wno-overloaded-virtual",
+                "-Wno-parentheses-equality",
+                "-Wno-shadow",
+                "-Wno-sign-compare",
+                "-Wno-tautological-bitwise-compare",
+                "-Wno-uninitialized",
+                "-Wno-unused-but-set-parameter",
+                "-Wno-unused-but-set-variable",
+                "-Wno-unused-parameter",
+                "-Wno-unused-variable",
+                "-std=gnu++17"
+            ]
+        }
+    ],
+    "version": 4
+}

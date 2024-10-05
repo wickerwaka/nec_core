@@ -6,3 +6,4 @@ build/
 traces/m107/*.txt
 traces/sim/*.txt
 **/*.txt.cycles
+.sv_cache/

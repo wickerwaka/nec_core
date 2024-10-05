@@ -70,9 +70,9 @@ void tick(int count = 1)
 {
     for( int i = 0; i < count; i++ )
     {
-        if (~top->n_dstb)
+        if (~top->n_mreq)
         {
-            if (top->r_w && top->m_io)
+            if (top->r_w && ~top->n_mstb)
             {
                 top->din = read_mem(top->addr, (~top->n_ube) & 1);
             }
@@ -81,7 +81,7 @@ void tick(int count = 1)
                 top->din = 0xffff;
             }
 
-            if (!top->r_w && top->m_io)
+            if (!top->r_w && ~top->n_mstb)
             {
                 write_mem(top->addr, (~top->n_ube) & 1, top->dout);
             }
@@ -140,10 +140,11 @@ int main(int argc, char **argv)
 
     top->ce_1 = 0;
     top->ce_2 = 1;
+    top->ready = 1;
 
-    top->reset = 1;
+    top->n_reset = 0;
     tick(10);
-    top->reset = 0;
+    top->n_reset = 1;
     tick(1);
 
     for( int i = 0; i < 2; i++ )
@@ -156,6 +157,7 @@ int main(int argc, char **argv)
     
     top->rootp->V33->set_pc = 0;
 
+    //for( int x = 0; x < 1000; x++ )
     while(true)
     {
         tick(1);

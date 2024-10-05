@@ -6,41 +6,97 @@ import types::*;
 
 module V33(
     input               clk,
-    input               ce_1,
-    input               ce_2,
 
 
-    // Pins
-    input               reset,
-    input               hldrq,
-    input               n_ready,
-    input               bs16,
+    input               ce_1, // X1
+    input               ce_2, // X2
 
-    output              hldak,
-    output              n_buslock,
-    output              n_ube,
+
+    input               n_reset,
+
+
+    // A0-19
+    output      [19:0]  addr,
+
+
+    // Memory access signals
     output              r_w,
-    output              m_io,
-    output              busst0,
-    output              busst1,
-    output              aex,
-    output              n_bcyst,
-    output              n_dstb,
+    output              n_ube,
+    output              n_iostb,
+    output              n_mreq,
+    output              n_mstb,
 
-    input               intreq,
-    input               n_nmi,
 
-    input               n_cpbusy,
-    input               n_cperr,
-    input               cpreq,
+    // Bus Control
+    input               ready,
+    input               n_poll, 
 
-    output      [23:0]  addr,
+    //input               n_ea,
+
+    //output              n_hldak,
+    //input               hldrq,
+    //output              n_refrq,
+
+
+
+    // D0-15
     output      [15:0]  dout,
     input       [15:0]  din,
+
+
+    // PORTS
+    output       [7:0]  p0out,
+    input        [7:0]  p0in,
+    output       [7:0]  p1out,
+    input        [7:0]  p1in,
+    output       [7:0]  p2out,
+    input        [7:0]  p2in,
+
+
+    // Analog Comparator
+    //input        [7:0]  ptin,
+
+
+    // Clock Outputs
+    //output              clkout,
+    //output              tout,
+
+
+    // Serial
+    //input               n_cts0,
+    //input               n_cts1,
+    //input               rxd0,
+    //input               rxd1,
+    //output              txd0,
+    //output              txd1,
+    //output              n_sck0,
+
+
+    // DMA
+    //output              n_dmaak0,
+    //output              n_dmaak1,
+    //input               dmarq0,
+    //input               dmarq1,
+    //output              n_tc0,
+    //output              n_tc1,
+
+
+    // Interrupts
+    input               intreq, // INT
+    output              n_intak,
+
+    input               n_intp0,
+    input               n_intp1,
+    input               n_intp2,
+
+    input               nmi,
+
 
     // Non-hardware
     input               turbo
 );
+
+wire reset = ~n_reset;
 
 // Register file
 // Segment registers
@@ -505,12 +561,11 @@ wire bcu_intack;
 wire [7:0] bcu_intvec;
 wire block_prefetch;
 
-bus_control_unit BCU(
+bus_control_unit_v35 BCU(
     .clk, .ce_1, .ce_2,
-    .reset, .hldrq, .n_ready, .bs16,
-    .hldak, .n_buslock, .n_ube, .r_w,
-    .m_io, .busst0, .busst1, .aex,
-    .n_bcyst, .n_dstb,
+    .reset, .ready,
+    .n_ube, .r_w,
+    .n_iostb, .n_mreq, .n_mstb,
     .addr, .dout, .din,
 
     .reg_ps, .reg_ss, .reg_ds0, .reg_ds1,
@@ -522,14 +577,12 @@ bus_control_unit BCU(
     .dp_write, .dp_wide, .dp_io, .dp_req,
     .dp_ready, .dp_zero_seg,
 
-    .buslock_prefix(decoded.buslock),
-
     .intreq(bcu_intreq), .intack(bcu_intack), .intvec(bcu_intvec),
 
     .implementation_fault()
 );
 
-wire retire_op = state == IDLE && next_decode_valid && (dp_ready | n_buslock);
+wire retire_op = state == IDLE && next_decode_valid && dp_ready;
 wire next_decode_valid;
 nec_decode_t next_decode;
 
@@ -689,7 +742,7 @@ always_ff @(posedge clk) begin
                 exec_delay <= 10'd0;
                 shift_count <= 8'd0;
 
-                if (n_buslock | dp_ready) begin
+                if (dp_ready) begin
                     op_delay <= 10'd0;
                     cycles <= 10'd0;
 
