@@ -28,9 +28,6 @@ module bus_control_unit_v35(
 
     // Execution Unit Communication
     input       [15:0]  reg_ps,
-    input       [15:0]  reg_ss,
-    input       [15:0]  reg_ds0,
-    input       [15:0]  reg_ds1,
 
     // instruction queue
     // inputs only read on ce1
@@ -41,15 +38,13 @@ module bus_control_unit_v35(
     output      [3:0]   ipq_len,
 
     // Data pointer read/write
-    input       [15:0]  dp_addr,
+    input       [19:0]  dp_addr,
     input       [15:0]  dp_dout,
     output      [15:0]  dp_din,
-    input sreg_index_e  dp_sreg,
     input               dp_write,
     input               dp_wide,
     input               dp_io,
     input               dp_req,
-    input               dp_zero_seg,
     output              dp_ready,
 
     output  reg         implementation_fault,
@@ -59,17 +54,6 @@ module bus_control_unit_v35(
     output  reg         intack,
     output  reg  [7:0]  intvec
 );
-
-function bit [19:0] physical_addr(sreg_index_e sreg, bit [15:0] ea);
-    bit [19:0] addr;
-    case(sreg)
-    DS0: addr = {reg_ds0, 4'd0} + {4'd0, ea};
-    DS1: addr = {reg_ds1, 4'd0} + {4'd0, ea};
-    SS: addr = {reg_ss, 4'd0} + {4'd0, ea};
-    PS: addr = {reg_ps, 4'd0} + {4'd0, ea};
-    endcase
-    return addr;
-endfunction
 
 bcu_t_state_e t_state;
 bcu_cycle_type_e cycle_type;
@@ -186,15 +170,10 @@ always_ff @(posedge clk) begin
                 t_state <= T_1;
                 r_w <= ~dp_write;
                 n_mreq <= 0;
+                addr <= dp_addr;
                 if (dp_io) begin
-                    addr <= {4'd0, dp_addr};
                     cycle_type <= dp_write ? IO_WRITE : IO_READ;
                 end else begin
-                    if (dp_zero_seg) begin
-                        addr <= { 4'd0, dp_addr };
-                    end else begin
-                        addr <= physical_addr(dp_sreg, dp_addr);
-                    end
                     cycle_type <= dp_write ? MEM_WRITE : MEM_READ;
                 end
 
@@ -206,7 +185,7 @@ always_ff @(posedge clk) begin
                 r_w <= 1;
                 n_mreq <= 0;
                 cycle_type <= IPQ_FETCH;
-                addr <= physical_addr(PS, cur_pfp);
+                addr <= {reg_ps, 4'd0} + {4'd0, cur_pfp};
                 n_ube <= 0; // always
                 discard_ipq_fetch <= 0;
                 //prefetch_delay <= 4'd0;

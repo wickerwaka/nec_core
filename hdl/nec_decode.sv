@@ -168,7 +168,11 @@ always_ff @(posedge clk) begin
 `else
                         if (disp_read < d.disp_size) begin
                             if (avail > 0) begin
-                                d.disp[(disp_read*8) +: 8] <= q;
+                                // work around for verilator issue
+                                if (disp_read == 0)
+                                    d.disp <= { 8'd0, q };
+                                else
+                                    d.disp <= { q, d.disp[7:0] };
                                 pc <= pc + 16'd1;
                                 d.end_pc <= pc + 16'd1;
                                 disp_read <= disp_read + 3'd1;
