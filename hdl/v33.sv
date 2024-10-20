@@ -134,6 +134,8 @@ module V33(
 
 wire reset = ~n_reset;
 
+assign n_intak = 1; // TODO
+
 // Register file
 // Segment registers
 reg [15:0] reg_ds0 /*verilator public*/;
