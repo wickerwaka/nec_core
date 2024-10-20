@@ -4,6 +4,46 @@
 
 import types::*;
 
+interface ISCR_if(input logic clk, input logic reset);
+    logic [7:0] value;
+
+    logic cpu_set;
+    logic [7:0] cpu_value;
+
+    logic ctrl_set_if;
+    logic ctrl_clear_if;
+
+    logic IF;
+    logic IMK;
+    logic MS;
+    logic ENCS;
+    logic [2:0] PR;
+endinterface
+
+module ISCR(ISCR_if inf);
+    assign inf.IF = inf.value[7];
+    assign inf.IMK = inf.value[6];
+    assign inf.MS = inf.value[5];
+    assign inf.ENCS = inf.value[4];
+    assign inf.PR = inf.value[2:0];
+
+    always @(posedge inf.clk) begin
+        if (inf.reset) begin
+            inf.value <= 8'h47;
+        end else begin
+            if (inf.cpu_set) begin
+                inf.value <= inf.cpu_value;
+            end
+            if (inf.ctrl_clear_if) begin
+                inf.value[7] <= 0;
+            end
+            if (inf.ctrl_set_if) begin
+                inf.value[7] <= 1;
+            end
+        end
+    end
+endmodule
+
 module V33(
     input               clk,
 
@@ -123,6 +163,9 @@ struct
 } sfr;
 
 wire RAMEN = sfr.PRC[6];
+
+ISCR_if EXIC0(clk, reset);
+ISCR sfr_EXIC0(EXIC0);
 
 reg halt /*verilator public*/; // TODO, do something with this
 
@@ -826,6 +869,8 @@ always_ff @(posedge clk) begin
         div_start <= 0;
         set_pc <= 0;
         dp_req <= 0;
+
+        EXIC0.cpu_set <= 0;
 
         case(state)
             IDLE: if (ce_1) begin
