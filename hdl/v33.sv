@@ -7,13 +7,9 @@ import types::*;
 module V33(
     input               clk,
 
-
-    input               ce_1, // X1
-    input               ce_2, // X2
-
+    input               ce,
 
     input               n_reset,
-
 
     // A0-19
     output      [19:0]  addr,
@@ -120,6 +116,14 @@ wire [15:0] cur_pc  /*verilator public*/;
 reg [15:0] TA;
 reg [15:0] TB;
 
+struct
+{
+    bit [7:0] PRC;
+    bit [7:0] IDB;
+} sfr;
+
+wire RAMEN = sfr.PRC[6];
+
 reg halt /*verilator public*/; // TODO, do something with this
 
 flags_t flags;
@@ -143,7 +147,6 @@ wire [15:0] reg_psw /*verilator public*/ = {
 // Data Pointer operations
 reg [19:0] dp_addr;
 reg [15:0] dp_dout;
-wire [15:0] dp_din;
 sreg_index_e dp_sreg;
 reg dp_zero_seg;
 reg dp_write;
@@ -151,6 +154,11 @@ reg dp_wide;
 reg dp_io;
 reg dp_req;
 wire dp_ready;
+
+wire [15:0] bcu_din;
+reg [15:0] internal_din;
+reg bcu_read;
+wire [15:0] mem_din = bcu_read ? bcu_din : internal_din;
 
 // Instruction prefetch
 reg [15:0] next_pc /*verilator public*/;
@@ -161,6 +169,30 @@ wire [3:0] ipq_len;
 
 nec_decode_t decoded /*verilator public*/;
 opcode_e cur_opcode;
+
+reg [1:0] ce_count;
+reg ce_phase;
+reg ce_1, ce_2;
+
+always_ff @(posedge clk) begin
+    ce_1 <= 0;
+    ce_2 <= 0;
+    if (ce) begin
+        if (ce_count == 2'b00) begin
+            if (ce_phase) begin
+                ce_2 <= 1;
+            end else begin
+                ce_1 <= 1;
+            end
+
+            ce_phase <= ~ce_phase;
+            ce_count <= sfr.PRC[1:0];
+        end else begin
+            ce_count <= ce_count - 2'd1;
+        end
+    end
+end
+
 
 function bit [15:0] calc_ea(nec_decode_t dec);
     bit [15:0] addr;
@@ -264,20 +296,52 @@ task set_sreg(input sreg_index_e r, input bit[15:0] val);
 endtask
 
 task write_memory(input bit [15:0] addr, input sreg_index_e seg, input width_e width, input [15:0] data);
-    dp_addr <= calc_physical_addr(seg, addr);
-    dp_dout <= data;
-    dp_write <= 1;
-    dp_io <= 0;
-    dp_wide <= width == BYTE ? 0 : 1;
-    dp_req <= 1;
+    bit [19:0] phys_addr;
+    phys_addr = calc_physical_addr(seg, addr);
+
+    if (phys_addr[19:0] == 20'hfffff) begin
+        sfr.IDB <= data[7:0];
+    end else if (phys_addr[19:8] == { sfr.IDB, 4'hf }) begin
+        case(phys_addr[7:0])
+        8'heb: sfr.PRC <= data[7:0];
+        8'hff: sfr.IDB <= data[7:0];
+        default: begin end
+        endcase
+    end else if (RAMEN && phys_addr[19:8] == { sfr.IDB, 4'he }) begin
+    end else begin
+        dp_addr <= phys_addr;
+        dp_dout <= data;
+        dp_write <= 1;
+        dp_io <= 0;
+        dp_wide <= width == BYTE ? 0 : 1;
+        dp_req <= 1;
+    end
 endtask
 
 task read_memory(input bit [15:0] addr, input sreg_index_e seg, input width_e width);
-    dp_addr <= calc_physical_addr(seg, addr);
-    dp_write <= 0;
-    dp_io <= 0;
-    dp_wide <= width == BYTE ? 0 : 1;
-    dp_req <= 1;
+    bit [19:0] phys_addr;
+    phys_addr = calc_physical_addr(seg, addr);
+
+    bcu_read <= 0;
+
+    if (phys_addr[19:0] == 20'hfffff) begin
+        internal_din <= { 8'h0, sfr.IDB };
+    end else if (phys_addr[19:8] == { sfr.IDB, 4'hf }) begin
+        case(phys_addr[7:0])
+        8'heb: internal_din <= { 8'h0, sfr.PRC };
+        8'hff: internal_din <= { 8'h0, sfr.IDB };
+        default: internal_din <= 16'hf00d;
+        endcase
+    end else if (RAMEN && phys_addr[19:8] == { sfr.IDB, 4'he }) begin
+        internal_din <= 16'hf00d;
+    end else begin
+        dp_addr <= phys_addr;
+        dp_write <= 0;
+        dp_io <= 0;
+        dp_wide <= width == BYTE ? 0 : 1;
+        dp_req <= 1;
+        bcu_read <= 1;
+    end
 endtask
 
 task write_io(input bit [15:0] addr, input width_e width, input [15:0] data);
@@ -295,6 +359,7 @@ task read_io(input bit [15:0] addr, input width_e width);
     dp_io <= 1;
     dp_wide <= width == BYTE ? 0 : 1;
     dp_req <= 1;
+    bcu_read <= 1;
 endtask
 
 
@@ -309,10 +374,10 @@ function bit [15:0] get_operand(nec_decode_t dec, operand_e operand);
             if (dec.mod == 2'b11)
                 return { 8'd0, get_reg8(reg8_index_e'(dec.rm)) };
             else
-                return { 8'd0, dp_din[7:0] };
+                return { 8'd0, mem_din[7:0] };
         end
         OPERAND_IO_DIRECT,
-        OPERAND_IO_INDIRECT: return { 8'd0, dp_din[7:0] };
+        OPERAND_IO_INDIRECT: return { 8'd0, mem_din[7:0] };
         OPERAND_REG_0: return { 8'd0, get_reg8(reg8_index_e'(dec.reg0)) };
         OPERAND_REG_1: return { 8'd0, get_reg8(reg8_index_e'(dec.reg1)) };
         OPERAND_CL: return { 8'd0, reg_cw[7:0] };
@@ -328,10 +393,10 @@ function bit [15:0] get_operand(nec_decode_t dec, operand_e operand);
             if (dec.mod == 2'b11)
                 return get_reg16(reg16_index_e'(dec.rm));
             else
-                return dp_din;
+                return mem_din;
         end
         OPERAND_IO_DIRECT,
-        OPERAND_IO_INDIRECT: return { dp_din[15:0] };
+        OPERAND_IO_INDIRECT: return { mem_din[15:0] };
         OPERAND_SREG: begin
             case(dec.sreg)
             DS0: return reg_ds0;
@@ -598,7 +663,7 @@ bus_control_unit_v35 BCU(
     .pfp_set(set_pc), .block_prefetch,
     .ipq, .ipq_head(set_pc ? next_pc : cur_pc), .ipq_len,
 
-    .dp_addr, .dp_dout, .dp_din,
+    .dp_addr, .dp_dout, .dp_din(bcu_din),
     .dp_write, .dp_wide, .dp_io, .dp_req,
     .dp_ready,
 
@@ -723,6 +788,8 @@ always_ff @(posedge clk) begin
         reg_ds1 <= 16'd0;
         next_pc <= 16'd0;
         set_pc <= 1;
+
+        bcu_read <= 0;
         
         reg_aw <= 16'd0;
         reg_bw <= 16'd0;
@@ -743,6 +810,9 @@ always_ff @(posedge clk) begin
         flags.DIR <= 0;
         flags.IE <= 0;
         flags.BRK <= 0;
+
+        sfr.IDB <= 8'hcc;
+        sfr.PRC <= 8'h4e;
 
         state <= IDLE;
         int_processing <= 0;
@@ -834,7 +904,7 @@ always_ff @(posedge clk) begin
             end
 
             WAIT_OPERAND2: if (ce_1 & dp_ready) begin
-                TB <= dp_din;
+                TB <= mem_din;
 
                 if (push_list != 16'd0)
                     state <= PUSH;
@@ -871,18 +941,20 @@ always_ff @(posedge clk) begin
                 dp_io <= 0;
                 dp_wide <= 1;
                 dp_req <= 1;
+                bcu_read <= 1;
                 state <= INT_FETCH_WAIT1;
             end
 
             INT_FETCH_WAIT1: if (dp_ready & ce_1) begin
-                next_pc <= dp_din;
+                next_pc <= mem_din;
                 dp_addr <= { 10'd0, interrupt_vector[7:0], 2'b10 };
                 dp_req <= 1;
+                bcu_read <= 1;
                 state <= INT_FETCH_WAIT2;
             end
 
             INT_FETCH_WAIT2: if (dp_ready & ce_1) begin
-                reg_ps <= dp_din;
+                reg_ps <= mem_din;
                 set_pc <= 1;
                 int_processing <= 0;
                 state <= IDLE;
@@ -1051,9 +1123,9 @@ always_ff @(posedge clk) begin
                             end else begin
                                 working = 1;
                                 if (decoded.width == BYTE)
-                                    reg_aw[7:0] <= dp_din[7:0];
+                                    reg_aw[7:0] <= mem_din[7:0];
                                 else
-                                    reg_aw <= dp_din;
+                                    reg_aw <= mem_din;
 
                                 if (flags.DIR) begin
                                     reg_ix <= reg_ix - ( decoded.width == BYTE ? 16'd1 : 16'd2 );
@@ -1093,7 +1165,7 @@ always_ff @(posedge clk) begin
                                     working = 1;
                                 end
                             end else begin
-                                write_memory(reg_iy, DS1, decoded.width, dp_din);
+                                write_memory(reg_iy, DS1, decoded.width, mem_din);
                                 if (flags.DIR) begin
                                     reg_iy <= reg_iy - ( decoded.width == BYTE ? 16'd1 : 16'd2 );
                                     reg_ix <= reg_ix - ( decoded.width == BYTE ? 16'd1 : 16'd2 );
@@ -1128,7 +1200,7 @@ always_ff @(posedge clk) begin
                                     working = 1;
                                 end
                             end else if (exec_stage == 1) begin
-                                TA <= decoded.width == WORD ? dp_din : { 8'd0, dp_din[7:0] };
+                                TA <= decoded.width == WORD ? mem_din : { 8'd0, mem_din[7:0] };
                                 read_memory(reg_iy, DS1, decoded.width);
                                 working = 1;
                                 if (flags.DIR) begin
@@ -1139,7 +1211,7 @@ always_ff @(posedge clk) begin
                                     reg_ix <= reg_ix + ( decoded.width == BYTE ? 16'd1 : 16'd2 );
                                 end
                             end else if (exec_stage == 2) begin
-                                TB <= decoded.width == WORD ? dp_din : { 8'd0, dp_din[7:0] };
+                                TB <= decoded.width == WORD ? mem_din : { 8'd0, mem_din[7:0] };
                                 alu_operation <= ALU_OP_CMP;
                                 alu_wide <= decoded.width == WORD ? 1 : 0;
                                 working = 1;
@@ -1179,7 +1251,7 @@ always_ff @(posedge clk) begin
                                 end
                             end else if (exec_stage == 1) begin
                                 TA <= decoded.width == WORD ? reg_aw : { 8'd0, reg_aw[7:0] };
-                                TB <= decoded.width == WORD ? dp_din : { 8'd0, dp_din[7:0] };;
+                                TB <= decoded.width == WORD ? mem_din : { 8'd0, mem_din[7:0] };;
                                 alu_operation <= ALU_OP_CMP;
                                 alu_wide <= decoded.width == WORD ? 1 : 0;
                                 working = 1;
@@ -1226,14 +1298,14 @@ always_ff @(posedge clk) begin
                                 end
                             end else begin
                                 if (decoded.opcode == OP_INM) begin
-                                    write_memory(reg_iy, DS1, decoded.width, dp_din);
+                                    write_memory(reg_iy, DS1, decoded.width, mem_din);
                                     if (flags.DIR) begin
                                         reg_iy <= reg_iy - ( decoded.width == BYTE ? 16'd1 : 16'd2 );
                                     end else begin
                                         reg_iy <= reg_iy + ( decoded.width == BYTE ? 16'd1 : 16'd2 );
                                     end
                                 end else begin
-                                    write_io(reg_dw, decoded.width, dp_din);
+                                    write_io(reg_dw, decoded.width, mem_din);
                                     if (flags.DIR) begin
                                         reg_ix <= reg_ix - ( decoded.width == BYTE ? 16'd1 : 16'd2 );
                                     end else begin
@@ -1406,7 +1478,7 @@ always_ff @(posedge clk) begin
                                 reg_sp <= reg_bp + 2;
                                 read_memory(reg_bp, SS, WORD);
                             end else begin
-                                reg_bp <= dp_din;
+                                reg_bp <= mem_din;
                                 delay = 10'd4;
                             end
                         end
@@ -1425,7 +1497,7 @@ always_ff @(posedge clk) begin
                             if (exec_stage == 1) begin
                                 read_memory(reg_bw + { 8'd0, reg_aw[7:0]}, decoded.segment, BYTE);
                             end else if (exec_stage == 2) begin
-                                reg_aw[7:0] <= dp_din[7:0];
+                                reg_aw[7:0] <= mem_din[7:0];
                             end
                         end
 
@@ -1460,16 +1532,16 @@ always_ff @(posedge clk) begin
                                     read_memory(reg_ix + {9'd0, bcd_offset}, decoded.segment, BYTE);
                                 end
                             end else if (exec_stage == 2) begin
-                                bcd_src <= dp_din[7:0] + { 7'd0, flags.CY };
+                                bcd_src <= mem_din[7:0] + { 7'd0, flags.CY };
                                 flags.CY <= 0;
                                 read_memory(reg_iy + {9'd0, bcd_offset}, DS1, BYTE);
                             end else if (exec_stage == 3) begin
                                 if (decoded.opcode == OP_ADD4S) begin
-                                    bcd_acc_low  <= { 1'b0, dp_din[3:0] } + { 1'b0, bcd_src[3:0] };
-                                    bcd_acc_high <= { 1'b0, dp_din[7:4] } + { 1'b0, bcd_src[7:4] };
+                                    bcd_acc_low  <= { 1'b0, mem_din[3:0] } + { 1'b0, bcd_src[3:0] };
+                                    bcd_acc_high <= { 1'b0, mem_din[7:4] } + { 1'b0, bcd_src[7:4] };
                                 end else begin
-                                    bcd_acc_low  <= { 1'b0, dp_din[3:0] } - { 1'b0, bcd_src[3:0] };
-                                    bcd_acc_high <= { 1'b0, dp_din[7:4] } - { 1'b0, bcd_src[7:4] };
+                                    bcd_acc_low  <= { 1'b0, mem_din[3:0] } - { 1'b0, bcd_src[3:0] };
+                                    bcd_acc_high <= { 1'b0, mem_din[7:4] } - { 1'b0, bcd_src[7:4] };
                                 end
                             end else if (exec_stage == 4) begin
                                 bcd_result_low = bcd_acc_low;
@@ -1543,7 +1615,7 @@ always_ff @(posedge clk) begin
                                     end else begin
                                         op_result <= {8'd0, new_offset};
                                     end
-                                    reg_aw <= ( dp_din >> bitfield_shift ) & bitfield_mask;
+                                    reg_aw <= ( mem_din >> bitfield_shift ) & bitfield_mask;
                                     working = 0;
                                 end
                             endcase
@@ -1564,7 +1636,7 @@ always_ff @(posedge clk) begin
                                     read_memory(bitfield_addr, DS1, bitfield_width);
                                 end
                                 2: begin
-                                    bitfield_out <= (dp_din & ~bitfield_mask) | ((reg_aw << bitfield_shift) & bitfield_mask);
+                                    bitfield_out <= (mem_din & ~bitfield_mask) | ((reg_aw << bitfield_shift) & bitfield_mask);
                                 end
                                 3: begin
                                     write_memory(bitfield_addr, DS1, bitfield_width, bitfield_out);
@@ -1708,43 +1780,43 @@ always_ff @(posedge clk) begin
                 end
 
                 case(pop_idx)
-                    0:  reg_aw <= dp_din;
-                    1:  reg_cw <= dp_din;
-                    2:  reg_dw <= dp_din;
-                    3:  reg_bw <= dp_din;
-                    4:  reg_sp <= dp_din;
+                    0:  reg_aw <= mem_din;
+                    1:  reg_cw <= mem_din;
+                    2:  reg_dw <= mem_din;
+                    3:  reg_bw <= mem_din;
+                    4:  reg_sp <= mem_din;
                     5:  begin end // skip
-                    6:  reg_bp <= dp_din;
-                    7:  reg_ix <= dp_din;
-                    8:  reg_iy <= dp_din;
-                    9:  reg_ds1 <= dp_din;
+                    6:  reg_bp <= mem_din;
+                    7:  reg_ix <= mem_din;
+                    8:  reg_iy <= mem_din;
+                    9:  reg_ds1 <= mem_din;
                     10: begin
-                        flags.CY  <= dp_din[0];
-                        flags.P   <= dp_din[2];
-                        flags.AC  <= dp_din[4];
-                        flags.Z   <= dp_din[6];
-                        flags.S   <= dp_din[7];
-                        flags.BRK <= dp_din[8];
-                        flags.IE  <= dp_din[9];
-                        flags.DIR <= dp_din[10];
-                        flags.V   <= dp_din[11];
-                        // flags.MD  <= dp_din[15]; // TODO V33, no MD flag, V20/30 will need this
+                        flags.CY  <= mem_din[0];
+                        flags.P   <= mem_din[2];
+                        flags.AC  <= mem_din[4];
+                        flags.Z   <= mem_din[6];
+                        flags.S   <= mem_din[7];
+                        flags.BRK <= mem_din[8];
+                        flags.IE  <= mem_din[9];
+                        flags.DIR <= mem_din[10];
+                        flags.V   <= mem_din[11];
+                        // flags.MD  <= mem_din[15]; // TODO V33, no MD flag, V20/30 will need this
                     end
                     11: begin
-                        reg_ps <= dp_din;
+                        reg_ps <= mem_din;
                         stack_modified_ps <= 1;
                     end
-                    12: reg_ss <= dp_din;
-                    13: reg_ds0 <= dp_din;
+                    12: reg_ss <= mem_din;
+                    13: reg_ds0 <= mem_din;
                     14: begin
-                        next_pc <= dp_din;
+                        next_pc <= mem_din;
                         stack_modified_pc <= 1;
                     end
                     15: begin
                         if (decoded.mod == 2'b11) begin
-                            set_reg16(reg16_index_e'(decoded.rm), dp_din);
+                            set_reg16(reg16_index_e'(decoded.rm), mem_din);
                         end else begin
-                            TA <= dp_din;
+                            TA <= mem_din;
                             pop_store <= 1;
                         end
                     end

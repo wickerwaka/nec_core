@@ -96,21 +96,12 @@ void tick(int count = 1)
 
         contextp->timeInc(1);
         top->clk = 1;
-        top->ce_1 = (~top->ce_1) & 1;
-        top->ce_2 = (~top->ce_2) & 1;
 
         top->eval();
         tfp->dump(contextp->time());
         print_trace(top->rootp->V33);
     }
 }
-
-void tick_ce()
-{
-    tick(1);
-    if (top->ce_1) tick(1);
-}
-
 
 int main(int argc, char **argv)
 {
@@ -138,8 +129,7 @@ int main(int argc, char **argv)
     top->trace(tfp, 99);
     tfp->open("test_186.vcd");
 
-    top->ce_1 = 0;
-    top->ce_2 = 1;
+    top->ce = 1;
     top->ready = 1;
 
     top->n_reset = 0;
