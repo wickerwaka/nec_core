@@ -707,7 +707,7 @@ b01101010:
   desc: PUSH imm8
   op: PUSH
   push: OPERAND
-  src: IMM
+  src: IMM_EXT
   width: BYTE
 
 b01101000:

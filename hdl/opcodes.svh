@@ -1425,7 +1425,7 @@ task process_ROOT(input bit [7:0] q);
       d.opcode <= OP_PUSH;
       d.width <= BYTE;
       d.push <= STACK_OPERAND;
-      d.source0 <= OPERAND_IMM;
+      d.source0 <= OPERAND_IMM_EXT;
       state <= TERMINAL;
     end
     8'b01101000: begin
