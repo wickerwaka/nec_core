@@ -129,7 +129,13 @@ module V33(
 
 
     // Non-hardware
-    input               turbo
+    input               turbo,
+
+    input secure,
+
+    input secure_wr,
+    input [7:0] secure_addr,
+    input [7:0] secure_byte
 );
 
 wire reset = ~n_reset;
@@ -730,7 +736,12 @@ nec_decode nec_decode(
     .valid(next_decode_valid),
     .decoded(next_decode),
     .retire_op,
-    .block_prefetch
+    .block_prefetch,
+
+    .secure,
+    .secure_wr,
+    .secure_addr,
+    .secure_byte
 );
 
 alu_operation_e alu_operation;

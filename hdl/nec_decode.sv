@@ -19,6 +19,12 @@ module nec_decode(
     input [3:0] ipq_len,
     input [7:0] ipq[8],
 
+    input secure,
+
+    input secure_wr,
+    input [7:0] secure_addr,
+    input [7:0] secure_byte,
+
     output logic valid,
 
     output logic block_prefetch,
@@ -34,6 +40,9 @@ decode_state_e state;
 
 nec_decode_t d; // in flight
 assign decoded = d;
+
+reg [7:0] decrypt_table[256];
+reg [7:0] decrypted_q;
 
 function bit [2:0] calc_imm_size(width_e width, operand_e s0, operand_e s1);
     case(s0)
@@ -109,7 +118,7 @@ task reset_decode();
     decode_valid <= 0;
     disp_read <= 3'd0;
     imm_read <= 3'd0;
-    state <= INITIAL;
+    state <= DECRYPT;
 endtask
 
 
@@ -147,6 +156,22 @@ always_ff @(posedge clk) begin
             d.pc <= new_pc;
         end else if (ce_1) begin
             case(state)
+                DECRYPT: begin
+                    if (avail > 0) begin
+                        if (secure)
+                            decrypted_q <= decrypt_table[q];
+                        else
+                            decrypted_q <= q;
+                        state <= INITIAL;
+                    end
+                end
+
+                INITIAL: begin
+                    process_decode(decrypted_q);
+                    pc <= pc + 16'd1;
+                    d.end_pc <= pc + 16'd1;
+                end
+
                 TERMINAL: begin
                     if (disp_read < d.disp_size || imm_read < imm_size) begin
 `ifndef OPERAND_DECODE_DELAY
@@ -191,11 +216,6 @@ always_ff @(posedge clk) begin
                         if (retire_op) begin
                             reset_decode();
                             d.pc <= pc;
-                            if (avail > 0) begin
-                                process_decode(q);
-                                pc <= pc + 16'd1;
-                                d.end_pc <= pc + 16'd1;
-                            end
                         end
                     end
                 end
@@ -217,4 +237,10 @@ always_ff @(posedge clk) begin
     end
 end
 
+
+always @(posedge clk) begin
+    if (secure_wr) begin
+        decrypt_table[secure_addr] <= secure_byte;
+    end
+end
 endmodule
