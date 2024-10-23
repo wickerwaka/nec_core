@@ -796,46 +796,6 @@ task process_ROOT_1000011x(input bit [7:0] q);
   endcase
 endtask
 
-task process_ROOT_10001111(input bit [7:0] q);
-  casex(q)
-    8'bxx000xxx: begin
-      d.mod <= q[7:6];
-      d.rm <= q[2:0];
-      d.opcode <= OP_POP;
-      d.width <= WORD;
-      d.pop <= STACK_OPERAND;
-      d.mem_write <= q[7:6] != 2'b11;
-      d.disp_size <= calc_disp_size(q[2:0], q[7:6]);
-      d.segment <= d.segment_override ? d.segment : calc_seg(q[2:0], q[7:6]);;
-      d.dest <= OPERAND_MODRM;
-      state <= TERMINAL;
-    end
-    default: begin
-      state <= ILLEGAL;
-    end
-  endcase
-endtask
-
-task process_ROOT_01100010(input bit [7:0] q);
-  casex(q)
-    8'bxxxxxxxx: begin
-      d.mod <= q[7:6];
-      d.rm <= q[2:0];
-      d.reg0 <= q[5:3];
-      d.opcode <= OP_CHKIND;
-      d.width <= DWORD;
-      d.mem_read <= q[7:6] != 2'b11;
-      d.disp_size <= calc_disp_size(q[2:0], q[7:6]);
-      d.segment <= d.segment_override ? d.segment : calc_seg(q[2:0], q[7:6]);;
-      d.source0 <= OPERAND_MODRM;
-      state <= TERMINAL;
-    end
-    default: begin
-      state <= ILLEGAL;
-    end
-  endcase
-endtask
-
 task process_ROOT_00001111_0001000x(input bit [7:0] q);
   casex(q)
     8'bxx000xxx: begin
@@ -1114,6 +1074,10 @@ endtask
 
 task process_ROOT_00001111(input bit [7:0] q);
   casex(q)
+    8'b10010010: begin
+      d.opcode <= OP_FINT;
+      state <= TERMINAL;
+    end
     8'b00100000: begin
       d.opcode <= OP_ADD4S;
       state <= TERMINAL;
@@ -1172,6 +1136,46 @@ task process_ROOT_00001111(input bit [7:0] q);
     8'b0001111x: begin
       d.width <= q[0] ? WORD : BYTE;
       state <= ROOT_00001111_0001111x;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_10001111(input bit [7:0] q);
+  casex(q)
+    8'bxx000xxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.opcode <= OP_POP;
+      d.width <= WORD;
+      d.pop <= STACK_OPERAND;
+      d.mem_write <= q[7:6] != 2'b11;
+      d.disp_size <= calc_disp_size(q[2:0], q[7:6]);
+      d.segment <= d.segment_override ? d.segment : calc_seg(q[2:0], q[7:6]);;
+      d.dest <= OPERAND_MODRM;
+      state <= TERMINAL;
+    end
+    default: begin
+      state <= ILLEGAL;
+    end
+  endcase
+endtask
+
+task process_ROOT_01100010(input bit [7:0] q);
+  casex(q)
+    8'bxxxxxxxx: begin
+      d.mod <= q[7:6];
+      d.rm <= q[2:0];
+      d.reg0 <= q[5:3];
+      d.opcode <= OP_CHKIND;
+      d.width <= DWORD;
+      d.mem_read <= q[7:6] != 2'b11;
+      d.disp_size <= calc_disp_size(q[2:0], q[7:6]);
+      d.segment <= d.segment_override ? d.segment : calc_seg(q[2:0], q[7:6]);;
+      d.source0 <= OPERAND_MODRM;
+      state <= TERMINAL;
     end
     default: begin
       state <= ILLEGAL;
@@ -1350,6 +1354,9 @@ task process_ROOT(input bit [7:0] q);
       d.opclass <= BRANCH;
       d.pop <= STACK_PC | STACK_PS | STACK_PSW;
       state <= TERMINAL;
+    end
+    8'b00001111: begin
+      state <= ROOT_00001111;
     end
     8'b01010000: begin
       d.opcode <= OP_PUSH;
@@ -1565,9 +1572,6 @@ task process_ROOT(input bit [7:0] q);
     8'b11010111: begin
       d.opcode <= OP_TRANS;
       state <= TERMINAL;
-    end
-    8'b00001111: begin
-      state <= ROOT_00001111;
     end
     8'b00100110: begin
       d.segment <= DS1;
@@ -1872,8 +1876,6 @@ task process_decode(input bit [7:0] q);
     ROOT_11000101: process_ROOT_11000101(q);
     ROOT_11000100: process_ROOT_11000100(q);
     ROOT_1000011x: process_ROOT_1000011x(q);
-    ROOT_10001111: process_ROOT_10001111(q);
-    ROOT_01100010: process_ROOT_01100010(q);
     ROOT_00001111_0001000x: process_ROOT_00001111_0001000x(q);
     ROOT_00001111_0001100x: process_ROOT_00001111_0001100x(q);
     ROOT_00001111_0001001x: process_ROOT_00001111_0001001x(q);
@@ -1888,6 +1890,8 @@ task process_decode(input bit [7:0] q);
     ROOT_00001111_00110001: process_ROOT_00001111_00110001(q);
     ROOT_00001111_00111001: process_ROOT_00001111_00111001(q);
     ROOT_00001111: process_ROOT_00001111(q);
+    ROOT_10001111: process_ROOT_10001111(q);
+    ROOT_01100010: process_ROOT_01100010(q);
     default: process_ROOT(q);
   endcase
 endtask

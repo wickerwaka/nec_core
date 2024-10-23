@@ -93,6 +93,7 @@
     <symbol name="POPR" value="111001" />
     <symbol name="INS" value="111010" />
     <symbol name="EXT" value="111011" />
+    <symbol name="FINT" value="111100" />
   </table>
   <table name="alu_operation_e" width="5">
     <symbol name="ADD" value="00000" />

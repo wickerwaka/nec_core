@@ -97,7 +97,8 @@ typedef enum bit [5:0] {
     OP_POP           = 6'b111000,
     OP_POPR          = 6'b111001,
     OP_INS           = 6'b111010,
-    OP_EXT           = 6'b111011
+    OP_EXT           = 6'b111011,
+    OP_FINT          = 6'b111100
 } opcode_e /* verilator public */;
 
 typedef enum bit [4:0] {

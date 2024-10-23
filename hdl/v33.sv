@@ -689,6 +689,10 @@ task handle_branch(input nec_decode_t dec);
             state <= IDLE;
         end
 
+        OP_FINT: begin
+            state <= IDLE; // TODO
+        end
+
         default: begin
         end
     endcase

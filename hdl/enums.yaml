@@ -101,6 +101,7 @@ opcode_e:
     - POPR
     - INS
     - EXT
+    - FINT
 
 alu_operation_e:
   prefix: ALU_OP_

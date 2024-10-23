@@ -621,6 +621,9 @@ b1100_1111:
     - PS
     - PSW
 
+b00001111_10010010:
+  desc: FINT
+  op: FINT
 
 #
 # Stack Push/Pop
